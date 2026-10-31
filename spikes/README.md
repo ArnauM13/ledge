@@ -6,8 +6,8 @@ Tots són **read-only**: no fan pagaments, transferències ni cap operació d'es
 | Spike | Gate | Estat |
 |---|---|---|
 | `enable-banking/` | G1 (membre A), G2 (membre B) | ✅ Escrit, **no s'ha executat mai contra l'API real amb credencials** |
-| `binance/` | G3 | ⏳ Pendent |
-| `wallets/` | G4 | ⏳ Pendent |
+| `binance/` | G3 | ✅ Escrit, **no s'ha executat mai contra l'API real amb credencials** |
+| `wallets/` | G4 | ✅ Escrit, **no s'ha executat mai contra l'API real amb credencials** |
 
 ---
 
@@ -100,6 +100,51 @@ npm run eb:close -- --member A
 ```
 Tanca la sessió a Enable Banking (i el consentiment al banc, si es pot) i esborra el fitxer local.
 
+## 3b. Binance (gate G3)
+
+### Crear la clau
+1. *Account → API Management → Create API* (clau HMAC generada pel sistema).
+2. Permisos: **només "Enable Reading"**. Res de Spot/Margin trading, Withdrawals, Internal/Universal Transfer, Futures ni Options.
+3. **Restringeix l'accés a IPs de confiança** i hi poses la teva IP pública actual (més endavant, la del VPS).
+4. Posa `BINANCE_API_KEY` i `BINANCE_API_SECRET` al `.env`.
+
+### Executar
+```bash
+npm run binance
+```
+L'ordre és `GET /api/v3/time` i després **`GET /sapi/v1/account/apiRestrictions`, que és obligatori**. Si la clau té qualsevol permís que no sigui de lectura, el script **s'atura** abans de fer cap altra crida. També s'atura davant d'un camp de permís desconegut que valgui `true` (*default deny*). Si la clau no té restricció d'IP, avisa.
+
+Després consulta, en aquest ordre:
+- el compte spot;
+- `getUserAsset`;
+- la funding wallet;
+- el saldo per wallet;
+- Simple Earn flexible i locked;
+- els dipòsits i les retirades dels darrers 90 dies.
+
+Pes documentat total: ≈ IP 389 + UID 18000, molt per sota dels límits. Amb `429` o `418`, s'atura i informa del `Retry-After`, sense reintentar.
+
+→ Fitxer per compartir: `output/binance-<data>.report.md`. Indica quins endpoints retornen dades, quins productes tenen saldo (sense imports), el pes consumit i els errors.
+
+## 3c. Wallets (gate G4)
+
+### Clau d'Etherscan
+Crea un compte a <https://etherscan.io>, ves a *API Dashboard* i afegeix una clau del pla gratuït. Posa-la a `ETHERSCAN_API_KEY`. Una sola clau serveix per a totes les cadenes de l'API V2 (`chainid`), però el pla gratuït només en cobreix algunes ("selected chains"). L'informe dirà quines fallen.
+
+### Executar
+Omple `BTC_ADDRESSES`, `EVM_ADDRESSES` i `EVM_CHAINS` al `.env` i executa:
+```bash
+npm run wallets
+```
+- Abans de fer cap crida, valida totes les adreces: checksum Base58Check, bech32/bech32m i EIP-55.
+- Rebutja seed phrases, claus privades (hex, WIF, xprv, PEM) i xpub, i no les repeteix mai per pantalla.
+- BTC: `GET https://mempool.space/api/address/{addr}`, amb 1 s entre crides.
+- EVM: Etherscan V2 `balancemulti` (fins a 20 adreces per crida), amb 400 ms entre crides (el límit gratuït és de 3 per segon).
+
+→ Fitxer per compartir: `output/wallets-<data>.report.md`. Inclou si cada consulta ha funcionat, la latència i les capçaleres de rate limit. **Sense saldos.**
+
+Abans de desar-se, els informes de Binance i wallets passen un control automàtic. Si hi detecta un secret conegut, un IBAN sencer, un valor hex de 64 caràcters, un JWT o una clau PEM, no es desa.
+
 ## 4. Opcions
 
 | Script | Opció | Per defecte | Què fa |
@@ -139,6 +184,8 @@ El script no reintenta mai automàticament.
 | `output/eb-session-*.json` | ❌ No. Dona accés a les dades fins que caduca |
 | `.env`, `*.pem` | ❌ Mai |
 
+Els informes de Binance i wallets inclouen la data i hora al nom (`binance-AAAAMMDD-HHMMSS.report.md`).
+
 ## 7. Desenvolupament
 
 ```bash
@@ -149,6 +196,25 @@ npm test
 npm run typecheck
 ```
 
-Els tests cobreixen les parts sense xarxa: el JWT (header, claims, signatura i TTL màxim de 24 h), l'anonimització, el parseig de la redirect URL i el càlcul de `valid_until`.
+Els tests cobreixen les parts sense xarxa:
+- el JWT (header, claims, signatura i TTL màxim de 24 h);
+- l'anonimització;
+- el parseig de la redirect URL i el càlcul de `valid_until`;
+- la signatura HMAC-SHA256 de Binance (vectors de l'RFC 4231) i la política de permisos;
+- el control dels informes compartibles;
+- la validació d'adreces BTC/EVM i la detecció de secrets.
 
-Referència de l'API: https://enablebanking.com/docs/api/reference (endpoints verificats el 31/10/2026).
+Referències verificades el 31/10/2026 (cada endpoint porta l'URL de la seva documentació en un comentari):
+- Enable Banking: https://enablebanking.com/docs/api/reference
+- Binance:
+  - signatura i `/api/v3/account`: https://developers.binance.com/docs/binance-spot-api-docs/rest-api
+  - Wallet i Simple Earn: OpenAPI oficial https://github.com/binance/binance-api-swagger/blob/master/spot_api.yaml (les pàgines web es generen amb JS i no s'han pogut llegir)
+- mempool.space: https://mempool.space/docs/api/rest
+- Etherscan V2: https://docs.etherscan.io/
+
+Diferències respecte a `INTEGRATION_FEASIBILITY.md`:
+- `GET /sapi/v1/asset/wallet/balance` pesa **60** (IP). Simple Earn flexible i locked pesen **150** cadascun. `withdraw/history` pesa **UID 18000** i admet com a màxim 10 peticions per segon.
+- Els historials de dipòsits i retirades tenen una finestra màxima de **90 dies** per consulta.
+- El change log de Binance esmenta camps de permís de la FIX API sense nom confirmat. Per això el control de permisos és *default deny*.
+- Etherscan: el pla gratuït només cobreix algunes cadenes ("selected chains only") i no s'ha pogut llegir la llista. Avui (31/10/2026) deixa de donar suport a ApeChain i Blast, i a partir del 3/11/2026 canvia la gestió del límit diari.
+- mempool.space aplica rate limit (HTTP 429), però no en publica xifres ni capçaleres.
