@@ -10,8 +10,34 @@
 | Repo `ArnauM13/ledge` | Creat, amb els documents de la Fase 0 |
 | Estudi de viabilitat | Fet (recerca documental, **sense proves reals**) |
 | Pla d'implementació | Fet |
-| Codi | Encara no n'hi ha |
+| Compte d'Enable Banking | Registrat (31/10/2026) |
+| Spike d'Enable Banking (`spikes/enable-banking`) | **Escrit i testejat en local; no s'ha executat mai amb credencials reals** |
+| Spikes de Binance i wallets | Pendents |
+| Codi de l'app (monorepo) | Encara no n'hi ha |
 | Gates G1–G4 (proves reals) | Pendents |
+
+---
+
+## 0. Què has de fer ara (resum ràpid)
+
+**Avui (Enable Banking, ~30 min):**
+1. Comprova que tens l'app de **producció** en estat *Active (restricted)*, amb els comptes del membre A vinculats (§1.3).
+2. Mou el `.pem` fora del repo, a `~/.secrets/ledge/`, i desa'n una còpia al gestor de contrasenyes (§1.4).
+3. Envia la consulta de l'Annex A de `INTEGRATION_FEASIBILITY.md` a `support.api@enablebanking.com`.
+4. Executa l'spike seguint `spikes/README.md`:
+   ```bash
+   cd spikes && npm install && cp .env.example .env   # i omple el .env
+   npm run eb:aspsps
+   npm run eb:connect -- --aspsp BBVA --member A
+   npm run eb:fetch -- --member A
+   ```
+5. Quan el membre B estigui disponible, fes el mateix amb `--member B`.
+6. Obre una sessió nova i passa-hi els `spikes/output/*.report.md`, **revisats abans** (mai els `.raw.json` ni `eb-session-*.json`), amb el prompt de la §5.
+
+**En paral·lel:**
+- Sessió de la Fase 1 (prompt de la §3). No depèn dels gates.
+- Sessió dels spikes de Binance i wallets (prompt de la §2, només els spikes 2 i 3; el d'Enable Banking ja està fet).
+- Claus de Binance (només "Enable Reading" i restricció d'IP) i d'Etherscan.
 
 ---
 
@@ -24,7 +50,8 @@
 - [ ] **D5** — Proveïdor de VPS *(recomanat: Hetzner, ~4–7 €/mes)*
 
 ### B. Comptes i credencials (vosaltres)
-- [ ] Enable Banking: compte + app de sandbox + app de producció → guia a la §1
+- [x] Enable Banking: compte creat
+- [ ] Enable Banking: app de sandbox + app de producció activada amb el membre A → guia a la §1
 - [ ] Enviar la consulta de l'Annex A de `INTEGRATION_FEASIBILITY.md` a `support.api@enablebanking.com`
 - [ ] Binance: API key amb **només "Enable Reading"** i restricció d'IP
 - [ ] Etherscan: API key gratuïta
@@ -32,13 +59,13 @@
 - [ ] Vercel: compte connectat a GitHub (no cal fins a la Fase 1, punt 9)
 
 ### C. Sessions de Claude Code (en aquest ordre)
-1. [ ] **Sessió de spikes** → prompt a la §2. Comença-la primer.
+1. [ ] **Sessió de spikes** → prompt a la §2. Enable Banking ✅ fet (`spikes/enable-banking`); falten Binance i wallets.
 2. [ ] **Sessió de la Fase 1** → prompt a la §3. Es pot obrir en paral·lel; no es trepitgen.
 
-### D. Executar els spikes (vosaltres, a la vostra màquina)
-- [ ] `eb:aspsps` → hi ha MyInvestor i Trade Republic?
-- [ ] `eb:connect` + `eb:fetch` amb el **membre A** → **G1**
-- [ ] `eb:connect` + `eb:fetch` amb el **membre B** → **G2**
+### D. Executar els spikes (vosaltres, a la vostra màquina) → instruccions a `spikes/README.md`
+- [ ] `npm run eb:aspsps` → hi ha MyInvestor i Trade Republic?
+- [ ] `npm run eb:connect -- --aspsp BBVA --member A` + `npm run eb:fetch -- --member A` → **G1**
+- [ ] `npm run eb:connect -- --aspsp BBVA --member B` + `npm run eb:fetch -- --member B` → **G2**
 - [ ] Spike de Binance → **G3**
 - [ ] Spike de wallets → **G4**
 - [ ] Passar els fitxers `*.report.md` (anonimitzats) a una sessió per actualitzar `INTEGRATION_FEASIBILITY.md`
@@ -97,6 +124,8 @@ Fonts: [Quick start](https://enablebanking.com/docs/api/quick-start) · [Linked 
 ---
 
 ## 2. Prompt: sessió de spikes
+
+> **Actualització 31/10/2026:** l'Spike 1 (Enable Banking) ja és a `spikes/enable-banking`. En enganxar aquest prompt, afegeix-hi al principi: *"L'Spike 1 ja està fet; fes només els spikes 2 i 3, reutilitzant l'estructura de `spikes/` (package.json, `.env.example`, `output/`, `lib/anonymize.ts`)"*.
 
 Obrir una sessió nova amb el repo `ArnauM13/ledge` seleccionat i enganxar:
 
@@ -196,7 +225,52 @@ Decisions encara pendents de l'usuari, que no has d'assumir: D4 (domini), D5 (pr
 
 ---
 
-## 4. Regles que no canvien
+## 4. Com interpretar els resultats d'Enable Banking
+
+| Què diu l'informe | Gate | Conseqüència |
+|---|---|---|
+| `eb-connect-A`: ≥1 compte, i `eb-fetch-A`: saldos i moviments sense errors | **G1 = GO** | L'adapter de BBVA es pot fer a la Fase 3 |
+| `eb-connect-B` / `eb-fetch-B`: retorna els comptes del membre B | **G2 = GO** | Els dos membres sincronitzen automàticament |
+| Membre B: `Comptes a la sessió: 0` | **G2 = NO-GO** (de moment) | Comptes de B manuals fins que Enable Banking respongui l'Annex A |
+| `ASPSP_RATE_LIMIT_EXCEEDED` | Ni GO ni NO-GO | Espera ≥ 6 h i torna a fer només `eb:fetch` |
+| `eb-aspsps`: MyInvestor / Trade Republic = NO | — | El seu cash també serà manual (D1) |
+| `Dies d'historial` i `Consentiment vàlid fins a` | — | Fixen quant historial s'importa i cada quan cal reconnectar (alerta 14 dies abans) |
+
+---
+
+## 5. Prompt: sessió per actualitzar la viabilitat amb els resultats
+
+~~~~text
+Projecte "ledge" (repo ArnauM13/ledge). He executat els spikes d'Enable Banking a la meva màquina.
+Et passo els informes anonimitzats (spikes/output/*.report.md) a continuació.
+
+Tasca:
+1. Llegeix INTEGRATION_FEASIBILITY.md, IMPLEMENTATION_PLAN.md, NEXT_STEPS.md (§4) i spikes/README.md.
+2. Amb els informes, decideix els gates G1 i G2 (GO / NO-GO / pendent) i justifica-ho amb dades dels informes.
+3. Actualitza INTEGRATION_FEASIBILITY.md: veredictes de BBVA i Enable Banking, `maximum_consent_validity` real,
+   profunditat de l'historial, cobertura de MyInvestor i Trade Republic, i elimina el que ja no sigui "no verificat".
+4. Actualitza l'estat i la checklist de NEXT_STEPS.md.
+5. No inventis res que no surti als informes. Si un informe té un error, digues què vol dir i què cal tornar a provar.
+Treballa en una branca nova i obre un PR cap a main.
+
+[enganxa aquí els informes]
+~~~~
+
+---
+
+## 6. Fases següents: què et tocarà fer a tu
+
+| Fase | Què fa Claude | Què fas tu |
+|---|---|---|
+| **0 — Spikes** | Escriure els scripts (EB ✅, Binance i wallets pendents) | Executar-los, revisar i passar els `*.report.md` |
+| **1 — Scaffold** (§3) | Monorepo Nx, Angular, NestJS, Docker, `/health` | Revisar i fusionar el PR. Al final de la fase: decidir D4 (domini) i D5 (VPS), i connectar Vercel a GitHub |
+| **2 — Domini financer** | Model de dades, Prisma, auth, entrades manuals | Decidir D1 i D2. Preparar les dades manuals inicials (posicions de MyInvestor/TR, NAV, hipoteca, immobles) |
+| **3 — Integracions** | Un adapter per a cada gate en GO | Desplegar el backend amb domini HTTPS i canviar la Redirect URL de l'app de producció a `https://<domini>/...`. Posar els secrets al servidor (mai al repo) |
+| **4 — Sync i operació** | Sync nocturna, alertes de consentiment | Reconnectar BBVA quan caduqui el consentiment (cada ~90–180 dies, segons l'informe) |
+
+---
+
+## 7. Regles que no canvien
 
 - Cap secret al xat, al repo ni als logs.
 - Cap integració es declara funcional sense una prova real.

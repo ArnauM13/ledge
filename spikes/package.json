@@ -1,0 +1,22 @@
+{
+  "name": "ledge-spikes",
+  "private": true,
+  "type": "module",
+  "description": "Fase 0: scripts de prova (spikes) per tancar els gates G1–G4. Read-only.",
+  "engines": {
+    "node": ">=20.12"
+  },
+  "scripts": {
+    "eb:aspsps": "tsx enable-banking/aspsps.ts",
+    "eb:connect": "tsx enable-banking/connect.ts",
+    "eb:fetch": "tsx enable-banking/fetch.ts",
+    "eb:close": "tsx enable-banking/close.ts",
+    "test": "tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}
