@@ -59,14 +59,15 @@ Resultat: actualitzar `INTEGRATION_FEASIBILITY.md` amb les evidències (anonimit
 
 Ordre de treball, un PR per punt:
 
-1. **Monorepo Nx**: `apps/web` (Angular 21, standalone, OnPush, signals), `apps/api` (NestJS), `libs/shared/types`. TS `strict`. ESLint + Prettier.
-2. **Tailwind** amb prefix `t-` i tokens del tema fosc (charcoal, maragda, vermell d'alerta).
-3. **Docker Compose local**: PostgreSQL + API. Sense Redis de moment.
+0. **Detecció de secrets**: gitleaks (hook de pre-commit + workflow que només fa gitleaks). S'afegeix abans del punt 4.
+1. ✅ **Monorepo Nx**: `apps/web` (Angular 21, standalone, OnPush, signals), `apps/api` (NestJS), `libs/shared/types`. TS `strict`. ESLint + Prettier.
+2. ✅ **Tailwind** amb prefix `t-` i tokens del tema fosc (charcoal, maragda, vermell d'alerta).
+3. ✅ **Docker Compose local**: PostgreSQL + API. Sense Redis de moment. Secrets com a fitxers (Compose secrets).
 4. **Prisma**: primera migració amb `users`, `households`, `memberships`, `audit_logs`.
 5. **Auth**: login individual, contrasenya argon2, **TOTP 2FA**, sessió en cookie `HttpOnly` + `Secure` + `SameSite`.
 6. **Aïllament de household**: guard NestJS + filtre obligatori per `household_id`, amb test.
-7. **Xifratge**: servei AES-256-GCM, master key per variable d'entorn (mai a la BD).
-8. **CI** (GitHub Actions): lint, test, build.
+7. **Xifratge**: servei AES-256-GCM, master key en un fitxer de secrets (`/run/secrets/*`), mai a la BD ni en variables d'entorn.
+8. **CI** (GitHub Actions): lint, test, build (gitleaks ja hi és des del punt 0).
 9. **Vercel**: projecte connectat al repo; deploy de `apps/web` (pantalla de login, sense dades).
 
 **Definition of Done de la Fase 1:** els dos usuaris poden fer login amb 2FA i veuen un Overview buit a Vercel.

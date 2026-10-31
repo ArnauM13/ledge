@@ -14,7 +14,8 @@
 | Spike d'Enable Banking (`spikes/enable-banking`) | **Escrit i testejat en local; no s'ha executat mai amb credencials reals** |
 | Spike de Binance (`spikes/binance`) | **Escrit i testejat en local; no s'ha executat mai amb credencials reals** |
 | Spike de wallets (`spikes/wallets`) | **Escrit i testejat en local; no s'ha executat mai contra l'API real** |
-| Codi de l'app (monorepo) | Fase 1 punts 1–3 fets: Nx + Angular 21 + NestJS + Tailwind `t-` + Docker Compose (veure `README.md`) |
+| Codi de l'app (monorepo) | Fase 1 punts 1–3 a `main` (PR #6): Nx + Angular 21 + NestJS + Tailwind `t-` + Docker Compose amb secrets en fitxers (veure `README.md`) |
+| Fase 1 punts 4–7 + gitleaks | Pendent. Prompt a la §3b |
 | Gates G1–G4 (proves reals) | Pendents |
 
 ---
@@ -36,7 +37,8 @@
 6. Obre una sessió nova i passa-hi els `spikes/output/*.report.md`, **revisats abans** (mai els `.raw.json` ni `eb-session-*.json`), amb el prompt de la §5.
 
 **En paral·lel:**
-- Fase 1, punts 1–3: revisar i fusionar el PR del scaffold (`README.md` explica com arrencar-lo).
+- Sessió de la Fase 1, punts 4–7 + gitleaks (prompt de la §3b). No depèn dels gates.
+- Instal·lar `gitleaks` a la vostra màquina (el hook de pre-commit el necessitarà): https://github.com/gitleaks/gitleaks#installing
 - Claus de Binance (només "Enable Reading" i restricció d'IP) i d'Etherscan → `spikes/README.md` §3b i §3c.
 - Executa els spikes de Binance i wallets (omple abans `BINANCE_*`, `BTC_ADDRESSES`, `EVM_ADDRESSES`, `EVM_CHAINS` i `ETHERSCAN_API_KEY` al `.env`):
   ```bash
@@ -67,8 +69,8 @@
 
 ### C. Sessions de Claude Code (en aquest ordre)
 1. [x] **Sessió de spikes** → fet. Enable Banking (`spikes/enable-banking`), Binance (`spikes/binance`) i wallets (`spikes/wallets`) són a `main`. Estan escrits però no executats.
-2. [x] **Sessió de la Fase 1, punts 1–3** → prompt a la §3. Fet.
-3. [ ] **Fase 1, punts 4–7**: Prisma (`users`, `households`, `memberships`, `audit_logs`), auth amb argon2 + TOTP, guard de household i servei AES-256-GCM.
+2. [x] **Sessió de la Fase 1, punts 1–3** → prompt a la §3. Fusionat (PR #6).
+3. [ ] **Fase 1, punts 4–7 + gitleaks** → prompt a la §3b: gitleaks (pre-commit + workflow), Prisma (`users`, `households`, `memberships`, `audit_logs`), auth amb argon2 + TOTP, guard de household i servei AES-256-GCM.
 4. [ ] **Fase 1, punts 8–9**: CI (GitHub Actions) i Vercel (requereix el compte de Vercel).
 
 ### D. Executar els spikes (vosaltres, a la vostra màquina) → instruccions a `spikes/README.md`
@@ -187,7 +189,7 @@ Documentació: https://developers.binance.com/docs/wallet
 
 ---
 
-## 3. Prompt: sessió de la Fase 1
+## 3. Prompt: sessió de la Fase 1, punts 1–3 (✅ fet, PR #6)
 
 Obrir una sessió nova amb el repo `ArnauM13/ledge` seleccionat i enganxar:
 
@@ -231,6 +233,83 @@ Auth, Prisma i model de dades, integracions, CI i deploy a Vercel. Van en tasque
 
 Decisions encara pendents de l'usuari, que no has d'assumir: D4 (domini), D5 (proveïdor de VPS) i el compte de Vercel.
 ~~~~
+
+---
+
+## 3b. Prompt: sessió de la Fase 1, punts 4–7 + gitleaks
+
+Obrir una sessió nova amb el repo `ArnauM13/ledge` seleccionat i enganxar:
+
+~~~~text
+Projecte: "ledge", un dashboard patrimonial privat per a una household de dues persones. Repo: ArnauM13/ledge.
+
+## Context
+Abans de fer res, llegeix del repo: CLAUDE.md, README.md, IMPLEMENTATION_PLAN.md (Fase 1), INTEGRATION_FEASIBILITY.md (seccions de seguretat) i NEXT_STEPS.md.
+
+Ja és a main (Fase 1, punts 1–3):
+- Monorepo Nx 24: apps/web (Angular 21, standalone, OnPush, signals, zoneless), apps/api (NestJS 11, GET /health), libs/shared/types.
+- Tailwind v3 amb prefix `t-`.
+- Docker Compose amb Postgres (xarxa interna, sense ports publicats) i l'API (només a 127.0.0.1).
+- Secrets com a fitxers (Compose secrets a /run/secrets/*). L'API rep DB_HOST, DB_PORT, DB_USER, DB_NAME i DB_PASSWORD_FILE. Mai contrasenyes en variables d'entorn ni al .env.
+- spikes/ és un paquet independent, fora del graf de Nx. No el toquis.
+
+## Tasca d'aquesta sessió: Fase 1, punts 4–7, més detecció de secrets
+
+0. Detecció de secrets amb gitleaks (fes-ho PRIMER, en un commit propi):
+   - `.gitleaks.toml` que estengui les regles per defecte.
+   - Allowlist molt acotada, només per a falsos positius verificats (p. ex. les dades de prova de spikes/test/*.test.ts que contenen '-----BEGIN PRIVATE KEY-----'). Res de patrons amplis ni carpetes senceres sense justificar-ho.
+   - Hook de pre-commit que executi `gitleaks git --staged` (o l'ordre equivalent de la versió actual; verifica-la a la documentació oficial). Si gitleaks no està instal·lat, el hook ha de fallar amb un missatge que expliqui com instal·lar-lo. Mai l'ha de saltar en silenci.
+   - Workflow `.github/workflows/secrets.yml` que només executi gitleaks sobre tot l'historial a cada PR i a cada push a main. Fixa la versió i verifica el checksum del binari. El CI complet (lint, test, build) és el punt 8, no el facis.
+   - Escaneja tot l'historial del repo i ensenya'n el resultat. Si troba alguna cosa, atura't i explica-ho abans de continuar.
+   - Documenta-ho al README (instal·lació i què fer davant un fals positiu).
+
+4. Prisma i PostgreSQL:
+   - Primera migració amb `users`, `households`, `memberships` i `audit_logs`.
+   - IDs UUID, `created_at`/`updated_at` en UTC i índexs per `household_id`.
+   - La URL de connexió es munta en arrencar, a partir de DB_* i del fitxer DB_PASSWORD_FILE (amb la contrasenya codificada per a URL). Mai s'escriu als logs ni als errors.
+   - `audit_logs` és append-only: cap update ni delete des de l'API.
+
+5. Auth:
+   - Login individual amb contrasenya argon2id (paràmetres d'OWASP, documentats).
+   - TOTP 2FA obligatori: alta amb QR i codis de recuperació (es mostren una sola vegada i es guarden amb hash).
+   - Sessió en cookie HttpOnly + Secure + SameSite=Strict, amb caducitat per inactivitat i absoluta, i invalidació al logout.
+   - Rate limiting i bloqueig temporal al login i al TOTP.
+   - Missatges d'error genèrics (no han de revelar si l'usuari existeix).
+   - Protecció CSRF per a les peticions que modifiquen dades.
+   - Tot inici de sessió, fallit o correcte, va a `audit_logs` sense dades sensibles.
+   - Sense registre públic: els dos usuaris es creen amb un script de seed/CLI que demana la contrasenya per stdin. Mai per argument ni per variable d'entorn.
+
+6. Aïllament de household:
+   - Guard de NestJS i un mecanisme que obligui a filtrar per `household_id` a totes les consultes de dades de negoci.
+   - Test que demostri que un usuari d'una household no pot llegir ni modificar dades d'una altra (ha de retornar 404, no 403).
+
+7. Xifratge:
+   - Servei AES-256-GCM amb IV aleatori per valor, versió de clau al text xifrat (per poder rotar-la) i AAD lligada al registre.
+   - Clau mestra de 32 bytes llegida d'un fitxer de secrets (p. ex. LEDGE_MASTER_KEY_FILE a /run/secrets/). Mai a la BD, al repo ni als logs.
+   - L'API no arrenca si la clau falta o és invàlida.
+   - Tests de xifrar i desxifrar, de text manipulat (ha de fallar) i de clau incorrecta.
+
+Web (apps/web): pantalles de login, TOTP i alta del 2FA, i un Overview buit protegit per auth. Cap xifra inventada.
+
+## Requisits
+- Docker Compose: afegeix el secret de la clau mestra i les migracions (que es puguin executar en local).
+- Actualitza .env.example (sense cap secret), secrets/README.md (com generar cada secret) i el README.
+- Actualitza la documentació (regla de CLAUDE.md): estat i checklist de NEXT_STEPS.md, i IMPLEMENTATION_PLAN.md si canvia alguna decisió.
+- `nx lint`, `nx test`, `nx build`, `prettier --check .` i gitleaks sobre tot l'historial han de passar abans d'acabar.
+- Justifica cada dependència nova i fixa'n la versió.
+
+## Fora d'abast
+CI complet (punt 8), Vercel (punt 9), model de dades financer (Fase 2) i integracions (Fase 3).
+
+## Forma de treballar
+- Branca nova des de main i PR cap a main. Commits petits: un per punt.
+- Si cal una decisió que no surt als documents (p. ex. sessions a Postgres o tokens signats, o la llibreria de TOTP), pregunta-ho abans de decidir.
+- Al final, resumeix què has fet, què has verificat (amb la sortida de lint, test, build i gitleaks) i què queda pendent.
+
+Decisions encara pendents de l'usuari, que no has d'assumir: D4 (domini), D5 (VPS) i el compte de Vercel.
+~~~~
+
+Per què gitleaks va primer: protegeix els commits de Prisma i auth, que és on és més fàcil que s'escoli un secret. El workflow només fa gitleaks; el CI complet continua sent el punt 8.
 
 ---
 
@@ -278,8 +357,8 @@ Treballa en una branca nova i obre un PR cap a main.
 | Fase | Què fa Claude | Què fas tu |
 |---|---|---|
 | **0 — Spikes** | Escriure els scripts (EB ✅, Binance ✅, wallets ✅) | Executar-los, revisar i passar els `*.report.md` |
-| **1 — Scaffold** (§3) | Monorepo Nx, Angular, NestJS, Docker, `/health` | Revisar i fusionar el PR. Al final de la fase: decidir D4 (domini) i D5 (VPS), i connectar Vercel a GitHub |
-| **2 — Domini financer** | Model de dades, Prisma, auth, entrades manuals | Decidir D1 i D2. Preparar les dades manuals inicials (posicions de MyInvestor/TR, NAV, hipoteca, immobles) |
+| **1 — Infraestructura** (§3 ✅, §3b) | Monorepo, Docker, `/health` ✅ · gitleaks, Prisma, auth amb 2FA, aïllament de household, xifratge · CI i Vercel | Revisar i fusionar els PR. Instal·lar gitleaks. Al final de la fase: decidir D4 (domini) i D5 (VPS), i connectar Vercel a GitHub |
+| **2 — Domini financer** | Model de dades financer, ownerships, entrades manuals, hipoteca, patrimoni net | Decidir D1 i D2. Preparar les dades manuals inicials (posicions de MyInvestor/TR, NAV, hipoteca, immobles) |
 | **3 — Integracions** | Un adapter per a cada gate en GO | Desplegar el backend amb domini HTTPS i canviar la Redirect URL de l'app de producció a `https://<domini>/...`. Posar els secrets al servidor (mai al repo) |
 | **4 — Sync i operació** | Sync nocturna, alertes de consentiment | Reconnectar BBVA quan caduqui el consentiment (cada ~90–180 dies, segons l'informe) |
 
@@ -287,7 +366,8 @@ Treballa en una branca nova i obre un PR cap a main.
 
 ## 7. Regles que no canvien
 
-- Cap secret al xat, al repo ni als logs.
+- Cap secret al xat, al repo ni als logs. Els secrets van en fitxers (`secrets/`, Compose secrets), no en variables d'entorn.
+- Cada PR actualitza la documentació afectada (`README.md`, `NEXT_STEPS.md`, `IMPLEMENTATION_PLAN.md`). Regla a `CLAUDE.md`.
 - Cap integració es declara funcional sense una prova real.
 - Res de scraping, APIs no oficials ni dades fictícies presentades com a reals.
 - Cap servei de pagament sense aprovació explícita.
