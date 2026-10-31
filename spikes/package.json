@@ -1,22 +1,25 @@
 {
-  "name": "ledge-spikes",
+  "name": "@ledge/spikes",
+  "version": "0.0.0",
   "private": true,
+  "description": "Phase 0 integration spikes (read-only). Run locally with your own secrets.",
   "type": "module",
-  "description": "Fase 0: scripts de prova (spikes) per tancar els gates G1–G4. Read-only.",
   "engines": {
-    "node": ">=20.12"
+    "node": ">=20.12.0"
   },
   "scripts": {
-    "eb:aspsps": "tsx enable-banking/aspsps.ts",
-    "eb:connect": "tsx enable-banking/connect.ts",
-    "eb:fetch": "tsx enable-banking/fetch.ts",
-    "eb:close": "tsx enable-banking/close.ts",
+    "eb:aspsps": "tsx src/enable-banking/aspsps.ts",
+    "eb:connect": "tsx src/enable-banking/connect.ts",
+    "eb:fetch": "tsx src/enable-banking/fetch.ts",
+    "eb:close": "tsx src/enable-banking/close.ts",
+    "binance": "tsx src/binance/run.ts",
+    "wallets": "tsx src/wallets/run.ts",
     "test": "tsx --test test/*.test.ts",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@types/node": "^22.10.0",
-    "tsx": "^4.19.0",
-    "typescript": "^5.7.0"
+    "@types/node": "20.19.43",
+    "tsx": "4.20.6",
+    "typescript": "5.9.3"
   }
 }

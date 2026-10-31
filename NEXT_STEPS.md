@@ -11,8 +11,7 @@
 | Estudi de viabilitat | Fet (recerca documental, **sense proves reals**) |
 | Pla d'implementació | Fet |
 | Compte d'Enable Banking | Registrat (31/10/2026) |
-| Spike d'Enable Banking (`spikes/enable-banking`) | **Escrit i testejat en local; no s'ha executat mai amb credencials reals** |
-| Spikes de Binance i wallets | Pendents |
+| Spikes d'Enable Banking, Binance i wallets (`spikes/src/`) | **Escrits i testejats en local; no s'han executat mai amb credencials reals** |
 | Codi de l'app (monorepo) | Encara no n'hi ha |
 | Gates G1–G4 (proves reals) | Pendents |
 
@@ -59,7 +58,7 @@
 - [ ] Vercel: compte connectat a GitHub (no cal fins a la Fase 1, punt 9)
 
 ### C. Sessions de Claude Code (en aquest ordre)
-1. [ ] **Sessió de spikes** → prompt a la §2. Enable Banking ✅ fet (`spikes/enable-banking`); falten Binance i wallets.
+1. [ ] **Sessió de spikes** → prompt a la §2. ✅ fet: Enable Banking, Binance i wallets (`spikes/src/`). Falta executar-los.
 2. [ ] **Sessió de la Fase 1** → prompt a la §3. Es pot obrir en paral·lel; no es trepitgen.
 
 ### D. Executar els spikes (vosaltres, a la vostra màquina) → instruccions a `spikes/README.md`
@@ -125,7 +124,7 @@ Fonts: [Quick start](https://enablebanking.com/docs/api/quick-start) · [Linked 
 
 ## 2. Prompt: sessió de spikes
 
-> **Actualització 31/10/2026:** l'Spike 1 (Enable Banking) ja és a `spikes/enable-banking`. En enganxar aquest prompt, afegeix-hi al principi: *"L'Spike 1 ja està fet; fes només els spikes 2 i 3, reutilitzant l'estructura de `spikes/` (package.json, `.env.example`, `output/`, `lib/anonymize.ts`)"*.
+> **Actualització 31/10/2026:** els tres spikes ja són a `spikes/src/` (`enable-banking/`, `binance/`, `wallets/`). Aquest prompt es conserva només com a referència.
 
 Obrir una sessió nova amb el repo `ArnauM13/ledge` seleccionat i enganxar:
 
@@ -147,7 +146,7 @@ Objectiu: escriure scripts de prova (spikes) que l'usuari executarà a la SEVA m
   - `*.report.md`: anonimitzat, amb IBAN emmascarat (`ES12 **** **** 1234`), sense imports, noms ni adreces completes. Aquest és el que l'usuari compartirà.
 - Abans d'implementar cada endpoint, verifica'l a la documentació oficial i posa'n l'URL en un comentari. Si un endpoint no existeix o ha canviat, digues-ho.
 
-## Spike 1: spikes/enable-banking (gates G1 i G2)
+## Spike 1: spikes/src/enable-banking (gates G1 i G2)
 Documentació: https://enablebanking.com/docs/api/reference i https://enablebanking.com/docs/markets/es
 - Autenticació: JWT RS256 signat amb la clau privada de l'app (`EB_PRIVATE_KEY_PATH`, `EB_APP_ID` com a `kid`). Verifica a la doc el format exacte de `iss`, `aud` i `exp`.
 - `npm run eb:aspsps`: `GET /aspsps?country=ES`. Informe: BBVA, MyInvestor i Trade Republic (presents o no), tipus de PSU, `maximum_consent_validity` en dies i altres camps rellevants.

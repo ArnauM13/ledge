@@ -1,154 +1,178 @@
-# spikes/ — Proves reals de la Fase 0
+# spikes/ — Fase 0 (gates G1–G4)
 
-Scripts que **executes tu, a la teva màquina, amb els teus secrets**, per tancar els gates de `IMPLEMENTATION_PLAN.md`.
-Tots són **read-only**: no fan pagaments, transferències ni cap operació d'escriptura al banc.
+Scripts de prova **read-only** per verificar les integracions abans d'escriure-les de debò.
+Els executes **tu, a la teva màquina, amb els teus secrets**. Ningú més els ha executat:
+fins que no hi hagi un informe generat per tu, **cap integració està verificada**.
 
-| Spike | Gate | Estat |
+| Gate | Script | Què demostra |
 |---|---|---|
-| `enable-banking/` | G1 (membre A), G2 (membre B) | ✅ Escrit, **no s'ha executat mai contra l'API real amb credencials** |
-| `binance/` | G3 | ⏳ Pendent |
-| `wallets/` | G4 | ⏳ Pendent |
+| G1 | `eb:aspsps`, `eb:connect`, `eb:fetch` | BBVA via Enable Banking: consentiment, saldos, historial |
+| G2 | `eb:connect` + `eb:fetch` amb `--member B` | El segon titular obté els seus comptes (o una llista buida) |
+| G3 | `binance` | Quins endpoints/productes de Binance retornen dades amb una clau read-only |
+| G4 | `wallets` | Consultes d'adreces BTC (mempool.space) i EVM (Etherscan V2) |
 
----
+## Prerequisits
 
-## 1. Prerequisits
+- Node **≥ 20.12** (fa servir `fetch`, `node:crypto`, `node:test` i `process.loadEnvFile` natius).
+- `cd spikes && npm ci`
+- `cp .env.example .env` i omple'l (vegeu a sota). `.env` i `output/` són al `.gitignore`.
 
-- Node **20.12 o més nou**. Comprova-ho amb `node -v`.
-- Una app d'Enable Banking registrada (guia a `NEXT_STEPS.md` §1). Necessites:
-  - El fitxer `<APP_ID>.pem` (la clau privada).
-  - La Redirect URL que vas registrar (per defecte, `https://localhost:3000/callback`).
-
-Dependències (només de desenvolupament):
+### Dependències (totes de desenvolupament; zero dependències en temps d'execució)
 
 | Paquet | Per què |
 |---|---|
-| `tsx` | Executa TypeScript directament, sense compilar |
-| `typescript` | Comprovació de tipus (`npm run typecheck`) |
-| `@types/node` | Tipus de Node |
+| `tsx` | Executar TypeScript directament, sense pas de build. |
+| `typescript` | `npm run typecheck` (`tsc --noEmit`, mode `strict`). |
+| `@types/node` | Tipus de les APIs natives de Node. |
 
-La resta és Node natiu: `fetch`, `node:crypto` (JWT RS256), `node:readline` i `node:test`.
+JWT RS256, HMAC-SHA256, Base58Check, bech32/bech32m i Keccak-256 (EIP-55) s'implementen amb `node:crypto`
+i codi propi testejat, per no afegir llibreries que manegin secrets.
 
-## 2. Configuració (un sol cop)
+## Credencials
 
-```bash
-cd spikes
-npm install
-cp .env.example .env
-```
+### Enable Banking (G1, G2)
 
-Edita `.env`:
+Documentació: <https://enablebanking.com/docs/api/quick-start>, <https://enablebanking.com/docs/api/linked-accounts>
 
-```dotenv
-EB_APP_ID=a1b2c3d4-...                         # el nom del .pem, sense ".pem"
-EB_PRIVATE_KEY_PATH=~/.secrets/ledge/a1b2c3d4-....pem
-EB_REDIRECT_URL=https://localhost:3000/callback  # igual que a l'app
-```
+1. Crea un compte al Control Panel d'Enable Banking i registra una aplicació d'entorn **PRODUCTION**.
+2. Genera la clau **fora del repo** i un certificat autosignat per pujar-lo:
+   ```bash
+   mkdir -p ~/.secrets/ledge && chmod 700 ~/.secrets/ledge
+   ```
+   ```bash
+   openssl genrsa -out ~/.secrets/ledge/enablebanking-private.pem 4096
+   ```
+   ```bash
+   openssl req -new -x509 -days 365 -key ~/.secrets/ledge/enablebanking-private.pem -out ~/.secrets/ledge/enablebanking-cert.pem -subj "/CN=ledge-household"
+   ```
+   Puja el **certificat** (`.pem` públic) a l'app. L'Application ID que et retorna va a `EB_APP_ID`.
+   (Si el Control Panel ofereix generar la clau al navegador, també serveix: desa la privada fora del repo.)
+3. Registra una **URL de redirecció HTTPS** i posa-la a `EB_REDIRECT_URL`. No cal que hi hagi res servint-la:
+   després de la SCA només has de copiar l'URL de la barra d'adreces.
+4. L'app queda *Inactive*. Fes servir **"Activate by linking accounts"** per vincular els teus comptes:
+   passa a mode **restringit**, on només es retornen dades de comptes vinculats.
 
-Si la clau és dins del repo, el script s'atura: mou-la a una carpeta de fora.
-`.env`, `output/` i `*.pem` són al `.gitignore`.
+### Binance (G3)
 
-**Sandbox o producció?** Depèn de l'app (`EB_APP_ID`), no del script.
-- Amb l'app de **sandbox** veus bancs de prova. Serveix per assajar el flux.
-- Amb l'app de **producció** llegeixes el BBVA real. És la que tanca els gates.
+1. *Account → API Management → Create API* (clau HMAC generada pel sistema).
+2. Permisos: **només "Enable Reading"**. Res de Spot/Margin trading, Withdrawals, Internal/Universal Transfer, Futures, Options…
+3. **Restringeix l'accés a IPs de confiança** i posa-hi la teva IP pública actual (la del VPS més endavant).
+4. `BINANCE_API_KEY` i `BINANCE_API_SECRET` al `.env`. El script **s'atura** si la clau té qualsevol permís que no sigui de lectura, i avisa si no té restricció d'IP.
 
-## 3. Execució pas a pas
+### Etherscan (G4)
 
-### Pas 1 — Quins bancs hi ha?
-```bash
-npm run eb:aspsps
-```
-Mira si a Espanya hi ha BBVA, MyInvestor i Trade Republic, i amb quina validesa màxima de consentiment.
-→ Fitxer per compartir: `output/eb-aspsps-ES.report.md`
+1. Crea un compte a <https://etherscan.io> → *API Dashboard* → *Add* una clau (pla gratuït).
+2. Posa-la a `ETHERSCAN_API_KEY`. Una sola clau serveix per a totes les cadenes de l'API V2 (`chainid`),
+   però el pla gratuït cobreix només "selected chains": l'informe dirà quines fallen.
 
-### Pas 2 — Connectar el membre A (gate G1)
-```bash
-npm run eb:connect -- --aspsp BBVA --member A
-```
-1. El script imprimeix una URL. Obre-la al navegador.
-2. Entra al BBVA i confirma al mòbil.
-3. El navegador va a `https://localhost:3000/callback?...` i mostra un error de connexió. **És normal.**
-4. Copia l'URL **completa** de la barra d'adreces, enganxa-la a la terminal i prem Enter. Fes-ho de seguida, perquè el codi caduca en pocs minuts.
-
-Si `BBVA` no és el nom exacte, el script t'ensenya els noms semblants. Fes servir el que surti, entre cometes: `--aspsp "Nom exacte"`.
-
-→ La sessió es desa a `output/eb-session-A.json`. **No la comparteixis.**
-→ Fitxer per compartir: `output/eb-connect-A.report.md`
-
-### Pas 3 — Llegir saldos i moviments del membre A
-```bash
-npm run eb:fetch -- --member A
-```
-Fes-ho just després del pas 2, **i només un cop**. Molts bancs permeten només 4 consultes al dia sense l'usuari present, i `strategy=longest` pot gastar-ne alguna de més.
-→ Fitxer per compartir: `output/eb-fetch-A.report.md`
-
-### Pas 4 — Membre B (gate G2)
-Els passos 2 i 3, però amb `--member B`. **Ha de ser el membre B qui faci la SCA amb el seu usuari del BBVA.**
-
-```bash
-npm run eb:connect -- --aspsp BBVA --member B
-```
-
-```bash
-npm run eb:fetch -- --member B
-```
-
-La pregunta clau és què retorna l'API per al membre B: els seus comptes o `Comptes a la sessió: 0`.
-
-### Pas 5 (opcional) — Tancar sessions
-```bash
-npm run eb:close -- --member A
-```
-Tanca la sessió a Enable Banking (i el consentiment al banc, si es pot) i esborra el fitxer local.
-
-## 4. Opcions
-
-| Script | Opció | Per defecte | Què fa |
-|---|---|---|---|
-| `eb:aspsps` | `--country` | `ES` | País |
-| `eb:connect` | `--aspsp` | — (obligatori) | Nom exacte del banc |
-| | `--member` | `A` | Etiqueta de la sessió (A, B…) |
-| | `--psu-type` | `personal` | `personal` o `business` |
-| | `--days` | màxim del banc | Dies de consentiment |
-| `eb:fetch` | `--member` | `A` | Quina sessió llegir |
-| | `--date-from` | — | Data mínima `AAAA-MM-DD` |
-| | `--max-pages` | `50` | Límit de pàgines per compte |
-| | `--no-transactions` | — | Només saldos |
-
-**Capçaleres PSU (experimental):** si poses la teva IP pública a `EB_PSU_IP_ADDRESS`, `eb:fetch` envia les capçaleres `Psu-Ip-Address` i `Psu-User-Agent`. La documentació d'Enable Banking les accepta, però **no diu** si eviten el límit de 4 consultes al dia. Fes-les servir només si el banc retorna `PSU_HEADER_NOT_PROVIDED`.
-
-## 5. Errors habituals
-
-| Missatge | Què fer |
-|---|---|
-| `Falta la variable d'entorn …` | Omple el `.env` |
-| `HTTP 403 Application does not exist` / `HTTP 401` | `EB_APP_ID` incorrecte, o la clau no és d'aquesta app |
-| `ASPSP_RATE_LIMIT_EXCEEDED` / `HTTP 429` | El script s'atura. **Espera com a mínim 6 h** abans de tornar-ho a provar |
-| `EXPIRED_SESSION`, `CLOSED_SESSION`, `REVOKED_SESSION` | Torna a fer `eb:connect` |
-| `EXPIRED_AUTHORIZATION_CODE` | Has trigat massa a enganxar l'URL. Torna a fer `eb:connect` |
-| `state no coincideix` | Has enganxat una URL d'un intent anterior |
-| La redirect URL no s'accepta a l'app | Registra una URL del teu domini i posa-la a `EB_REDIRECT_URL` |
-
-El script no reintenta mai automàticament.
-
-## 6. Què compartir (i què no)
-
-| Fitxer | Compartir? |
-|---|---|
-| `output/*.report.md` | ✅ Sí, **després de revisar-lo**: IBAN emmascarats, sense imports, noms ni IDs de sessió |
-| `output/*.raw.json` | ❌ No. Té dades completes |
-| `output/eb-session-*.json` | ❌ No. Dona accés a les dades fins que caduca |
-| `.env`, `*.pem` | ❌ Mai |
-
-## 7. Desenvolupament
+## Execució
 
 ```bash
 npm test
 ```
 
+### G1 — Enable Banking (membre A)
+
 ```bash
-npm run typecheck
+npm run eb:aspsps
 ```
+Informe: si hi són BBVA, MyInvestor i Trade Republic, tipus de PSU, `maximum_consent_validity` (segons → dies), mètodes d'autenticació, `required_psu_headers`, beta, BIC. Opcional: `-- --country ES,DE` (Trade Republic pot aparèixer sota DE).
 
-Els tests cobreixen les parts sense xarxa: el JWT (header, claims, signatura i TTL màxim de 24 h), l'anonimització, el parseig de la redirect URL i el càlcul de `valid_until`.
+```bash
+npm run eb:connect -- --aspsp BBVA --member A
+```
+Demana confirmació, imprimeix l'URL de consentiment, fas la SCA al navegador i enganxes l'URL de redirecció **completa**.
+Crea la sessió i la desa a `output/eb-session-A.json` (git-ignored). Opcional: `--days N` (mai supera el màxim del banc).
 
-Referència de l'API: https://enablebanking.com/docs/api/reference (endpoints verificats el 31/10/2026).
+```bash
+npm run eb:fetch -- --member A
+```
+**Executa'l just després de connectar**: molts bancs només donen l'historial complet durant ~1 h després de la SCA.
+Per defecte demana `strategy=longest` (l'historial més llarg que permeti el banc); alternativa: `-- --date-from 2024-01-01`.
+
+### G2 — membre B
+
+El membre B, amb **el seu** usuari del banc:
+```bash
+npm run eb:connect -- --aspsp BBVA --member B
+```
+```bash
+npm run eb:fetch -- --member B
+```
+L'informe diu explícitament si l'API retorna comptes o **una llista buida** (comptes no vinculats a l'app restringida).
+Si cal, el membre B ha de vincular els seus comptes amb "Activate by linking accounts" a la mateixa app.
+
+### Tancar una sessió (opcional)
+```bash
+npm run eb:close -- --member A
+```
+Fa `DELETE /sessions/{id}` i esborra `output/eb-session-A.json`. Útil abans de reconnectar (Redsys = 1 sessió activa).
+
+### G3 — Binance
+
+```bash
+npm run binance
+```
+Ordre: `GET /api/v3/time` → **`GET /sapi/v1/account/apiRestrictions` (obligatori)** → compte spot, `getUserAsset`,
+funding, saldo per wallet, Simple Earn flexible i locked, dipòsits i retirades (darrers 90 dies). Pes documentat total ≈ IP 389 + UID 18000, molt per sota dels límits.
+
+### G4 — Wallets
+
+```bash
+npm run wallets
+```
+Valida totes les adreces **abans** de cap crida (checksum Base58/bech32/bech32m i EIP-55). Rebutja seed phrases,
+claus privades (hex, WIF, xprv, PEM) i xpub sense repetir-les mai per pantalla.
+
+## Què compartir
+
+Cada execució desa a `spikes/output/` (git-ignored, permisos `600`):
+
+- `*.raw.json` — dades completes. **No el comparteixis.**
+- `*.report.md` — anonimitzat: IBAN `ES12 **** **** 1234`, adreces `bc1qar…5mdq`, identificadors truncats,
+  **sense imports, noms ni adreces completes**. **Aquest és el que s'ha de compartir.**
+
+Abans de desar-lo, l'informe passa un control automàtic que n'atura l'escriptura si hi detecta un secret conegut,
+un IBAN sencer, un valor hex de 64 caràcters, un JWT o una clau PEM. Igualment, **llegeix-lo abans d'enviar-lo**.
+
+Fitxers a compartir: `eb-aspsps-*.report.md`, `eb-connect-{A,B}-*.report.md`, `eb-fetch-{A,B}-*.report.md`,
+`binance-*.report.md`, `wallets-*.report.md`.
+
+## Límits i seguretat
+
+- **Tot és read-only.** No s'usa cap endpoint de pagaments, ordres, transferències, retirades ni subscripcions.
+- **Enable Banking / Redsys:** una sola sessió d'autenticació activa per usuari i TPP; una nova SCA invalida l'anterior.
+  No repeteixis `eb:connect` sense necessitat.
+- **4 consultes/dia sense PSU:** `eb:fetch` porta un registre local i es nega a una 5a execució en 24 h per membre
+  (excepte `--force`). Mai reintenta crides a l'ASPSP.
+- `429` / `ASPSP_RATE_LIMIT_EXCEEDED` → s'atura tot i recomana esperar ≥ 6 h.
+  `EXPIRED_SESSION`, `CLOSED_SESSION`, `REVOKED_SESSION`, `SESSION_DOES_NOT_EXIST` → s'atura i demana reconnectar.
+- **Binance:** `429`/`418` → s'atura i informa del `Retry-After`, sense reintents.
+- Cap script imprimeix claus, secrets, JWT, signatures ni URLs amb `apikey`.
+
+## Verificació documental (31/10/2026)
+
+Cada endpoint té l'URL de la seva documentació en un comentari al codi. Resultat i diferències trobades:
+
+| Àmbit | Font | Estat |
+|---|---|---|
+| EB JWT (`typ/alg/kid`, `iss=enablebanking.com`, `aud=api.enablebanking.com`, TTL ≤ 86400 s) | [API reference](https://enablebanking.com/docs/api/reference) | Verificat |
+| EB `GET /aspsps`, `POST /auth`, `POST /sessions`, `GET /sessions/{id}`, `GET /accounts/{id}/balances`, `GET /accounts/{id}/transactions` | [API reference](https://enablebanking.com/docs/api/reference) | Verificat |
+| EB codis d'error (`ASPSP_RATE_LIMIT_EXCEEDED`, `EXPIRED_SESSION`, …) | [API reference](https://enablebanking.com/docs/api/reference) | Verificat (camp `error`) |
+| Binance signatura, `/api/v3/account`, `/api/v3/time`, capçaleres de pes | [Spot REST API](https://developers.binance.com/docs/binance-spot-api-docs/rest-api), [Wallet general info](https://developers.binance.com/en/docs/products/wallet/general-info.md) | Verificat |
+| Binance Wallet i Simple Earn (`apiRestrictions`, `getUserAsset`, funding, wallet balance, earn, historials) | [OpenAPI oficial `binance/binance-api-swagger`](https://github.com/binance/binance-api-swagger/blob/master/spot_api.yaml) | Verificat a l'spec (les pàgines web són JS i no s'han pogut llegir) |
+| mempool.space `GET /api/address/:address` | [REST docs](https://mempool.space/docs/api/rest) | Verificat |
+| Etherscan V2 `balancemulti`, `chainlist`, límits, errors | [docs.etherscan.io](https://docs.etherscan.io/) | Verificat |
+
+Diferències o punts oberts respecte a `INTEGRATION_FEASIBILITY.md`:
+
+- **EB:** `maximum_consent_validity` ve en **segons** (l'informe ho converteix a dies).
+  `POST /sessions` retorna objectes de compte complets; `GET /sessions/{id}` només `uid`s. Les consultes fan servir el `uid`, no l'IBAN.
+- **EB:** la doc **no** associa cada codi d'error a un HTTP concret; el script es basa en el camp `error` (i tracta qualsevol `429` com a límit).
+- **EB:** el significat exacte de `strategy=longest` s'ha llegit d'un resum de la pàgina; cal confirmar-ho amb l'execució real (o usar `--date-from`).
+- **EB:** la pàgina del mercat ES no esmenta ni el límit de 4 consultes/dia ni la profunditat d'historial: aquests valors venen de l'estudi previ.
+- **Binance:** `GET /sapi/v1/asset/wallet/balance` pesa **60** (IP); Simple Earn flexible/locked **150** cadascun; `withdraw/history` **UID 18000** i màxim 10 req/s.
+  Historials: finestra màxima de **90 dies** per consulta. El change log esmenta camps de permís FIX API sense nom confirmat: el control de permisos és *default deny*.
+- **Etherscan:** el pla gratuït cobreix "selected chains only" i no s'ha pogut llegir la taula de quines; avui (31/10/2026) es deixen de suportar ApeChain i Blast.
+  A partir del 3/11/2026 canvia la gestió del límit diari.
+- **mempool.space:** aplica rate limit (HTTP 429) però no en publica xifres ni capçaleres.

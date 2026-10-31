@@ -1,4 +1,11 @@
-node_modules/
+# Secrets: never commit
 .env
-output/
+.env.*
+!.env.example
 *.pem
+*.key
+
+# Spike output (raw data, sessions, reports)
+output/
+
+node_modules/
