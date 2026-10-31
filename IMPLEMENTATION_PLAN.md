@@ -44,12 +44,14 @@ Fase 6                                                     ██████
 
 ## Fase 0 — Tancar la viabilitat (en paral·lel a la Fase 1)
 
-| Spike | Qui | Resultat | Gate |
-|---|---|---|---|
-| `spikes/enable-banking` | Jo l'escric; vosaltres l'executeu | ASPSPs a ES, consentiment, saldos i historial de BBVA | **G1**: BBVA GO |
-| Membre B vincula comptes | Vosaltres | Confirmació pràctica dels dos titulars | **G2**: 2 titulars GO |
-| `spikes/binance` | Jo / vosaltres | Endpoints i productes amb dades | **G3**: Binance GO |
-| Wallets | Jo | Una adreça BTC i una ETH reals | **G4** |
+| Spike | Qui | Resultat | Gate | Estat (31/10/2026) |
+|---|---|---|---|---|
+| `spikes/enable-banking` | Jo l'escric; vosaltres l'executeu | ASPSPs a ES, consentiment, saldos i historial de BBVA | **G1**: BBVA GO | Escrit, no executat |
+| Membre B vincula comptes | Vosaltres | Confirmació pràctica dels dos titulars | **G2**: 2 titulars GO | Pendent d'executar |
+| `spikes/binance` | Jo l'escric; vosaltres l'executeu | Endpoints i productes amb dades | **G3**: Binance GO | Escrit, no executat |
+| `spikes/wallets` | Jo l'escric; vosaltres l'executeu | Una adreça BTC i una ETH reals | **G4** | Escrit, no executat |
+
+Els tres spikes són a `main`. Instruccions a `spikes/README.md` i passos a `NEXT_STEPS.md` §0.
 
 Resultat: actualitzar `INTEGRATION_FEASIBILITY.md` amb les evidències (anonimitzades).
 
