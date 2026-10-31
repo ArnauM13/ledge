@@ -2,6 +2,7 @@
 #
 #   cp .env.example .env
 #   mkdir -p secrets && openssl rand -base64 32 > secrets/postgres_password
+#   openssl rand -base64 32 > secrets/ledge_master_key
 #   docker compose up --build
 #
 # Startup order: db (healthy) -> migrate (prisma migrate deploy, exits 0) -> api.
@@ -77,8 +78,14 @@ services:
       DB_USER: ${POSTGRES_USER}
       DB_NAME: ${POSTGRES_DB}
       DB_PASSWORD_FILE: /run/secrets/postgres_password
+      # AES-256-GCM master key (32 bytes, base64) as a file. The API refuses
+      # to start if it is missing or invalid. The version is not secret: it is
+      # written in every ciphertext so the key can be rotated.
+      LEDGE_MASTER_KEY_FILE: /run/secrets/ledge_master_key
+      LEDGE_MASTER_KEY_VERSION: ${LEDGE_MASTER_KEY_VERSION:-1}
     secrets:
       - postgres_password
+      - ledge_master_key
     ports:
       # Bound to localhost only.
       - '127.0.0.1:${API_HOST_PORT:-3000}:3000'
@@ -90,6 +97,9 @@ secrets:
   postgres_password:
     # Git-ignored. Compose refuses to start if the file is missing.
     file: ./secrets/postgres_password
+  ledge_master_key:
+    # Git-ignored. `openssl rand -base64 32 > secrets/ledge_master_key`
+    file: ./secrets/ledge_master_key
 
 networks:
   backend:

@@ -53,8 +53,13 @@ curl http://localhost:3000/health
 cp .env.example .env   # només configuració no secreta
 ```
 
+Secrets (com es genera cadascun: [`secrets/README.md`](secrets/README.md)):
+
 ```bash
-mkdir -p secrets && chmod 700 secrets && openssl rand -base64 32 > secrets/postgres_password
+mkdir -p secrets && chmod 700 secrets
+openssl rand -base64 32 > secrets/postgres_password
+openssl rand -base64 32 > secrets/ledge_master_key
+chmod 644 secrets/postgres_password secrets/ledge_master_key
 ```
 
 ```bash
@@ -65,6 +70,8 @@ docker compose up --build
 - Postgres **no** publica cap port: és a la xarxa `backend` (interna, sense sortida) i només l'API hi arriba (`db:5432`).
 - Ordre d'arrencada: `db` (healthy) → `migrate` (`prisma migrate deploy`, acaba amb codi 0) → `api`.
 - L'API munta la URL de connexió en arrencar a partir de `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_NAME` i el fitxer `DB_PASSWORD_FILE` (usuari i contrasenya codificats per a URL). La URL no s'escriu mai als logs, als errors ni a cap variable d'entorn. Si la BD no respon, l'API no arrenca.
+
+- L'API llegeix la clau mestra de `LEDGE_MASTER_KEY_FILE` (`/run/secrets/ledge_master_key`) i **no arrenca** si falta o no és vàlida.
 
 Migracions a mà:
 
@@ -86,6 +93,16 @@ cd apps/api
 export DB_HOST=127.0.0.1 DB_PORT=55432 DB_USER=ledge_test DB_NAME=ledge_test DB_PASSWORD_FILE=$PWD/../../secrets/postgres_test_password
 npx prisma migrate dev --name <nom>
 ```
+
+### Xifratge de camps
+
+`EncryptionService` (`apps/api/src/app/crypto`) xifra els camps sensibles amb **AES-256-GCM**:
+
+- IV aleatori de 96 bits per a cada valor i tag de 128 bits.
+- Format: `enc:v1:<versió de clau>:<iv>:<ciphertext>:<tag>` (base64url). La versió permet rotar la clau ([`secrets/README.md`](secrets/README.md#rotació)).
+- AAD = format + versió + `taula`, `columna` i `id` del registre: un valor copiat a una altra fila o columna no es desxifra.
+- Qualsevol error de desxifrat (clau incorrecta, text manipulat, context diferent) dona el mateix `Decryption failed`, sense detalls.
+- La clau mestra (32 bytes) és un fitxer de secrets. Mai a la BD, al repo, a l'entorn ni als logs (el `Keyring` no es pot serialitzar ni imprimir).
 
 #### Secrets
 
