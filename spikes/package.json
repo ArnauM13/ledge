@@ -11,6 +11,9 @@
     "eb:connect": "tsx enable-banking/connect.ts",
     "eb:fetch": "tsx enable-banking/fetch.ts",
     "eb:close": "tsx enable-banking/close.ts",
+    "bn:check": "tsx binance/check.ts",
+    "bn:fetch": "tsx binance/fetch.ts",
+    "wallets:fetch": "tsx wallets/fetch.ts",
     "test": "tsx --test test/*.test.ts",
     "typecheck": "tsc --noEmit"
   },
