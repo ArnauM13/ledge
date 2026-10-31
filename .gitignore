@@ -63,3 +63,7 @@ __screenshots__/
 # keys must never be committed
 *.pem
 *.key
+
+# local secret files (docker compose secrets)
+secrets/*
+!secrets/README.md

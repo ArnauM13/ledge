@@ -12,8 +12,8 @@
 | Pla d'implementació | Fet |
 | Compte d'Enable Banking | Registrat (31/10/2026) |
 | Spike d'Enable Banking (`spikes/enable-banking`) | **Escrit i testejat en local; no s'ha executat mai amb credencials reals** |
-| Spikes de Binance i wallets | Pendents |
-| Codi de l'app (monorepo) | Encara no n'hi ha |
+| Spikes de Binance i wallets (`spikes/binance`, `spikes/wallets`) | **Escrits i testejats en local; no executats amb credencials reals** |
+| Codi de l'app (monorepo) | Fase 1 punts 1–3 fets: Nx + Angular 21 + NestJS + Tailwind `t-` + Docker Compose (veure `README.md`) |
 | Gates G1–G4 (proves reals) | Pendents |
 
 ---
@@ -59,8 +59,10 @@
 - [ ] Vercel: compte connectat a GitHub (no cal fins a la Fase 1, punt 9)
 
 ### C. Sessions de Claude Code (en aquest ordre)
-1. [ ] **Sessió de spikes** → prompt a la §2. Enable Banking ✅ fet (`spikes/enable-banking`); falten Binance i wallets.
-2. [ ] **Sessió de la Fase 1** → prompt a la §3. Es pot obrir en paral·lel; no es trepitgen.
+1. [x] **Sessió de spikes** → prompt a la §2. Enable Banking, Binance i wallets escrits (`spikes/`).
+2. [x] **Sessió de la Fase 1, punts 1–3** → prompt a la §3. Fet.
+3. [ ] **Fase 1, punts 4–7**: Prisma (`users`, `households`, `memberships`, `audit_logs`), auth amb argon2 + TOTP, guard de household i servei AES-256-GCM.
+4. [ ] **Fase 1, punts 8–9**: CI (GitHub Actions) i Vercel (requereix el compte de Vercel).
 
 ### D. Executar els spikes (vosaltres, a la vostra màquina) → instruccions a `spikes/README.md`
 - [ ] `npm run eb:aspsps` → hi ha MyInvestor i Trade Republic?
