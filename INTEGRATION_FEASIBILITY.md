@@ -2,6 +2,7 @@
 
 > Data de la recerca: 31/10/2026
 > Estat: **esborrany de recerca documental**. Encara no s'ha fet cap prova amb credencials reals.
+> Spikes de la Fase 0 (`spikes/`): escrits i a `main` (31/10/2026), **pendents d'executar** amb credencials reals. Les correccions documentals que han aparegut en escriure'ls són a la §15.
 > Cap integració es considera "funcional" fins que no estigui verificada amb una connexió de producció.
 
 ## 0. Resum executiu
@@ -110,9 +111,9 @@ API oficial: https://developers.binance.com
 | Saldo spot | `GET /api/v3/account` |
 | Actius de l'usuari | `POST /sapi/v3/asset/getUserAsset` (pes IP 5; només saldos positius) |
 | Funding wallet | `POST /sapi/v1/asset/get-funding-asset` |
-| Saldo per wallet | `GET /sapi/v1/asset/wallet/balance` |
-| Simple Earn | `GET /sapi/v1/simple-earn/flexible/position`, `/locked/position` |
-| Dipòsits / retirades | `GET /sapi/v1/capital/deposit/hisrec`, `/capital/withdraw/history` |
+| Saldo per wallet | `GET /sapi/v1/asset/wallet/balance` (pes IP 60) |
+| Simple Earn | `GET /sapi/v1/simple-earn/flexible/position`, `/locked/position` (pes IP 150 cadascun) |
+| Dipòsits / retirades | `GET /sapi/v1/capital/deposit/hisrec` (IP 1), `/capital/withdraw/history` (UID 18000; màx. 10 req/s). Finestra màxima de 90 dies per consulta |
 | Preus | `GET /api/v3/ticker/price` (públic, sense clau) |
 
 **Permisos de la clau:** només "Enable Reading". Sense trading, withdrawals ni transferències universals. **Restricció d'IP** a la IP fixa del VPS. Secret xifrat amb AES-256-GCM al backend.
@@ -197,11 +198,33 @@ Dins l'objectiu de 5–15 €/mes. Cap servei de pagament contractat.
 
 - [ ] Enviar la consulta de l'Annex A i guardar la resposta.
 - [ ] Registrar l'app d'Enable Banking i vincular un compte BBVA real.
-- [ ] Llegir `maximum_consent_validity` real de BBVA.
-- [ ] Comprovar a la llista d'ASPSP d'Enable Banking (`GET /aspsps?country=ES`) si hi són MyInvestor i Trade Republic.
-- [ ] Clau Binance read-only: cridar els endpoints de §6 i documentar quins productes retornen dades.
-- [ ] Consultar una adreça BTC i una ETH reals.
+- [ ] Llegir `maximum_consent_validity` real de BBVA (`npm run eb:aspsps`).
+- [ ] Comprovar a la llista d'ASPSP d'Enable Banking (`GET /aspsps?country=ES`) si hi són MyInvestor i Trade Republic (`npm run eb:aspsps`).
+- [ ] Clau Binance read-only: cridar els endpoints de §6 i documentar quins productes retornen dades (`npm run binance`).
+- [ ] Consultar una adreça BTC i una ETH reals (`npm run wallets`).
 - [ ] Decidir la font de NAV per als fons.
+
+## 15. Correccions documentals (en escriure els spikes, 31/10/2026)
+
+Les dades següents surten de la documentació oficial, **no** de cap prova real. Cada endpoint dels spikes porta l'URL de la seva font en un comentari.
+
+**Enable Banking** ([API reference](https://enablebanking.com/docs/api/reference)):
+- JWT: `iss = enablebanking.com`, `aud = api.enablebanking.com`, `kid` = ID de l'app, RS256, TTL màxim de 86.400 s.
+- `maximum_consent_validity` ve en **segons** (180 dies = 15.552.000).
+- `POST /sessions` retorna els comptes complets. `GET /sessions/{id}` només en retorna els `uid`. Saldos i moviments es consulten per `uid`, no per IBAN → la deduplicació per IBAN (§1) s'ha de fer amb les dades de la sessió.
+- La doc no associa cada codi d'error (`ASPSP_RATE_LIMIT_EXCEEDED`, `EXPIRED_SESSION`…) a un HTTP concret: cal mirar el camp `error`.
+- La pàgina del mercat ES confirma la regla de Redsys d'una sessió activa per usuari. No esmenta ni el límit de 4 consultes al dia ni la profunditat de l'historial (§2 continua sense verificar).
+
+**Binance** ([OpenAPI oficial](https://github.com/binance/binance-api-swagger/blob/master/spot_api.yaml); les pàgines web de Wallet i Simple Earn no s'han pogut llegir perquè es generen amb JS):
+- Pesos: vegeu la taula de la §6. Els historials tenen una finestra màxima de 90 dies.
+- `GET /sapi/v1/account/apiRestrictions` (pes 1) retorna els permisos de la clau. El change log esmenta camps de la FIX API sense nom confirmat: el spike aplica *default deny*.
+- Límits de `/sapi`: IP 12.000/min i UID 180.000/min, independents per endpoint. `/sapi` retorna sempre 429, mai 418.
+
+**Etherscan V2** ([docs](https://docs.etherscan.io/)):
+- `balancemulti`: fins a 20 adreces per crida. Pla gratuït: 3 crides/s i 100.000/dia, **només per a algunes cadenes** ("selected chains only"). No s'ha pogut llegir quines.
+- Des del 31/10/2026 ja no s'hi poden consultar ApeChain ni Blast. A partir del 3/11/2026 canvia la gestió del límit diari.
+
+**mempool.space** ([REST](https://mempool.space/docs/api/rest)): aplica rate limit (HTTP 429), però no en publica xifres ni capçaleres.
 
 ## Annex A — Consulta a Enable Banking (esborrany)
 

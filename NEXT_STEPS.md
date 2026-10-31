@@ -12,7 +12,8 @@
 | Pla d'implementació | Fet |
 | Compte d'Enable Banking | Registrat (31/10/2026) |
 | Spike d'Enable Banking (`spikes/enable-banking`) | **Escrit i testejat en local; no s'ha executat mai amb credencials reals** |
-| Spikes de Binance i wallets (`spikes/binance`, `spikes/wallets`) | **Escrits i testejats en local; no executats amb credencials reals** |
+| Spike de Binance (`spikes/binance`) | **Escrit i testejat en local; no s'ha executat mai amb credencials reals** |
+| Spike de wallets (`spikes/wallets`) | **Escrit i testejat en local; no s'ha executat mai contra l'API real** |
 | Codi de l'app (monorepo) | Fase 1 punts 1–3 fets: Nx + Angular 21 + NestJS + Tailwind `t-` + Docker Compose (veure `README.md`) |
 | Gates G1–G4 (proves reals) | Pendents |
 
@@ -35,9 +36,15 @@
 6. Obre una sessió nova i passa-hi els `spikes/output/*.report.md`, **revisats abans** (mai els `.raw.json` ni `eb-session-*.json`), amb el prompt de la §5.
 
 **En paral·lel:**
-- Sessió de la Fase 1 (prompt de la §3). No depèn dels gates.
-- Sessió dels spikes de Binance i wallets (prompt de la §2, només els spikes 2 i 3; el d'Enable Banking ja està fet).
-- Claus de Binance (només "Enable Reading" i restricció d'IP) i d'Etherscan.
+- Fase 1, punts 1–3: revisar i fusionar el PR del scaffold (`README.md` explica com arrencar-lo).
+- Claus de Binance (només "Enable Reading" i restricció d'IP) i d'Etherscan → `spikes/README.md` §3b i §3c.
+- Executa els spikes de Binance i wallets (omple abans `BINANCE_*`, `BTC_ADDRESSES`, `EVM_ADDRESSES`, `EVM_CHAINS` i `ETHERSCAN_API_KEY` al `.env`):
+  ```bash
+  cd spikes
+  npm run binance   # G3: primer comprova que la clau sigui de només lectura; si no, s'atura
+  npm run wallets   # G4
+  ```
+  Comparteix només els `output/binance-*.report.md` i `output/wallets-*.report.md`, revisats.
 
 ---
 
@@ -59,7 +66,7 @@
 - [ ] Vercel: compte connectat a GitHub (no cal fins a la Fase 1, punt 9)
 
 ### C. Sessions de Claude Code (en aquest ordre)
-1. [x] **Sessió de spikes** → prompt a la §2. Enable Banking, Binance i wallets escrits (`spikes/`).
+1. [x] **Sessió de spikes** → fet. Enable Banking (`spikes/enable-banking`), Binance (`spikes/binance`) i wallets (`spikes/wallets`) són a `main`. Estan escrits però no executats.
 2. [x] **Sessió de la Fase 1, punts 1–3** → prompt a la §3. Fet.
 3. [ ] **Fase 1, punts 4–7**: Prisma (`users`, `households`, `memberships`, `audit_logs`), auth amb argon2 + TOTP, guard de household i servei AES-256-GCM.
 4. [ ] **Fase 1, punts 8–9**: CI (GitHub Actions) i Vercel (requereix el compte de Vercel).
@@ -68,8 +75,8 @@
 - [ ] `npm run eb:aspsps` → hi ha MyInvestor i Trade Republic?
 - [ ] `npm run eb:connect -- --aspsp BBVA --member A` + `npm run eb:fetch -- --member A` → **G1**
 - [ ] `npm run eb:connect -- --aspsp BBVA --member B` + `npm run eb:fetch -- --member B` → **G2**
-- [ ] Spike de Binance → **G3**
-- [ ] Spike de wallets → **G4**
+- [ ] `npm run binance` → **G3** (la clau ha de ser de només lectura i tenir restricció d'IP)
+- [ ] `npm run wallets` amb una adreça BTC i una ETH reals → **G4**
 - [ ] Passar els fitxers `*.report.md` (anonimitzats) a una sessió per actualitzar `INTEGRATION_FEASIBILITY.md`
 
 ### E. Després dels gates
@@ -127,7 +134,7 @@ Fonts: [Quick start](https://enablebanking.com/docs/api/quick-start) · [Linked 
 
 ## 2. Prompt: sessió de spikes
 
-> **Actualització 31/10/2026:** l'Spike 1 (Enable Banking) ja és a `spikes/enable-banking`. En enganxar aquest prompt, afegeix-hi al principi: *"L'Spike 1 ja està fet; fes només els spikes 2 i 3, reutilitzant l'estructura de `spikes/` (package.json, `.env.example`, `output/`, `lib/anonymize.ts`)"*.
+> **Actualització 31/10/2026:** els tres spikes ja són a `main` (`spikes/enable-banking`, `spikes/binance`, `spikes/wallets`, amb codi comú a `spikes/shared/`). Aquest prompt es conserva només com a referència: **no el tornis a fer servir**.
 
 Obrir una sessió nova amb el repo `ArnauM13/ledge` seleccionat i enganxar:
 
@@ -227,7 +234,7 @@ Decisions encara pendents de l'usuari, que no has d'assumir: D4 (domini), D5 (pr
 
 ---
 
-## 4. Com interpretar els resultats d'Enable Banking
+## 4. Com interpretar els resultats dels spikes
 
 | Què diu l'informe | Gate | Conseqüència |
 |---|---|---|
@@ -237,20 +244,26 @@ Decisions encara pendents de l'usuari, que no has d'assumir: D4 (domini), D5 (pr
 | `ASPSP_RATE_LIMIT_EXCEEDED` | Ni GO ni NO-GO | Espera ≥ 6 h i torna a fer només `eb:fetch` |
 | `eb-aspsps`: MyInvestor / Trade Republic = NO | — | El seu cash també serà manual (D1) |
 | `Dies d'historial` i `Consentiment vàlid fins a` | — | Fixen quant historial s'importa i cada quan cal reconnectar (alerta 14 dies abans) |
+| `binance`: **Aturat** per permisos | Ni GO ni NO-GO | La clau té algun permís que no és de lectura. Crea'n una de nova només amb "Enable Reading" i torna-ho a provar |
+| `binance`: tots els endpoints amb HTTP 200 | **G3 = GO** | L'informe diu quins productes tenen saldo; l'adapter només n'inclourà aquests |
+| `binance`: algun endpoint amb error (p. ex. `-2015`) | Pendent | Revisa la restricció d'IP i els permisos; l'error exacte surt a l'informe |
+| `wallets`: BTC i EVM ✅ | **G4 = GO** | — |
+| `wallets`: `Free API access is not supported for this chain` | G4 parcial | Aquella cadena no és al pla gratuït d'Etherscan: o es treu, o es busca una altra font |
 
 ---
 
 ## 5. Prompt: sessió per actualitzar la viabilitat amb els resultats
 
 ~~~~text
-Projecte "ledge" (repo ArnauM13/ledge). He executat els spikes d'Enable Banking a la meva màquina.
+Projecte "ledge" (repo ArnauM13/ledge). He executat els spikes de la Fase 0 a la meva màquina.
 Et passo els informes anonimitzats (spikes/output/*.report.md) a continuació.
 
 Tasca:
 1. Llegeix INTEGRATION_FEASIBILITY.md, IMPLEMENTATION_PLAN.md, NEXT_STEPS.md (§4) i spikes/README.md.
-2. Amb els informes, decideix els gates G1 i G2 (GO / NO-GO / pendent) i justifica-ho amb dades dels informes.
-3. Actualitza INTEGRATION_FEASIBILITY.md: veredictes de BBVA i Enable Banking, `maximum_consent_validity` real,
-   profunditat de l'historial, cobertura de MyInvestor i Trade Republic, i elimina el que ja no sigui "no verificat".
+2. Amb els informes, decideix els gates G1–G4 (GO / NO-GO / pendent) i justifica-ho amb dades dels informes.
+3. Actualitza INTEGRATION_FEASIBILITY.md: veredictes de BBVA, Enable Banking, Binance i wallets, `maximum_consent_validity` real,
+   profunditat de l'historial, cobertura de MyInvestor i Trade Republic, productes de Binance amb dades,
+   cadenes EVM disponibles, i elimina el que ja no sigui "no verificat".
 4. Actualitza l'estat i la checklist de NEXT_STEPS.md.
 5. No inventis res que no surti als informes. Si un informe té un error, digues què vol dir i què cal tornar a provar.
 Treballa en una branca nova i obre un PR cap a main.
@@ -264,7 +277,7 @@ Treballa en una branca nova i obre un PR cap a main.
 
 | Fase | Què fa Claude | Què fas tu |
 |---|---|---|
-| **0 — Spikes** | Escriure els scripts (EB ✅, Binance i wallets pendents) | Executar-los, revisar i passar els `*.report.md` |
+| **0 — Spikes** | Escriure els scripts (EB ✅, Binance ✅, wallets ✅) | Executar-los, revisar i passar els `*.report.md` |
 | **1 — Scaffold** (§3) | Monorepo Nx, Angular, NestJS, Docker, `/health` | Revisar i fusionar el PR. Al final de la fase: decidir D4 (domini) i D5 (VPS), i connectar Vercel a GitHub |
 | **2 — Domini financer** | Model de dades, Prisma, auth, entrades manuals | Decidir D1 i D2. Preparar les dades manuals inicials (posicions de MyInvestor/TR, NAV, hipoteca, immobles) |
 | **3 — Integracions** | Un adapter per a cada gate en GO | Desplegar el backend amb domini HTTPS i canviar la Redirect URL de l'app de producció a `https://<domini>/...`. Posar els secrets al servidor (mai al repo) |
@@ -279,3 +292,5 @@ Treballa en una branca nova i obre un PR cap a main.
 - Res de scraping, APIs no oficials ni dades fictícies presentades com a reals.
 - Cap servei de pagament sense aprovació explícita.
 - Treballar en branques; un PR per tasca.
+- Una sola sessió de Claude per carpeta alhora (p. ex. `spikes/`). Dues sessions sobre el mateix codi acaben en PR duplicades i force-pushes creuats.
+- Esborrar la branca quan se'n fusiona o es tanca la PR.
