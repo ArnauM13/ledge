@@ -113,4 +113,4 @@ Per projecte: `npx nx test web`, `npx nx lint api`, `npx nx build web`…
 
 ## Estat
 
-Fase 1, punts 1–3 (monorepo, Tailwind, Docker Compose). La UI només té la navegació i un estat buit: **cap xifra**, perquè encara no hi ha cap font de dades connectada.
+Fase 1, punts 1–3 (monorepo, Tailwind, Docker Compose) a `main`. Següent: punts 4–7 + gitleaks (prompt a `NEXT_STEPS.md` §3b). La UI només té la navegació i un estat buit: **cap xifra**, perquè encara no hi ha cap font de dades connectada.
