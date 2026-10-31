@@ -3,8 +3,8 @@
 // Pregunta: hi són BBVA, MyInvestor i Trade Republic? Quina validesa màxima de consentiment tenen?
 import { args, run } from './lib/cli.ts';
 import { callsTable, EbClient } from './lib/client.ts';
-import { loadEbConfig } from './lib/env.ts';
-import { mdTable, reportHeader, secondsToDays, writeOutputs } from './lib/report.ts';
+import { loadEbConfig } from './lib/config.ts';
+import { mdTable, reportHeader, secondsToDays, writeOutputs } from '../lib/report.ts';
 import type { Aspsp } from './lib/types.ts';
 
 const TARGETS = [

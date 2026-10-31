@@ -1,4 +1,4 @@
-import { SpikeError } from './env.ts';
+import { SpikeError } from '../../lib/env.ts';
 
 /**
  * Extreu el `code` de l'URL a la qual el banc ha redirigit.

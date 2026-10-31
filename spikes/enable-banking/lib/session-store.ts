@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { OUTPUT_DIR, SpikeError } from './env.ts';
+import { OUTPUT_DIR, SpikeError } from '../../lib/env.ts';
 import type { SessionCreated } from './types.ts';
 
 export interface StoredSession extends SessionCreated {

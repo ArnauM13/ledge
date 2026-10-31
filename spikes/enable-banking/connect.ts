@@ -3,12 +3,13 @@
 // Flux: crea l'autorització → l'usuari fa la SCA al navegador → enganxa l'URL de redirecció → es crea la sessió.
 import { randomUUID } from 'node:crypto';
 import { createInterface } from 'node:readline/promises';
-import { maskIban, shortHash } from './lib/anonymize.ts';
+import { maskIban, shortHash } from '../lib/anonymize.ts';
 import { args, parseMember, run } from './lib/cli.ts';
 import { callsTable, EbClient } from './lib/client.ts';
-import { loadEbConfig, SpikeError } from './lib/env.ts';
+import { SpikeError } from '../lib/env.ts';
+import { loadEbConfig } from './lib/config.ts';
 import { computeValidUntil, parseRedirectUrl } from './lib/redirect.ts';
-import { mdTable, reportHeader, secondsToDays, writeOutputs } from './lib/report.ts';
+import { mdTable, reportHeader, secondsToDays, writeOutputs } from '../lib/report.ts';
 import { hasSession, saveSession } from './lib/session-store.ts';
 import type { Aspsp, PsuType, SessionCreated, StartAuthResponse } from './lib/types.ts';
 

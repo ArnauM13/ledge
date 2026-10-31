@@ -1,10 +1,8 @@
-import { parseArgs, type ParseArgsOptionsConfig } from 'node:util';
+import { args, run as baseRun } from '../../lib/cli.ts';
+import { SpikeError } from '../../lib/env.ts';
 import { EbApiError, explainError } from './client.ts';
-import { SpikeError } from './env.ts';
 
-export function args<const T extends ParseArgsOptionsConfig>(options: T) {
-  return parseArgs({ options, allowPositionals: false, strict: true }).values;
-}
+export { args };
 
 /** El membre identifica la sessió desada (A o B). */
 export function parseMember(value: unknown): string {
@@ -13,12 +11,7 @@ export function parseMember(value: unknown): string {
   return m;
 }
 
-/** Executa el main i mostra els errors esperats sense stack trace ni secrets. */
+/** Executa el main i mostra els errors esperats (inclosos els d'Enable Banking) sense stack trace ni secrets. */
 export function run(main: () => Promise<void>): void {
-  main().catch((e: unknown) => {
-    if (e instanceof SpikeError) console.error(`\n✗ ${e.message}`);
-    else if (e instanceof EbApiError) console.error(`\n✗ ${explainError(e)}`);
-    else console.error('\n✗ Error inesperat:', e instanceof Error ? e.message : e);
-    process.exitCode = 1;
-  });
+  baseRun(main, (e) => (e instanceof EbApiError ? explainError(e) : undefined));
 }

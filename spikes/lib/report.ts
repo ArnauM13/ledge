@@ -25,12 +25,14 @@ export function mdTable(headers: string[], rows: (string | number | boolean | un
 export const secondsToDays = (s: number | undefined | null): string =>
   typeof s === 'number' ? String(Math.round(s / 86_400)) : '—';
 
-export function reportHeader(title: string): string {
+export const DEFAULT_REPORT_NOTE = 'Informe anonimitzat: IBAN emmascarats, sense imports, noms ni identificadors de sessió.';
+
+export function reportHeader(title: string, note: string = DEFAULT_REPORT_NOTE): string {
   return [
     `# ${title}`,
     '',
     `- Generat: ${new Date().toISOString()}`,
-    '- Informe anonimitzat: IBAN emmascarats, sense imports, noms ni identificadors de sessió.',
+    `- ${note}`,
     '',
   ].join('\n');
 }

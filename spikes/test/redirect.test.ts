@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { isInside } from '../enable-banking/lib/env.ts';
+import { isInside } from '../lib/env.ts';
 import { computeValidUntil, parseRedirectUrl } from '../enable-banking/lib/redirect.ts';
 
 test('extreu el code si el state coincideix', () => {

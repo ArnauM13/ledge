@@ -11,5 +11,5 @@
     "noEmit": true,
     "types": ["node"]
   },
-  "include": ["enable-banking/**/*.ts", "test/**/*.ts"]
+  "include": ["lib/**/*.ts", "enable-banking/**/*.ts", "binance/**/*.ts", "wallets/**/*.ts", "test/**/*.ts"]
 }

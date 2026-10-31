@@ -3,7 +3,7 @@
 // Tanca la sessió (i el consentiment al banc si és possible) i esborra el fitxer local.
 import { args, parseMember, run } from './lib/cli.ts';
 import { EbApiError, EbClient } from './lib/client.ts';
-import { loadEbConfig } from './lib/env.ts';
+import { loadEbConfig } from './lib/config.ts';
 import { deleteSession, loadSession } from './lib/session-store.ts';
 
 run(async () => {

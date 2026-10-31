@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { anonymizeText, maskIban, shortHash, templatePath } from '../enable-banking/lib/anonymize.ts';
+import { anonymizeText, maskIban, shortHash, templatePath } from '../lib/anonymize.ts';
 
 test('maskIban', () => {
   assert.equal(maskIban('ES9121000418450200051332'), 'ES91 **** **** 1332');

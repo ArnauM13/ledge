@@ -1,19 +1,9 @@
 import { existsSync, readFileSync } from 'node:fs';
-import { homedir } from 'node:os';
-import { isAbsolute, resolve, sep } from 'node:path';
-
-/** Carpeta `spikes/`. */
-export const SPIKES_ROOT = resolve(import.meta.dirname, '..', '..');
-/** Arrel del repo (`ledge/`). */
-export const REPO_ROOT = resolve(SPIKES_ROOT, '..');
-/** Sortida local (al .gitignore). */
-export const OUTPUT_DIR = resolve(SPIKES_ROOT, 'output');
+import { isAbsolute } from 'node:path';
+import { expandHome, isInside, loadDotEnv, REPO_ROOT, requireEnv, SpikeError } from '../../lib/env.ts';
 
 export const DEFAULT_API_BASE = 'https://api.enablebanking.com';
 export const DEFAULT_REDIRECT_URL = 'https://localhost:3000/callback';
-
-/** Error esperat: es mostra a l'usuari sense stack trace. */
-export class SpikeError extends Error {}
 
 export interface EbConfig {
   appId: string;
@@ -22,28 +12,6 @@ export interface EbConfig {
   apiBase: string;
   redirectUrl: string;
   psuIpAddress?: string;
-}
-
-export function loadDotEnv(): void {
-  const path = resolve(SPIKES_ROOT, '.env');
-  if (existsSync(path)) process.loadEnvFile(path);
-}
-
-export function expandHome(p: string): string {
-  return p === '~' || p.startsWith('~/') ? resolve(homedir(), p.slice(2)) : p;
-}
-
-/** True si `file` és dins de `dir` (o és `dir`). */
-export function isInside(file: string, dir: string): boolean {
-  const f = resolve(file);
-  const d = resolve(dir);
-  return f === d || f.startsWith(d + sep);
-}
-
-function requireEnv(name: string): string {
-  const v = process.env[name]?.trim();
-  if (!v) throw new SpikeError(`Falta la variable d'entorn ${name}. Copia .env.example a .env i omple-la.`);
-  return v;
 }
 
 export function loadEbConfig(): EbConfig {

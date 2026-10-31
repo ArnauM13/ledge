@@ -3,11 +3,12 @@
 //   GET /sessions/{session_id}, GET /accounts/{id}/balances, GET /accounts/{id}/transactions
 // Per a l'historial es fa servir strategy=longest ("tries to find the longest possible period";
 // pot fer crides extra al banc). Atenció: molts bancs permeten només 4 consultes/dia sense l'usuari present.
-import { anonymizeText, maskIban, shortHash } from './lib/anonymize.ts';
+import { anonymizeText, maskIban, shortHash } from '../lib/anonymize.ts';
 import { args, parseMember, run } from './lib/cli.ts';
 import { callsTable, EbApiError, EbClient, explainError } from './lib/client.ts';
-import { loadEbConfig, SpikeError } from './lib/env.ts';
-import { mdTable, reportHeader, writeOutputs } from './lib/report.ts';
+import { SpikeError } from '../lib/env.ts';
+import { loadEbConfig } from './lib/config.ts';
+import { mdTable, reportHeader, writeOutputs } from '../lib/report.ts';
 import { loadSession } from './lib/session-store.ts';
 import type { AccountResource, Balance, SessionInfo, Transaction, TransactionsPage } from './lib/types.ts';
 

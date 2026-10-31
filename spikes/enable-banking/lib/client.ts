@@ -1,5 +1,5 @@
-import { anonymizeText, templatePath } from './anonymize.ts';
-import type { EbConfig } from './env.ts';
+import { anonymizeText, templatePath } from '../../lib/anonymize.ts';
+import type { EbConfig } from './config.ts';
 import { createEbJwt } from './jwt.ts';
 
 export class EbApiError extends Error {
