@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Dark theme tokens (RGB channels so Tailwind can apply opacity).
+ * - canvas: charcoal background
+ * - surface / surface-raised: slightly lighter panels
+ * - content*: white and greys for text
+ * - positive: muted emerald, only for gains
+ * - negative: red, only for losses or alerts
+ */
+:root {
+  color-scheme: dark;
+  --ledge-canvas: 23 24 27; /* #17181b */
+  --ledge-surface: 31 33 37; /* #1f2125 */
+  --ledge-surface-raised: 40 42 47; /* #282a2f */
+  --ledge-line: 52 55 61; /* #34373d */
+  --ledge-content: 245 245 246; /* #f5f5f6 */
+  --ledge-content-muted: 161 165 173; /* #a1a5ad */
+  --ledge-content-subtle: 113 117 126; /* #71757e */
+  --ledge-positive: 52 168 120; /* #34a878 */
+  --ledge-negative: 229 72 77; /* #e5484d */
+}
+
+@layer base {
+  html,
+  body {
+    @apply t-h-full t-bg-canvas t-font-sans t-text-content t-antialiased;
+  }
+}
