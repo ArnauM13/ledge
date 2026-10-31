@@ -1,4 +1,4 @@
-// npm run bn:fetch [-- --history-days 90]
+// npm run bn:fetch [-- --history-days 89]
 // 1) Comprova que la clau sigui de només lectura (s'atura si no ho és).
 // 2) Llegeix, en sèrie i sense reintents: compte spot, getUserAsset, funding wallet, saldo per wallet,
 //    Simple Earn (flexible i locked) i historial de dipòsits i retirades.
@@ -35,7 +35,7 @@ interface StepResult {
 const yesNo = (v: boolean | undefined) => (v === undefined ? '—' : v ? 'sí' : 'no');
 
 run(async () => {
-  const opts = args({ 'history-days': { type: 'string', default: '90' } });
+  const opts = args({ 'history-days': { type: 'string', default: '89' } });
   const historyDays = Number(opts['history-days']);
   if (!Number.isInteger(historyDays) || historyDays < 1 || historyDays > MAX_HISTORY_DAYS) {
     throw new SpikeError(`--history-days ha de ser un enter entre 1 i ${MAX_HISTORY_DAYS}.`);

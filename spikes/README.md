@@ -1,13 +1,15 @@
 # spikes/ — Proves reals de la Fase 0
 
 Scripts que **executes tu, a la teva màquina, amb els teus secrets**, per tancar els gates de `IMPLEMENTATION_PLAN.md`.
-Tots són **read-only**: no fan pagaments, transferències ni cap operació d'escriptura al banc.
+Tots són **read-only**: no fan pagaments, transferències, ordres ni cap operació d'escriptura.
 
 | Spike | Gate | Estat |
 |---|---|---|
 | `enable-banking/` | G1 (membre A), G2 (membre B) | ✅ Escrit, **no s'ha executat mai contra l'API real amb credencials** |
-| `binance/` | G3 | ⏳ Pendent |
-| `wallets/` | G4 | ⏳ Pendent |
+| `binance/` | G3 | ✅ Escrit, **no s'ha executat mai contra l'API real amb credencials** → §8 |
+| `wallets/` | G4 | ✅ Escrit, **no s'ha executat mai contra l'API real** → §9 |
+
+Codi comú a `lib/`: anonimització (`anonymize.ts`), informes (`report.ts`), `.env` (`env.ts`) i CLI (`cli.ts`).
 
 ---
 
@@ -26,7 +28,8 @@ Dependències (només de desenvolupament):
 | `typescript` | Comprovació de tipus (`npm run typecheck`) |
 | `@types/node` | Tipus de Node |
 
-La resta és Node natiu: `fetch`, `node:crypto` (JWT RS256), `node:readline` i `node:test`.
+La resta és Node natiu: `fetch`, `node:crypto` (JWT RS256, HMAC-SHA256, SHA-256), `node:readline` i `node:test`.
+Cap dependència nova per a Binance ni wallets. El checksum EIP-55 necessita Keccak-256, que `node:crypto` no té (el seu `sha3-256` és una altra funció), per això hi ha una implementació mínima a `wallets/lib/keccak.ts`, comprovada als tests contra el `sha3-256` de Node i els vectors de l'EIP-55.
 
 ## 2. Configuració (un sol cop)
 
@@ -139,6 +142,14 @@ El script no reintenta mai automàticament.
 | `output/eb-session-*.json` | ❌ No. Dona accés a les dades fins que caduca |
 | `.env`, `*.pem` | ❌ Mai |
 
+Per spike:
+
+| Spike | Compartir | No compartir |
+|---|---|---|
+| Enable Banking | `eb-aspsps-ES.report.md`, `eb-connect-*.report.md`, `eb-fetch-*.report.md` | `eb-*.raw.json`, `eb-session-*.json` |
+| Binance | `bn-check.report.md`, `bn-fetch.report.md` | `bn-*.raw.json` (saldos i historial complets) |
+| Wallets | `wallets-fetch.report.md` | `wallets-fetch.raw.json` (adreces i saldos complets) |
+
 ## 7. Desenvolupament
 
 ```bash
@@ -149,6 +160,96 @@ npm test
 npm run typecheck
 ```
 
-Els tests cobreixen les parts sense xarxa: el JWT (header, claims, signatura i TTL màxim de 24 h), l'anonimització, el parseig de la redirect URL i el càlcul de `valid_until`.
+Els tests no fan cap crida de xarxa (on cal, `fetch` se substitueix per una funció falsa). Cobreixen:
+- **Enable Banking:** el JWT (header, claims, signatura i TTL màxim de 24 h), el parseig de la redirect URL i el càlcul de `valid_until`.
+- **Binance:** la signatura HMAC-SHA256 amb els vectors de la documentació oficial, la detecció de permisos perillosos (fail-closed), la llista blanca d'endpoints, l'aturada amb 429/418/-2015 i la divisió de l'historial en finestres de < 90 dies.
+- **Wallets:** Keccak-256, EIP-55, adreces BTC (base58check, bech32, bech32m, testnet, xpub), detecció de seeds i claus privades (i que el missatge d'error no les reprodueix mai).
+- **Comú:** l'anonimització (IBAN, UUID, imports, adreces cripto).
 
-Referència de l'API: https://enablebanking.com/docs/api/reference (endpoints verificats el 31/10/2026).
+Referències (verificades el 31/10/2026):
+- Enable Banking: https://enablebanking.com/docs/api/reference
+- Binance: https://developers.binance.com/docs/wallet (cada endpoint té la URL exacta a `binance/lib/endpoints.ts`)
+- mempool.space: https://mempool.space/docs/api/rest
+- Etherscan V2: https://docs.etherscan.io/
+
+---
+
+## 8. Binance (gate G3)
+
+### 8.1 Crear la clau (només lectura)
+1. Binance → **Account → API Management → Create API** → *System generated* (HMAC). Posa-li un nom, p. ex. `ledge-spike-readonly`.
+2. Fes la verificació de seguretat (2FA).
+3. A **Edit restrictions**:
+   - ✅ **Enable Reading** (ve marcat per defecte).
+   - ❌ Qualsevol altra opció desmarcada: trading spot i margin, retirades, transferències (internes i universals), margin, futures, opcions, portfolio margin, FIX trading… (els noms exactes de la pantalla poden variar; si en dubtes, desmarca-la: `bn:check` et dirà quins permisos queden actius).
+   - **IP access restrictions → Restrict access to trusted IPs only**, i hi poses la IP pública de la màquina on executaràs el spike (la pots mirar a https://api.ipify.org). Quan hi hagi VPS, la clau definitiva anirà restringida a la IP del VPS.
+4. Copia l'**API Key** i el **Secret Key** directament al `.env` (el secret només es mostra un cop) i desa'ls també al gestor de contrasenyes:
+   ```dotenv
+   BINANCE_API_KEY=...
+   BINANCE_API_SECRET=...
+   ```
+
+Si la clau té **qualsevol** permís que no sigui de lectura, el spike s'atura a la primera crida i no en fa cap altra.
+
+### 8.2 Executar
+```bash
+npm run bn:check
+```
+Només crida `GET /sapi/v1/account/apiRestrictions` (pes 1) i diu si la clau és segura i si té restricció d'IP.
+→ Fitxer per compartir: `output/bn-check.report.md`
+
+```bash
+npm run bn:fetch
+```
+Torna a comprovar els permisos i, si són de només lectura, llegeix en sèrie: compte spot, `getUserAsset`, funding wallet, saldo per wallet, Simple Earn (flexible i locked) i historial de dipòsits i retirades dels últims 89 dies (una sola crida a cada historial).
+→ Fitxer per compartir: `output/bn-fetch.report.md`
+
+Opció: `--history-days N` (1–365, per defecte 89). Binance exigeix intervals de menys de 90 dies, així que cada 89 dies són una crida més a cada historial. Atenció: `withdraw/history` té un pes documentat de **18.000 (UID)** per crida, sobre un límit de 180.000 per minut.
+
+### 8.3 Límits i aturades
+- Pes documentat d'una execució de `bn:fetch` per defecte: **388 d'IP** (repartit entre endpoints, cadascun amb un límit propi de 12.000/min a `/sapi`, i 6.000/min compartit a `/api`) + **18.000 d'UID** (`withdraw/history`). Una pàgina més de Simple Earn suma 150.
+- El script llegeix `X-SAPI-USED-IP-WEIGHT-1M`, `X-SAPI-USED-UID-WEIGHT-1M` i `X-MBX-USED-WEIGHT-1M` i s'atura si alguna passa del 50 % del límit.
+- S'atura immediatament amb **429**, **418** (IP bandejada) o errors de clau/rellotge (`-1002`, `-1021`, `-1022`, `-2014`, `-2015`). No reintenta mai.
+
+| Error | Què fer |
+|---|---|
+| `code -2015` | Clau, IP o permisos invàlids. Normalment, la IP actual no és a la llista de la clau |
+| `code -1021` | El rellotge del sistema va desfasat. Sincronitza'l, o puja `BINANCE_RECV_WINDOW` (màx. 60000) |
+| `code -1022` | `BINANCE_API_SECRET` incorrecte |
+| `HTTP 429` | Límit de pes. Espera el `Retry-After` que indica l'informe |
+| `HTTP 418` | IP bandejada temporalment. **No tornis a provar** fins passat el `Retry-After` |
+| `⛔ CLAU NO SEGURA` | Treu els permisos que diu l'informe, o crea una clau nova només amb lectura |
+
+---
+
+## 9. Wallets (gate G4)
+
+### 9.1 Clau d'Etherscan (gratuïta)
+1. Crea un compte a https://etherscan.io/register i confirma el correu.
+2. **API Dashboard → Add** (https://etherscan.io/apidashboard). Posa-li un nom (`ledge-spike`).
+3. Copia la clau al `.env` com a `ETHERSCAN_API_KEY`. Amb l'API V2, la mateixa clau serveix per a totes les cadenes (`chainid`).
+
+El pla gratuït és de 3 crides/s i 100.000 al dia, i **només inclou algunes cadenes** (llista a https://docs.etherscan.io/supported-chains). Si una cadena no hi és, l'informe mostrarà l'error `Free API access is not supported for this chain`. Això també és un resultat útil per al gate.
+
+### 9.2 Configurar les adreces
+```dotenv
+BTC_ADDRESSES=bc1q...,3...        # adreces públiques individuals de mainnet
+EVM_ADDRESSES=0x...,0x...         # 0x + 40 hex
+EVM_CHAINS=1,8453,42161           # Ethereum, Base, Arbitrum (per defecte: 1)
+ETHERSCAN_API_KEY=...
+```
+
+- **Només adreces públiques.** Si un valor sembla una seed phrase (12–24 paraules) o una clau privada (64 hex, WIF o xprv), el spike s'atura **sense mostrar-la ni desar-la**. Esborra-la del `.env`.
+- En aquest spike **no s'accepten xpub/zpub**: posa'n adreces individuals (les trobaràs a la teva wallet, a *Receive*).
+- Es valida el format i el checksum de cada adreça (base58check, bech32/bech32m i EIP-55 si té majúscules i minúscules) abans de fer cap crida.
+- Màxim 20 adreces de cada tipus i 10 cadenes.
+
+### 9.3 Executar
+```bash
+npm run wallets:fetch
+```
+- BTC: una crida a `mempool.space/api/address/{addr}` per adreça, a 1 crida/s.
+- EVM: una crida a `balancemulti` d'Etherscan V2 per cadena (fins a 20 adreces per crida), a ≤ 3 crides/s.
+- S'atura amb un 429 o un error de límit d'Etherscan.
+
+→ Fitxer per compartir: `output/wallets-fetch.report.md` (adreces emmascarades, p. ex. `bc1q…a1b2`; latència, HTTP i capçaleres de rate limit; **sense saldos**).
