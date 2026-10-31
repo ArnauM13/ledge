@@ -101,6 +101,53 @@ npx prettier --check .
 
 Per projecte: `npx nx test web`, `npx nx lint api`, `npx nx build web`…
 
+## Secrets al repo (gitleaks)
+
+[gitleaks](https://github.com/gitleaks/gitleaks) **8.30.1** busca secrets en dos llocs:
+
+- **Hook de pre-commit** (`.githooks/pre-commit`): escaneja el que hi ha a l'staging (`gitleaks git --pre-commit --staged`). `npm install` l'activa (`core.hooksPath=.githooks`). Si gitleaks no hi és, el commit **falla** amb instruccions; mai se salta.
+- **CI** (`.github/workflows/secrets.yml`): a cada PR i a cada push a `main`, escaneja **tot l'historial**. La versió i el SHA-256 del binari estan fixats al workflow.
+
+### Instal·lació
+
+macOS:
+
+```bash
+brew install gitleaks
+```
+
+Linux (x64), amb verificació del checksum:
+
+```bash
+V=8.30.1
+curl -sSfLO https://github.com/gitleaks/gitleaks/releases/download/v$V/gitleaks_${V}_linux_x64.tar.gz
+curl -sSfLO https://github.com/gitleaks/gitleaks/releases/download/v$V/gitleaks_${V}_checksums.txt
+sha256sum --ignore-missing -c gitleaks_${V}_checksums.txt   # ha de dir OK
+tar -xzf gitleaks_${V}_linux_x64.tar.gz gitleaks && sudo install -m 0755 gitleaks /usr/local/bin/
+```
+
+Si ja tenies el repo clonat abans d'aquest canvi, activa el hook amb `npm install` (o `git config core.hooksPath .githooks`).
+
+Escaneig manual de tot l'historial (el mateix que fa el CI):
+
+```bash
+npm run secrets:scan
+```
+
+### Si salta
+
+1. **Secret real**: treu-lo de l'staging (`git restore --staged <fitxer>`), mou-lo a `secrets/` o fora del repo i **rota'l** (si ha arribat a un commit, considera'l compromès encara que no s'hagi fet push).
+2. **Fals positiu** (només si l'has verificat a mà): afegeix una entrada a `[[allowlists]]` de `.gitleaks.toml`, tan estreta com puguis:
+   ```toml
+   [[allowlists]]
+   description = "Clau de prova generada per al test X; no dona accés a res (verificat per <qui>, <data>)"
+   targetRules = ["private-key"]
+   paths = ['''^apps/api/src/app/crypto/fixtures/test-key\.pem$''']
+   ```
+   Res de carpetes senceres, regex amples ni `stopwords`. Els comentaris `gitleaks:allow` s'ignoren expressament (`--ignore-gitleaks-allow`): tota excepció ha de ser a `.gitleaks.toml`, on es revisa al PR.
+
+`git commit --no-verify` salta el hook, però el CI tornarà a escanejar tot l'historial.
+
 ## Convencions
 
 - **Tailwind v3 amb prefix `t-`**: `t-bg-surface`, `md:t-px-10`, `hover:t-text-content`. Els colors són tokens CSS a `apps/web/src/styles.css`:

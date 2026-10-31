@@ -9,7 +9,9 @@
     "test": "nx run-many -t test",
     "build": "nx run-many -t build",
     "format": "nx format:write",
-    "format:check": "nx format:check"
+    "format:check": "nx format:check",
+    "prepare": "node scripts/install-git-hooks.mjs",
+    "secrets:scan": "gitleaks git --ignore-gitleaks-allow --redact --no-banner --verbose --log-opts=\"--all\" ."
   },
   "private": true,
   "devDependencies": {

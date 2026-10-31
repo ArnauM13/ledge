@@ -1,0 +1,40 @@
+#!/bin/sh
+# Blocks commits that add secrets. Installed by `npm install` (scripts/install-git-hooks.mjs
+# sets `core.hooksPath=.githooks`). It never skips silently: if gitleaks is
+# missing, the commit fails.
+set -eu
+
+PINNED_VERSION="8.30.1"
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+  cat >&2 <<MSG
+pre-commit: gitleaks is not installed, so the commit is blocked.
+
+Install gitleaks ${PINNED_VERSION} (see README.md, "Secrets al repo"):
+  macOS:  brew install gitleaks
+  Linux:  download gitleaks_${PINNED_VERSION}_linux_x64.tar.gz and
+          gitleaks_${PINNED_VERSION}_checksums.txt from
+          https://github.com/gitleaks/gitleaks/releases/tag/v${PINNED_VERSION},
+          check it with 'sha256sum --ignore-missing -c gitleaks_${PINNED_VERSION}_checksums.txt'
+          and put the 'gitleaks' binary on your PATH.
+MSG
+  exit 1
+fi
+
+installed="$(gitleaks version 2>/dev/null || echo unknown)"
+if [ "${installed#v}" != "$PINNED_VERSION" ]; then
+  echo "pre-commit: warning: gitleaks ${installed} installed; CI uses ${PINNED_VERSION}." >&2
+fi
+
+# `gitleaks git --pre-commit --staged` replaces the deprecated `gitleaks protect --staged`
+# (gitleaks >= 8.19). Config: .gitleaks.toml at the repo root.
+repo_root="$(git rev-parse --show-toplevel)"
+if ! gitleaks git --pre-commit --staged --ignore-gitleaks-allow --redact --no-banner --verbose "$repo_root"; then
+  cat >&2 <<MSG
+
+pre-commit: gitleaks found possible secrets in the staged changes. Commit blocked.
+- Real secret: unstage it, move it to secrets/ or outside the repo, and rotate it.
+- Verified false positive: see README.md, "Secrets al repo".
+MSG
+  exit 1
+fi
