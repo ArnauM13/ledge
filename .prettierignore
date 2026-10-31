@@ -1,0 +1,12 @@
+# Add files here to ignore them from prettier formatting
+/dist
+/coverage
+/.nx/cache
+/.nx/workspace-data
+.nx/self-healing
+.angular
+/spikes
+.env
+INTEGRATION_FEASIBILITY.md
+IMPLEMENTATION_PLAN.md
+NEXT_STEPS.md

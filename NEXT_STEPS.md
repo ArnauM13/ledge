@@ -14,7 +14,7 @@
 | Spike d'Enable Banking (`spikes/enable-banking`) | **Escrit i testejat en local; no s'ha executat mai amb credencials reals** |
 | Spike de Binance (`spikes/binance`) | **Escrit i testejat en local; no s'ha executat mai amb credencials reals** |
 | Spike de wallets (`spikes/wallets`) | **Escrit i testejat en local; no s'ha executat mai contra l'API real** |
-| Codi de l'app (monorepo) | Encara no n'hi ha |
+| Codi de l'app (monorepo) | Fase 1 punts 1–3 fets: Nx + Angular 21 + NestJS + Tailwind `t-` + Docker Compose (veure `README.md`) |
 | Gates G1–G4 (proves reals) | Pendents |
 
 ---
@@ -36,7 +36,7 @@
 6. Obre una sessió nova i passa-hi els `spikes/output/*.report.md`, **revisats abans** (mai els `.raw.json` ni `eb-session-*.json`), amb el prompt de la §5.
 
 **En paral·lel:**
-- Sessió de la Fase 1 (prompt de la §3). No depèn dels gates.
+- Fase 1, punts 1–3: revisar i fusionar el PR del scaffold (`README.md` explica com arrencar-lo).
 - Claus de Binance (només "Enable Reading" i restricció d'IP) i d'Etherscan → `spikes/README.md` §3b i §3c.
 - Executa els spikes de Binance i wallets (omple abans `BINANCE_*`, `BTC_ADDRESSES`, `EVM_ADDRESSES`, `EVM_CHAINS` i `ETHERSCAN_API_KEY` al `.env`):
   ```bash
@@ -67,7 +67,9 @@
 
 ### C. Sessions de Claude Code (en aquest ordre)
 1. [x] **Sessió de spikes** → fet. Enable Banking (`spikes/enable-banking`), Binance (`spikes/binance`) i wallets (`spikes/wallets`) són a `main`. Estan escrits però no executats.
-2. [ ] **Sessió de la Fase 1** → prompt a la §3. Es pot obrir en paral·lel; no es trepitgen.
+2. [x] **Sessió de la Fase 1, punts 1–3** → prompt a la §3. Fet.
+3. [ ] **Fase 1, punts 4–7**: Prisma (`users`, `households`, `memberships`, `audit_logs`), auth amb argon2 + TOTP, guard de household i servei AES-256-GCM.
+4. [ ] **Fase 1, punts 8–9**: CI (GitHub Actions) i Vercel (requereix el compte de Vercel).
 
 ### D. Executar els spikes (vosaltres, a la vostra màquina) → instruccions a `spikes/README.md`
 - [ ] `npm run eb:aspsps` → hi ha MyInvestor i Trade Republic?
