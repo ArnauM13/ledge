@@ -1,0 +1,29 @@
+# Disposable PostgreSQL for `npx nx run api:test-integration`.
+# Independent from docker-compose.yml (no .env needed). Data lives in tmpfs and
+# is lost when the container stops. Published on 127.0.0.1 only, so the test
+# runner on the host can reach it. The password is a file, like in production:
+# apps/api/scripts/test-integration.mjs creates it if it is missing.
+name: ledge-test
+
+services:
+  db-test:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ledge_test
+      POSTGRES_DB: ledge_test
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_test_password
+    secrets:
+      - postgres_test_password
+    tmpfs:
+      - /var/lib/postgresql/data
+    ports:
+      - '127.0.0.1:${DB_TEST_HOST_PORT:-55432}:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ledge_test -d ledge_test']
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+secrets:
+  postgres_test_password:
+    file: ./secrets/postgres_test_password

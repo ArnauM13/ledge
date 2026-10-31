@@ -4,6 +4,8 @@
 #   mkdir -p secrets && openssl rand -base64 32 > secrets/postgres_password
 #   docker compose up --build
 #
+# Startup order: db (healthy) -> migrate (prisma migrate deploy, exits 0) -> api.
+#
 # Secrets are files mounted at /run/secrets/* (never environment variables),
 # so they do not show up in `docker inspect`, `docker compose config` or logs.
 # Postgres has NO published ports: it is only reachable from the `backend`
@@ -30,20 +32,46 @@ services:
       timeout: 3s
       retries: 10
 
+  # Applies pending Prisma migrations and exits. Also runnable on its own:
+  #   docker compose run --rm migrate
+  migrate:
+    image: ledge-api-migrate:local
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: migrate
+    restart: 'no'
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${POSTGRES_USER}
+      DB_NAME: ${POSTGRES_DB}
+      DB_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets:
+      - postgres_password
+    networks:
+      - backend
+
   api:
     image: ledge-api:local
     build:
       context: .
       dockerfile: apps/api/Dockerfile
+      target: runtime
     restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     environment:
       API_HOST: 0.0.0.0
       API_PORT: 3000
-      # Connection settings without the password. The password is read from
-      # DB_PASSWORD_FILE (not used yet: Prisma arrives in Phase 1, point 4).
+      # Connection settings without the password. The API builds the URL at
+      # startup and reads the password from DB_PASSWORD_FILE.
       DB_HOST: db
       DB_PORT: 5432
       DB_USER: ${POSTGRES_USER}

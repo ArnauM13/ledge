@@ -12,7 +12,8 @@ Dashboard patrimonial privat per a una household de dues persones.
 ```text
 apps/
   web/            Angular 21 (standalone, OnPush, signals, zoneless) + Tailwind (prefix t-)
-  api/            NestJS 11 — de moment només GET /health
+  api/            NestJS 11 + Prisma 7 (PostgreSQL)
+    prisma/       schema.prisma i migracions SQL
 libs/
   shared/types/   Tipus compartits web ↔ api (@ledge/shared-types)
 spikes/           Scripts de la Fase 0, amb el seu propi package.json (fora de Nx)
@@ -62,7 +63,29 @@ docker compose up --build
 
 - L'API es publica només a `127.0.0.1:3000`.
 - Postgres **no** publica cap port: és a la xarxa `backend` (interna, sense sortida) i només l'API hi arriba (`db:5432`).
-- Encara no hi ha Prisma: l'API rep `DB_HOST`, `DB_USER`, `DB_NAME` i `DB_PASSWORD_FILE`, però encara no els fa servir (Fase 1, punt 4).
+- Ordre d'arrencada: `db` (healthy) → `migrate` (`prisma migrate deploy`, acaba amb codi 0) → `api`.
+- L'API munta la URL de connexió en arrencar a partir de `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_NAME` i el fitxer `DB_PASSWORD_FILE` (usuari i contrasenya codificats per a URL). La URL no s'escriu mai als logs, als errors ni a cap variable d'entorn. Si la BD no respon, l'API no arrenca.
+
+Migracions a mà:
+
+```bash
+docker compose run --rm migrate
+```
+
+### Base de dades (Prisma)
+
+- Esquema: `apps/api/prisma/schema.prisma`. Migracions: `apps/api/prisma/migrations/`.
+- Taules: `users`, `households`, `memberships`, `audit_logs`. IDs UUID (`gen_random_uuid()`), `created_at`/`updated_at` en `timestamptz` (instants UTC; la sessió de BD de l'API va en `TimeZone=UTC`) i índex per `household_id`.
+- `audit_logs` és **append-only**: l'API no pot fer `update`/`delete`/`upsert` (extensió de Prisma que llança error) i un trigger de Postgres rebutja `UPDATE`, `DELETE` i `TRUNCATE`. Un superusuari de la BD encara podria desactivar el trigger.
+- El client de Prisma es genera a `apps/api/src/generated/prisma` (al `.gitignore`); `nx build|test|lint api` el generen abans (`nx run api:prisma-generate`).
+
+Nova migració en local (contra la BD de test, vegeu més avall):
+
+```bash
+cd apps/api
+export DB_HOST=127.0.0.1 DB_PORT=55432 DB_USER=ledge_test DB_NAME=ledge_test DB_PASSWORD_FILE=$PWD/../../secrets/postgres_test_password
+npx prisma migrate dev --name <nom>
+```
 
 #### Secrets
 
@@ -73,10 +96,11 @@ docker compose up --build
 
 #### Darrere d'un proxy TLS corporatiu
 
-Si `npm ci` falla durant el build per un certificat, passa el CA del proxy com a secret de BuildKit. Només es munta durant `npm ci` i no queda a cap capa de la imatge:
+Si `npm ci` o `prisma generate` (que descarrega el _schema engine_) fallen durant el build per un certificat, passa el CA del proxy com a secret de BuildKit. Només es munta en aquests dos passos i no queda a cap capa de la imatge:
 
 ```bash
-docker build --secret id=npm_ca,src=/ruta/al/ca.pem -t ledge-api:local -f apps/api/Dockerfile .
+docker build --secret id=npm_ca,src=/ruta/al/ca.pem --target migrate -t ledge-api-migrate:local -f apps/api/Dockerfile .
+docker build --secret id=npm_ca,src=/ruta/al/ca.pem --target runtime -t ledge-api:local -f apps/api/Dockerfile .
 ```
 
 ```bash
@@ -98,6 +122,15 @@ npx nx run-many -t lint test build
 ```bash
 npx prettier --check .
 ```
+
+Tests d'integració de l'API (`*.int-spec.ts`, amb Postgres real). Arrenquen `docker-compose.test.yml` (Postgres en tmpfs a `127.0.0.1:55432`), apliquen les migracions, executen els tests i aturen la BD:
+
+```bash
+npx nx run api:test-integration            # -- --keep-db per deixar la BD engegada
+```
+
+- La contrasenya de la BD de test es crea sola a `secrets/postgres_test_password`, i la clau mestra és un fitxer temporal per execució.
+- Si ja hi ha `DB_HOST` definit (p. ex. un servei de CI), fa servir aquella BD. En tots dos casos, **es nega a executar-se si `DB_NAME` no acaba en `_test`**.
 
 Per projecte: `npx nx test web`, `npx nx lint api`, `npx nx build web`…
 
