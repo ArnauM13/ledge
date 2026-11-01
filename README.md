@@ -310,4 +310,6 @@ npm run secrets:scan
 
 ## Estat
 
-Fase 1, punts 1–3 (monorepo, Tailwind, Docker Compose) a `main`. Següent: punts 4–7 + gitleaks (prompt a `NEXT_STEPS.md` §3b). La UI només té la navegació i un estat buit: **cap xifra**, perquè encara no hi ha cap font de dades connectada.
+Fase 1, punts 0–7: gitleaks, monorepo, Tailwind, Docker Compose, Prisma, auth amb TOTP obligatori, aïllament de household i xifratge. Els usuaris poden fer login amb 2FA i veuen un **Overview buit**: **cap xifra**, perquè encara no hi ha cap font de dades connectada.
+
+Següent: punts 8–9, CI i Vercel (prompt a `NEXT_STEPS.md` §3c). Pendents tècnics coneguts a la mateixa secció.
