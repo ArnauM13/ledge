@@ -37,6 +37,20 @@
       </li>
       }
     </ul>
+    <div class="t-border-t t-border-line t-p-4">
+      @if (user(); as u) {
+      <p class="t-truncate t-text-sm t-text-content" data-testid="user-name">
+        {{ u.displayName }}
+      </p>
+      }
+      <button
+        type="button"
+        class="t-mt-2 t-text-sm t-text-content-muted hover:t-text-content"
+        (click)="logout()"
+      >
+        Sign out
+      </button>
+    </div>
   </nav>
 
   <main class="t-flex-1 t-px-4 t-py-6 md:t-px-10 md:t-py-10">

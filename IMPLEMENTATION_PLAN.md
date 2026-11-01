@@ -59,16 +59,28 @@ Resultat: actualitzar `INTEGRATION_FEASIBILITY.md` amb les evidències (anonimit
 
 Ordre de treball, un PR per punt:
 
-0. **Detecció de secrets**: gitleaks (hook de pre-commit + workflow que només fa gitleaks). S'afegeix abans del punt 4.
+0. ✅ **Detecció de secrets**: gitleaks 8.30.1 (hook de pre-commit + workflow `secrets.yml` que només fa gitleaks, amb checksum verificat).
 1. ✅ **Monorepo Nx**: `apps/web` (Angular 21, standalone, OnPush, signals), `apps/api` (NestJS), `libs/shared/types`. TS `strict`. ESLint + Prettier.
 2. ✅ **Tailwind** amb prefix `t-` i tokens del tema fosc (charcoal, maragda, vermell d'alerta).
 3. ✅ **Docker Compose local**: PostgreSQL + API. Sense Redis de moment. Secrets com a fitxers (Compose secrets).
-4. **Prisma**: primera migració amb `users`, `households`, `memberships`, `audit_logs`.
-5. **Auth**: login individual, contrasenya argon2, **TOTP 2FA**, sessió en cookie `HttpOnly` + `Secure` + `SameSite`.
-6. **Aïllament de household**: guard NestJS + filtre obligatori per `household_id`, amb test.
-7. **Xifratge**: servei AES-256-GCM, master key en un fitxer de secrets (`/run/secrets/*`), mai a la BD ni en variables d'entorn.
+4. ✅ **Prisma**: primera migració amb `users`, `households`, `memberships`, `audit_logs` (append-only també a la BD). Migracions com a servei `migrate` de Compose.
+5. ✅ **Auth**: login individual, contrasenya argon2id, **TOTP 2FA** obligatori, sessió en cookie `HttpOnly` + `Secure` + `SameSite=Strict`. Usuaris creats amb el CLI `create-user`.
+6. ✅ **Aïllament de household**: guard NestJS + filtre obligatori per `household_id`, amb test (404, no 403).
+7. ✅ **Xifratge**: servei AES-256-GCM, master key en un fitxer de secrets (`/run/secrets/*`), mai a la BD ni en variables d'entorn. Fet abans del punt 5 perquè el secret TOTP es guarda xifrat.
 8. **CI** (GitHub Actions): lint, test, build (gitleaks ja hi és des del punt 0).
 9. **Vercel**: projecte connectat al repo; deploy de `apps/web` (pantalla de login, sense dades).
+
+**Decisions preses als punts 4–7 (01/11/2026):**
+
+| Tema | Decisió |
+|---|---|
+| Sessions | A Postgres, amb token opac a la cookie (només se'n guarda el SHA-256). No tokens signats: el logout i la inactivitat s'invaliden al servidor. |
+| TOTP i QR | `otpauth` + `qrcode` (QR generat al servidor). |
+| Hash de contrasenya | `argon2` (node-argon2), argon2id m=19 MiB, t=2, p=1. |
+| Rate limiting | Bloqueig per compte a Postgres + límit per IP en memòria. Sense Redis. |
+| CSRF | Token sincronitzador lligat a la sessió + `Sec-Fetch-Site`/`Origin` + només JSON. |
+| Tests amb BD | Target propi `nx run api:test-integration` (Postgres d'un sol ús de `docker-compose.test.yml`). `nx test` són només unitaris. |
+| Desplegament de la web | La cookie és `SameSite=Strict`: la web i l'API han de compartir site (mateix domini o subdominis). Depèn de D4. |
 
 **Definition of Done de la Fase 1:** els dos usuaris poden fer login amb 2FA i veuen un Overview buit a Vercel.
 

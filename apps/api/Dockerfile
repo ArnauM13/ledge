@@ -2,8 +2,8 @@
 # Build context: repository root (docker compose handles this).
 #
 # Optional BuildKit secret `npm_ca`: extra CA bundle for networks behind a
-# TLS-intercepting proxy. It is mounted only during `npm ci` and never stored
-# in any image layer. Without it the build behaves normally.
+# TLS-intercepting proxy. It is mounted only during `npm ci` / `prisma generate`
+# and never stored in any image layer. Without it the build behaves normally.
 #   docker build --secret id=npm_ca,src=/path/to/ca.pem -f apps/api/Dockerfile .
 
 FROM node:22-alpine AS build
@@ -16,8 +16,21 @@ RUN --mount=type=secret,id=npm_ca,required=false \
 COPY nx.json tsconfig.base.json eslint.config.mjs ./
 COPY libs ./libs
 COPY apps/api ./apps/api
-RUN npx nx build api --configuration=production
+# `prisma generate` also downloads the Prisma schema engine (needed by the
+# migrate stage), so the optional CA secret is mounted here too.
+RUN --mount=type=secret,id=npm_ca,required=false \
+    if [ -s /run/secrets/npm_ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/npm_ca; fi; \
+    npx nx build api --configuration=production
 
+# One-shot database migrations (`docker compose run --rm migrate`, and run
+# automatically before the API by docker compose). Reuses the build stage
+# because it needs the Prisma CLI (a dev dependency).
+FROM build AS migrate
+WORKDIR /workspace/apps/api
+USER node
+CMD ["npx", "--no-install", "prisma", "migrate", "deploy"]
+
+# Default target: the API.
 FROM node:22-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production API_HOST=0.0.0.0 API_PORT=3000
