@@ -3,11 +3,12 @@
 > 01/11/2026. Passos manuals, en ordre. Tot el que és codi ho fa Claude; això són coses que necessiten la teva màquina, els teus comptes o una decisió teva.
 > El flux local (§1) s'ha provat el 01/11/2026 de punta a punta: login, alta del TOTP, codis de recuperació i Overview.
 
-| #   | Què                                 | Temps  | Resultat                                |
-| --- | ----------------------------------- | ------ | --------------------------------------- |
-| 1   | Arrencar-la en local                | 20 min | Web a `http://localhost:4200` amb login |
-| 2   | Veure la galeria de gràfiques       | 2 min  | G-1 amb dades de prova a `/dev/charts`  |
-| 3   | Decisions i comptes per publicar-la | 1–2 h  | Claude pot fer el CI, Vercel i el VPS   |
+| #   | Què                                       | Temps  | Resultat                                  |
+| --- | ----------------------------------------- | ------ | ----------------------------------------- |
+| 1   | Arrencar-la en local                      | 20 min | Web a `http://localhost:4200` amb login   |
+| 2   | Veure la galeria de gràfiques             | 2 min  | G-1 amb dades de prova a `/dev/charts`    |
+| 3   | Decisions i comptes per publicar-la       | 1–2 h  | Claude pot fer el CI, Vercel i el VPS     |
+| 5   | Skills de disseny a les sessions al núvol | 5 min  | Claude les fa servir a totes les sessions |
 
 ---
 
@@ -153,3 +154,51 @@ La web estarà buida fins que:
 
 - **Fase 2** (no depèn de res teu, tret de D1 i D2): podreu entrar a mà comptes, posicions, immobles i la hipoteca.
 - **Fase 3**: cal que executis els spikes ([`../spikes/README.md`](../spikes/README.md)) i que els gates siguin GO.
+
+## 5. Skills de Claude Code a totes les sessions
+
+L'script [`../scripts/install-skills.mjs`](../scripts/install-skills.mjs) instal·la les skills globals (taste-skill, web-design-guidelines, playwright-cli, design-md i la resta) a `~/.claude/skills`.
+
+| On treballes                     | Què has de fer                                                                                                   |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Al teu ordinador                 | Res més. Ja el vas executar i hi queden per a totes les sessions locals                                          |
+| Sessions de Claude Code al núvol | Cada sessió arrenca en un contenidor nou, buit. Cal posar-lo a l'**script de configuració de l'entorn** (a sota) |
+
+**Al núvol** (un sol cop): menú de l'entorn a la barra de títol de la sessió → **Edit** → **Setup script**, i enganxa:
+
+```bash
+#!/bin/bash
+set -u
+for s in "blader/humanizer" "anthropics/skills --skill skill-creator" "mattpocock/skills --skill grill-me" \
+         "JuliusBrussee/caveman" "coreyhaines31/marketingskills" "Leonxlnx/taste-skill" \
+         "vercel-labs/agent-skills --skill web-design-guidelines" "microsoft/playwright-cli" \
+         "Jakeschincariol/replica-skill"; do
+  npx -y skills add $s -g -a claude-code -y || echo "ha fallat: $s"
+done
+npm i -g @playwright/cli || echo "ha fallat: @playwright/cli"
+D="$HOME/.claude/awesome-design-md"
+[ -d "$D" ] || git clone --depth 1 https://github.com/VoltAgent/awesome-design-md.git "$D"
+mkdir -p "$HOME/.claude/skills/design-md"
+cat > "$HOME/.claude/skills/design-md/SKILL.md" <<'SKILL'
+---
+name: design-md
+description: Aplica el sistema de disseny d'una marca coneguda (Stripe, Linear, Vercel, Apple...) a partir de la col·lecció awesome-design-md. Fes-la servir quan l'usuari demani un disseny "a l'estil de" una web o marca, o vulgui un DESIGN.md per al projecte.
+---
+
+# Design MD
+
+La col·lecció és a `~/.claude/awesome-design-md/`.
+
+1. Busca la marca demanada dins la col·lecció (cerca els fitxers `DESIGN.md` i el nom de la marca a la seva ruta).
+2. Llegeix el seu `DESIGN.md` sencer.
+3. Copia'l a l'arrel del projecte com a `DESIGN.md`.
+4. Aplica'n els colors, la tipografia, els espaiats i els components a tota la UI que generis.
+5. Si no hi ha la marca demanada, llista les disponibles i proposa'n la més semblant.
+SKILL
+exit 0
+```
+
+- Les sessions noves les tindran des del principi. Una sessió que ja està oberta no es veu afectada.
+- `playwright-cli` necessita també el binari (`npm i -g @playwright/cli`), que el CLI `skills` no instal·la; l'script de dalt ja ho fa.
+- L'skill «image to code» encara no té repositori (és `PENDENT` a l'script).
+- Són skills de tercers, i cada sessió en baixa la darrera versió.

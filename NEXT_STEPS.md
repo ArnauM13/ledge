@@ -14,7 +14,7 @@
 | Fase 1, punts 0–7 | ✅ A `main` (PR #6 i #8): gitleaks, Nx, Tailwind, Docker Compose, Prisma, auth amb TOTP, aïllament de household, xifratge. Flux de login provat al navegador l'01/11 |
 | Fase 1, punts 8–9 (CI + Vercel) | Pendent (§3c). El punt 9 depèn de D4, D5 i del compte de Vercel |
 | Gràfiques | Disseny ✅ (`docs/CHARTS.md`). Lib `libs/web/charts` + G-1 ✅ a `main` (PR #10 i #11), només a `/dev/charts` amb dades de prova. Següent: G-2 + G-3 (§3e) i G-4 + G-5 (§3f) |
-| Disseny de la UI | Revisat l'01/11 (`docs/ANALYSIS.md` §4). Canvis proposats amb referències HTML a `docs/DESIGN_CHANGES.md` (§3g). Pendent D6 (idioma) |
+| Disseny de la UI | Revisat l'01/11 amb les skills de disseny (taste-skill, web-design-guidelines, playwright-cli; `docs/ANALYSIS.md` §4.3). Estil `true-black-flat` i referències HTML a `docs/DESIGN_CHANGES.md` (§3g). Pendent D6 (idioma) |
 | Fase 2 (domini financer) | No començada. No depèn de cap gate (§3h) |
 | Gates G1–G4 | Pendents |
 
@@ -287,13 +287,14 @@ Branca nova des de main i PR cap a main.
 
 ~~~~text
 Projecte: "ledge" (repo ArnauM13/ledge). Llegeix CLAUDE.md, docs/README.md, docs/ANALYSIS.md §4 i docs/DESIGN_CHANGES.md abans de fer res.
-Obre al navegador (Playwright) docs/design/login.html i docs/design/overview.html: són les referències visuals.
+Obre al navegador (playwright-cli) docs/design/login.html, overview-empty.html i overview.html: són les referències visuals.
+Fes servir les skills design-taste-frontend (references/app-screens.md; `lint.mjs --app` i `inspect.mjs --app`), web-design-guidelines i playwright-cli. Si no hi són, atura't i digues-ho (docs/MANUAL_SETUP.md §5).
 
 Tasca: els PR 1, 2 i 3 de docs/DESIGN_CHANGES.md §5, un PR per punt, en aquest ordre.
 - PR 1: tokens (DC-1), focus (DC-2), lletra i escala (DC-4). Valors exactes a docs/design/reference.css. Justifica i fixa la versió de qualsevol dependència (p. ex. @fontsource-variable/inter).
 - PR 2: idioma (DC-3) i pantalles d'accés (DC-5). Idioma segons D6: [català | anglès].
-- PR 3: shell (DC-6 a DC-9) i estat buit guiat (DC-10). Cap xifra inventada fora de /dev.
-Per a cada PR: tests dels components afectats, captures abans/després (Playwright) a la descripció, documentació actualitzada (regla de CLAUDE.md),
+- PR 3: shell (DC-6 a DC-9, amb la barra lateral plegada per sota de 1100 px) i primer ús (DC-10). Cap xifra inventada fora de /dev.
+Per a cada PR: tests dels components afectats, `inspect.mjs --app` amb 0 FAIL a 1440/768/390, captures abans/després a la descripció, documentació actualitzada (regla de CLAUDE.md),
 `npx nx run-many -t lint test build` i `npx prettier --check .` en verd.
 Branca nova des de main per a cada PR.
 ~~~~

@@ -1,45 +1,51 @@
 /*
- * ledge — CSS compartit de les referències de disseny (docs/design/*.html).
- * NO és codi de l'app: és la proposta que s'ha de portar a
- * apps/web/src/styles.css i tailwind.config.js (vegeu docs/DESIGN_CHANGES.md).
+ * ledge — tokens de les referències de disseny (docs/design/*.html).
+ * NO és codi de l'app: és la proposta per a apps/web/src/styles.css i
+ * tailwind.config.js (docs/DESIGN_CHANGES.md).
  *
- * Tema únic fosc (decisió del projecte). Els valors marcats «NOU» o «CANVI»
- * són la proposta; la resta són els tokens actuals de l'app.
+ * Estil: «true-black-flat» de la skill design-taste-frontend (app screens),
+ * amb la paleta i la lletra de ledge mantingudes (--keep palette,type).
+ *   - Elevació només per lluminositat: canvas → surface → raised, sense vores
+ *     ni ombres a les targetes.
+ *   - Un sol to de dada (--data) i res de color al chrome (nav, botons, pestanyes).
+ *   - Element actiu del menú: només el text passa de gris a blanc.
+ *   - Primari per inversió: botó blanc de 36px amb text fosc.
+ * Tema únic fosc (decisió del projecte). «NOU»/«CANVI» = proposta.
  */
 :root {
   color-scheme: dark;
-  /* Superfícies (actuals) */
+  /* Superfícies */
   --ledge-canvas: #17181b;
   --ledge-surface: #1f2125;
   --ledge-surface-raised: #282a2f;
-  --ledge-line: #34373d; /* separadors decoratius (1,35:1, no per a controls) */
-  --ledge-line-strong: #6b6f78; /* NOU: vores de controls, 3,2:1 sobre surface */
-  /* Text */
+  --ledge-rule: #26282d; /* NOU: regles estructurals del marc (1px) */
+  --ledge-line: #34373d; /* separadors dins de taules */
+  --ledge-line-strong: #6b6f78; /* NOU: vores de camps (3,2:1 sobre surface) */
+  /* Text: dos grisos que es llegeixen com a dos */
   --ledge-content: #f5f5f6;
-  --ledge-content-muted: #a1a5ad;
-  --ledge-content-subtle: #8b8f98; /* CANVI: era #71757e (3,49:1) → 4,98:1 sobre surface */
-  /* Semàntica: només signe d'una variació o alerta */
+  --ledge-content-muted: #b4b4b4; /* CANVI: era #a1a5ad */
+  --ledge-content-subtle: #949494; /* CANVI: era #71757e (3,49:1) → 5,31:1 sobre surface */
+  /* Dada: un sol to, només a les marques de dades */
+  --ledge-data: #3987e5; /* = series-1 de docs/CHARTS.md */
   --ledge-positive: #34a878;
-  --ledge-negative: #f06a6e; /* CANVI: era #e5484d (3,67:1 sobre raised) → 4,78:1 */
-  /* Focus (NOU): anell visible i que no és cap color de sèrie ni semàntic */
-  --ledge-focus: #8ab4f8;
-  /* Sèries (docs/CHARTS.md §4, validades) */
-  --ledge-series-1: #3987e5;
-  --ledge-series-2: #d95926;
+  --ledge-negative: #f06a6e; /* CANVI: era #e5484d */
+  --ledge-focus: #8ab4f8; /* NOU */
+  /* Identitat de persona: tints pàl·lids, fora de les llegendes */
+  --ledge-person-a: #9ec3ee;
+  --ledge-person-b: #eec09e;
 
-  /* Tipografia (NOU: escala fixa) */
   --font-sans:
     'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace;
-  --text-xs: 0.75rem; /* 12 — etiquetes, eixos */
-  --text-sm: 0.875rem; /* 14 — cos de la UI */
-  --text-base: 1rem; /* 16 */
-  --text-lg: 1.125rem; /* 18 — títols de targeta */
-  --text-2xl: 1.5rem; /* 24 — títol de pàgina */
-  --text-4xl: 2.25rem; /* 36 — xifra principal (patrimoni net) */
+  --fs-small: 12px;
+  --fs-body: 14px;
+  --fs-section: 16px;
+  --fs-title: 24px;
+  --fs-lead: 32px; /* la xifra que respon la pregunta de la pantalla */
 
-  --radius-sm: 6px;
-  --radius-md: 10px;
+  --radius-card: 12px;
+  --radius-control: 999px;
+  --gap: 24px;
+  --card-pad: 20px;
 }
 
 * {
@@ -52,23 +58,19 @@ body {
   background: var(--ledge-canvas);
   color: var(--ledge-content);
   font-family: var(--font-sans);
-  font-size: var(--text-sm);
-  line-height: 1.5;
+  font-size: var(--fs-body);
+  line-height: 20px;
   -webkit-font-smoothing: antialiased;
+  touch-action: manipulation;
 }
 h1,
 h2,
 h3 {
   margin: 0;
-  font-weight: 600;
-  letter-spacing: -0.01em;
   text-wrap: balance;
 }
 p {
   margin: 0;
-}
-a {
-  color: inherit;
 }
 .num {
   font-variant-numeric: tabular-nums;
@@ -76,49 +78,32 @@ a {
 :focus-visible {
   outline: 2px solid var(--ledge-focus);
   outline-offset: 2px;
-  border-radius: var(--radius-sm);
 }
 @media (prefers-reduced-motion: reduce) {
   * {
     transition: none !important;
-    animation: none !important;
   }
-}
-
-/* Nota de referència (només a aquests fitxers, no a l'app) */
-.ref-note {
-  border: 1px dashed var(--ledge-line-strong);
-  border-radius: var(--radius-sm);
-  padding: 8px 12px;
-  color: var(--ledge-content-muted);
-  font-size: var(--text-xs);
-}
-.ref-note b {
-  color: var(--ledge-content);
 }
 
 /* Controls */
 .label {
   display: block;
-  color: var(--ledge-content-muted);
-  font-size: var(--text-sm);
-  margin-bottom: 4px;
+  font-size: var(--fs-body);
+  font-weight: 500;
+  margin-bottom: 8px;
 }
 .input {
   display: block;
   width: 100%;
-  padding: 9px 12px;
-  border-radius: var(--radius-sm);
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 10px;
   border: 1px solid var(--ledge-line-strong);
   background: var(--ledge-canvas);
   color: var(--ledge-content);
   font: inherit;
 }
-.input::placeholder {
-  color: var(--ledge-content-subtle);
-}
 .input:focus-visible {
-  outline: 2px solid var(--ledge-focus);
   outline-offset: 0;
   border-color: transparent;
 }
@@ -127,12 +112,16 @@ a {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 9px 14px;
-  border-radius: var(--radius-sm);
+  height: 36px;
+  padding: 0 16px;
+  border-radius: var(--radius-control);
   border: 1px solid transparent;
   font: inherit;
   font-weight: 500;
   cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 .btn-primary {
   background: var(--ledge-content);
@@ -142,57 +131,53 @@ a {
   background: #ffffff;
 }
 .btn-primary[aria-busy='true'] {
-  opacity: 0.6;
+  background: var(--ledge-content-muted);
   cursor: progress;
 }
 .btn-ghost {
   background: transparent;
-  color: var(--ledge-content-muted);
-  border-color: var(--ledge-line-strong);
+  color: var(--ledge-content);
+  border-color: #44464c;
 }
 .btn-ghost:hover {
-  color: var(--ledge-content);
   background: var(--ledge-surface-raised);
+}
+.btn-sm {
+  height: 28px;
+  padding: 0 12px;
+  font-size: var(--fs-small);
 }
 .hint {
   color: var(--ledge-content-subtle);
-  font-size: var(--text-xs);
-}
-.error {
-  color: var(--ledge-negative);
-  font-size: var(--text-sm);
+  font-size: 13px;
 }
 
-/* Xips d'origen de la dada (NOU): forma + text, sense color semàntic */
+/* Origen de la dada: forma + text, sense color */
 .chip {
+  flex: none;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 1px 8px;
+  gap: 5px;
+  height: 20px;
+  padding: 0 8px;
   border-radius: 999px;
-  font-size: var(--text-xs);
-  border: 1px solid var(--ledge-line-strong);
-  color: var(--ledge-content-muted);
+  font-size: var(--fs-small);
   white-space: nowrap;
-}
-.chip-dashed {
-  border-style: dashed;
+  background: var(--ledge-surface-raised);
+  color: var(--ledge-content-muted);
 }
 .chip::before {
   content: '';
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: currentColor;
 }
 .chip-auto::before {
   background: var(--ledge-content);
 }
 .chip-manual::before {
-  background: transparent;
   border: 1px solid currentColor;
 }
 .chip-est::before {
-  background: transparent;
   border: 1px dashed currentColor;
 }

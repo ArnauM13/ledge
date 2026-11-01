@@ -5,16 +5,16 @@
 
 ## 1. Resum
 
-| Àmbit             | Estat                                                                                                                                     |
-| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| Codi de la Fase 1 | Punts 0–7 fets i a `main`. Lint, test i build passen (9 tasques).                                                                         |
-| Web               | Login → alta del TOTP → codis de recuperació → Overview buit. **Funciona de punta a punta** en local (provat avui amb un navegador real). |
-| Gràfiques         | La lib `libs/web/charts` + G-1 **no és a `main`**: el PR #10 es va fusionar a una branca que ja estava fusionada (§3, T1).                |
-| CI i desplegament | Només hi ha el workflow de gitleaks. Cap CI de lint/test/build ni Vercel (punts 8–9).                                                     |
-| Integracions      | Spikes escrits, **cap executat**. Gates G1–G4 pendents.                                                                                   |
-| Decisions         | D1, D2, D4, D5 pendents. D4 i D5 bloquegen el desplegament.                                                                               |
-| Disseny           | Base sòbria i coherent, però amb problemes de contrast, focus, idioma i navegació (§4).                                                   |
-| Documentació      | Completa però dispersa i amb dades desfasades. Centralitzada en aquest PR (§5).                                                           |
+| Àmbit             | Estat                                                                                                                                      |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Codi de la Fase 1 | Punts 0–7 fets i a `main`. Lint, test i build passen (9 tasques).                                                                          |
+| Web               | Login → alta del TOTP → codis de recuperació → Overview buit. **Funciona de punta a punta** en local (provat avui amb un navegador real).  |
+| Gràfiques         | La lib `libs/web/charts` + G-1 **no és a `main`**: el PR #10 es va fusionar a una branca que ja estava fusionada (§3, T1).                 |
+| CI i desplegament | Només hi ha el workflow de gitleaks. Cap CI de lint/test/build ni Vercel (punts 8–9).                                                      |
+| Integracions      | Spikes escrits, **cap executat**. Gates G1–G4 pendents.                                                                                    |
+| Decisions         | D1, D2, D4, D5 pendents. D4 i D5 bloquegen el desplegament.                                                                                |
+| Disseny           | Base sòbria i coherent, però amb problemes de contrast, focus, idioma, navegació i tauleta (§4). Revisat amb les skills de disseny (§4.3). |
+| Documentació      | Completa però dispersa i amb dades desfasades. Centralitzada en aquest PR (§5).                                                            |
 
 **En una frase:** el projecte té una base de seguretat sòlida, però avui ningú pot veure la web sense muntar-la en local, i el següent salt (dades reals) depèn de coses que has de fer tu (§6).
 
@@ -31,9 +31,9 @@
 
 Captures de l'estat actual: [`design/captures/`](design/captures/).
 
-| Login                                  | Overview                                     | Menú mòbil                                        |
-| -------------------------------------- | -------------------------------------------- | ------------------------------------------------- |
-| ![Login](design/captures/01-login.png) | ![Overview](design/captures/05-overview.png) | ![Menú mòbil](design/captures/07-menu-mobile.png) |
+| Login                                  | Overview                                     | Tauleta (768 px, D-13)                             | Menú mòbil                                        |
+| -------------------------------------- | -------------------------------------------- | -------------------------------------------------- | ------------------------------------------------- |
+| ![Login](design/captures/01-login.png) | ![Overview](design/captures/05-overview.png) | ![Tauleta](design/captures/08-overview-tablet.png) | ![Menú mòbil](design/captures/07-menu-mobile.png) |
 
 ## 3. Troballes del projecte (per prioritat)
 
@@ -67,20 +67,46 @@ Captures de l'estat actual: [`design/captures/`](design/captures/).
 
 Els valors de contrast s'han calculat amb la fórmula de WCAG 2.x.
 
-| #    | Problema                                                                                                                                                                                                         | On                                 | Gravetat               |
-| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- | ---------------------- |
-| D-1  | **Contrast insuficient de `content-subtle`** (`#71757e`): 3,49:1 sobre `surface` i 3,11:1 sobre `surface-raised`. WCAG AA demana 4,5:1 per a text petit. S'usa en placeholders i ajudes (`t-text-xs`).           | `styles.css`, `totp-page.ts`       | Alta                   |
-| D-2  | **Vores dels camps invisibles**: `line` (`#34373d`) fa 1,35:1 sobre `surface`. Un control necessita 3:1 (WCAG 1.4.11). El camp de text gairebé no es distingeix del fons.                                        | `INPUT_CLASS`                      | Alta                   |
-| D-3  | **Focus del teclat feble**: els camps fan `focus:t-outline-none` i només canvien la vora a gris. Els enllaços del menú i els botons depenen de l'outline per defecte del navegador.                              | `auth-card.ts`, `shell.html`       | Alta                   |
-| D-4  | **Idioma barrejat**: la UI és en anglès (`lang="en"`, «Sign in», «No data yet»), però les gràfiques formaten en `ca-ES` i diuen «Encara no hi ha dades». Els usuaris són catalanoparlants.                       | `index.html`, totes les pantalles  | Mitjana                |
-| D-5  | **Inter no es carrega**: és al `font-family`, però cap fitxer la porta. Cada màquina veu una lletra diferent (Inter si la té instal·lada, si no la del sistema). Les xifres no tenen `tabular-nums` per defecte. | `tailwind.config.js`, `index.html` | Mitjana                |
-| D-6  | **Navegació plana de 9 seccions**, sense icones ni grups. Totes porten a la mateixa pantalla buida, incloses les que no tindran dades fins a la Fase 3 o 4 (Transactions, Analytics).                            | `navigation.ts`, `shell.html`      | Mitjana                |
-| D-7  | **Menú mòbil**: empeny el contingut cap avall en lloc de sobreposar-se, no es tanca amb Esc ni tocant fora, i el botó diu «Menu» sense icona.                                                                    | `shell.html`                       | Mitjana                |
-| D-8  | **Sense context de household**: no es veu a quina household ets ni qui més hi ha. L'usuari i «Sign out» queden a mitja barra lateral, no ancorats a baix.                                                        | `shell.html`                       | Baixa                  |
-| D-9  | **Estat buit genèric**: «No data yet / Nothing is connected» és igual a totes les seccions i no diu què falta ni quan hi haurà dades.                                                                            | `empty-section.ts`                 | Mitjana                |
-| D-10 | **Cap espai per a l'origen de la dada**. `INTEGRATION_FEASIBILITY.md` exigeix que la UI etiqueti el que és manual o estimat (fons, hipoteca, immobles). No hi ha cap component per fer-ho.                       | —                                  | Alta (per a la Fase 2) |
-| D-11 | **Codis de recuperació**: no hi ha botó de copiar ni confirmació explícita; «I have saved them» es pot prémer sense haver-los desat.                                                                             | `totp-setup-page.ts`               | Baixa                  |
-| D-12 | **Sense escala tipogràfica** definida: cada pantalla tria la mida (`t-text-lg`, `t-text-xl`, `t-text-2xl`) sense regla. Marca i favicon per defecte (text «ledge» i la icona del generador).                     | global                             | Baixa                  |
+| #    | Problema                                                                                                                                                                                                                                         | On                                 | Gravetat               |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------- | ---------------------- |
+| D-1  | **Contrast insuficient de `content-subtle`** (`#71757e`): 3,49:1 sobre `surface` i 3,11:1 sobre `surface-raised`. WCAG AA demana 4,5:1 per a text petit. S'usa en placeholders i ajudes (`t-text-xs`).                                           | `styles.css`, `totp-page.ts`       | Alta                   |
+| D-2  | **Vores dels camps invisibles**: `line` (`#34373d`) fa 1,35:1 sobre `surface`. Un control necessita 3:1 (WCAG 1.4.11). El camp de text gairebé no es distingeix del fons.                                                                        | `INPUT_CLASS`                      | Alta                   |
+| D-3  | **Focus del teclat feble als formularis**: els camps fan `focus:t-outline-none` i només canvien la vora a gris; el focus del botó blanc gairebé no es veu (comprovat amb el teclat). Els enllaços del menú sí que mostren l'anell del navegador. | `auth-card.ts:29`                  | Alta                   |
+| D-4  | **Idioma barrejat**: la UI és en anglès (`lang="en"`, «Sign in», «No data yet»), però les gràfiques formaten en `ca-ES` i diuen «Encara no hi ha dades». Els usuaris són catalanoparlants.                                                       | `index.html`, totes les pantalles  | Mitjana                |
+| D-5  | **Inter no es carrega**: és al `font-family`, però cap fitxer la porta. Cada màquina veu una lletra diferent (Inter si la té instal·lada, si no la del sistema). Les xifres no tenen `tabular-nums` per defecte.                                 | `tailwind.config.js`, `index.html` | Mitjana                |
+| D-6  | **Navegació plana de 9 seccions**, sense icones ni grups. Totes porten a la mateixa pantalla buida, incloses les que no tindran dades fins a la Fase 3 o 4 (Transactions, Analytics).                                                            | `navigation.ts`, `shell.html`      | Mitjana                |
+| D-7  | **Menú mòbil**: empeny el contingut cap avall en lloc de sobreposar-se, no es tanca amb Esc ni tocant fora, i el botó diu «Menu» sense icona.                                                                                                    | `shell.html`                       | Mitjana                |
+| D-8  | **Sense context de household**: no es veu a quina household ets ni qui més hi ha. L'usuari i «Sign out» queden a mitja barra lateral, no ancorats a baix.                                                                                        | `shell.html`                       | Baixa                  |
+| D-9  | **Estat buit genèric**: «No data yet / Nothing is connected» és igual a totes les seccions i no diu què falta ni quan hi haurà dades.                                                                                                            | `empty-section.ts`                 | Mitjana                |
+| D-10 | **Cap espai per a l'origen de la dada**. `INTEGRATION_FEASIBILITY.md` exigeix que la UI etiqueti el que és manual o estimat (fons, hipoteca, immobles). No hi ha cap component per fer-ho.                                                       | —                                  | Alta (per a la Fase 2) |
+| D-11 | **Codis de recuperació**: no hi ha botó de copiar ni confirmació explícita; «I have saved them» es pot prémer sense haver-los desat.                                                                                                             | `totp-setup-page.ts`               | Baixa                  |
+| D-12 | **Sense escala tipogràfica** definida: cada pantalla tria la mida (`t-text-lg`, `t-text-xl`, `t-text-2xl`) sense regla. Marca i favicon per defecte (text «ledge» i la icona del generador).                                                     | global                             | Baixa                  |
+| D-13 | **A tauleta (768 px) la barra lateral no es plega** i ocupa el 31% de l'amplada. La taste-skill posa el límit al 30% i demana plegar-la per sota de 1100 px.                                                                                     | `shell.html`                       | Mitjana                |
+| D-14 | **La pantalla no diu de qui és ni deixa fer res**: no hi ha household ni membres al shell, ni cap acció a l'Overview. La barra lateral és d'un altre to que la pàgina, i la skill la vol sobre el mateix fons.                                   | `shell.html`, `empty-section.ts`   | Mitjana                |
+
+### 4.3 Revisió amb les skills de disseny
+
+Feta l'01/11/2026, sobre la web real (amb sessió) i sobre les referències. Eines: **design-taste-frontend** (`draw.mjs --app`, `inspect.mjs --app`, `lint.mjs --app`), **web-design-guidelines** (regles de Vercel, descarregades el mateix dia), **playwright-cli** (prova només amb teclat) i **web-review**.
+
+`inspect.mjs --app` de l'app actual (login, 1440/768/390): 0 FAIL, 2 WARN (`hero-void`: el 33% de la primera pantalla és buit; `dev-server`). L'Overview no el pot obrir l'inspector perquè demana sessió amb TOTP: s'ha revisat amb captures de Playwright a 1440, 768 i 390 px.
+
+Troballes de les Web Interface Guidelines a l'app:
+
+```text
+apps/web/src/app/pages/login/auth-card.ts:29 - focus:t-outline-none sense substitut visible → :focus-visible
+apps/web/src/app/pages/login/auth-card.ts:31 - el primari no té estat de focus visible sobre el fons fosc
+apps/web/src/app/pages/login/login-page.ts:24 - camp de correu sense spellcheck="false"
+apps/web/src/app/pages/login/login-page.ts:56 - «Continue» → etiqueta específica («Inicia la sessió»)
+apps/web/src/app/pages/login/login-page.ts:55 - en enviar, només es desactiva: cal text «…» o indicador
+apps/web/src/app/pages/login/totp-page.ts:29 - placeholder sense «…»
+apps/web/src/app/pages/login/totp-setup-page.ts:61 - el secret TOTP i els codis sense translate="no"
+apps/web/src/index.html:2 - lang="en" amb formats ca-ES a les gràfiques
+apps/web/src/index.html:9 - falta <meta name="theme-color">
+apps/web/src/app/layout/shell.html:17 - el menú mòbil no té overscroll-behavior: contain ni es tanca amb Esc
+apps/web/src/app/layout/shell.html:1 - sense enllaç per saltar al contingut principal
+```
+
+Regles de pantalles d'app de la taste-skill que l'app o les primeres referències incomplien, ja corregides a les referències noves: etiquetes en majúscules espaiades; barra de color a l'element actiu del menú; quatre tons a la distribució (G-2); KPI en una fila de rajoles; violeta a la paleta de sèries; producte sense nom ni household al shell; cap acció per a la feina principal.
 
 Les solucions, amb referències HTML, són a [`DESIGN_CHANGES.md`](DESIGN_CHANGES.md).
 

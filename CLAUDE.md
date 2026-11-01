@@ -24,6 +24,11 @@ Un PR que canvia codi o decisions sense tocar la documentació està incomplet.
 - Cap secret al repo, al xat, als logs ni en variables d'entorn: van en fitxers (`secrets/`, Compose secrets a `/run/secrets/*`).
 - `.env` només per a configuració no secreta.
 
+## Disseny
+
+- Qualsevol canvi a la UI segueix `docs/DESIGN_CHANGES.md` (estil `true-black-flat`, tokens a `docs/design/reference.css`).
+- Fes servir les skills `design-taste-frontend` (regles d'app: `lint.mjs --app` i `inspect.mjs --app`, 0 FAIL a 1440/768/390), `web-design-guidelines` i `playwright-cli` per veure-ho amb el navegador. Si no hi són, `docs/MANUAL_SETUP.md` §5.
+
 ## Codi
 
 - `spikes/` és un paquet independent (fora de Nx). No el modifiquis des d'una tasca de l'app.

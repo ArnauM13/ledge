@@ -18,6 +18,7 @@ libs/
   shared/types/   Tipus compartits web ↔ api (@ledge/shared-types)
   web/charts/     Gràfiques SVG (Angular + d3-scale/d3-shape) (@ledge/web-charts)
 docs/             Índex, anàlisi, disseny (CHARTS, DESIGN_CHANGES + referències HTML a docs/design/) i guia manual
+scripts/          Hooks de git i install-skills.mjs (skills de Claude Code, docs/MANUAL_SETUP.md §5)
 spikes/           Scripts de la Fase 0, amb el seu propi package.json (fora de Nx)
 ```
 
