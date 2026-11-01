@@ -30,22 +30,45 @@ spikes/           Scripts de la Fase 0, amb el seu propi package.json (fora de N
 npm ci
 ```
 
-Frontend a http://localhost:4200:
+L'API necessita Postgres i la clau mestra (no arrenca sense). Per desenvolupar, fes servir la BD d'un sol ús de `docker-compose.test.yml` (tmpfs: les dades es perden en aturar-la):
 
 ```bash
-npx nx serve web
+mkdir -p secrets && chmod 700 secrets
+[ -f secrets/ledge_master_key ] || openssl rand -base64 32 > secrets/ledge_master_key
+[ -f secrets/postgres_test_password ] || openssl rand -base64 32 > secrets/postgres_test_password
+docker compose -f docker-compose.test.yml up -d --wait
 ```
 
-API a http://localhost:3000 (`GET /health`):
+```bash
+export DB_HOST=127.0.0.1 DB_PORT=55432 DB_USER=ledge_test DB_NAME=ledge_test \
+  DB_PASSWORD_FILE=$PWD/secrets/postgres_test_password \
+  LEDGE_MASTER_KEY_FILE=$PWD/secrets/ledge_master_key
+npx nx run api:migrate
+```
+
+Crea un usuari (la contrasenya es demana per stdin, oculta; vegeu [Usuaris](#usuaris)):
+
+```bash
+npx nx build api
+node dist/apps/api/create-user.js --email a@example.com --name "Membre A" --household-name "Casa"
+```
+
+API a http://localhost:3000 i web a http://localhost:4200 (el dev-server fa de proxy de `/api` cap a l'API, així que tot és same-origin):
 
 ```bash
 npx nx serve api
 ```
 
 ```bash
+npx nx serve web
+```
+
+```bash
 curl http://localhost:3000/health
 # {"status":"ok","service":"api","timestamp":"2026-10-31T18:32:07.610Z"}
 ```
+
+La cookie de sessió és `Secure`: Chrome i Firefox l'accepten a `http://localhost`, Safari no.
 
 ### Amb Docker (Postgres + API)
 
@@ -70,13 +93,18 @@ docker compose up --build
 - Postgres **no** publica cap port: és a la xarxa `backend` (interna, sense sortida) i només l'API hi arriba (`db:5432`).
 - Ordre d'arrencada: `db` (healthy) → `migrate` (`prisma migrate deploy`, acaba amb codi 0) → `api`.
 - L'API munta la URL de connexió en arrencar a partir de `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_NAME` i el fitxer `DB_PASSWORD_FILE` (usuari i contrasenya codificats per a URL). La URL no s'escriu mai als logs, als errors ni a cap variable d'entorn. Si la BD no respon, l'API no arrenca.
-
 - L'API llegeix la clau mestra de `LEDGE_MASTER_KEY_FILE` (`/run/secrets/ledge_master_key`) i **no arrenca** si falta o no és vàlida.
 
 Migracions a mà:
 
 ```bash
 docker compose run --rm migrate
+```
+
+Crear un usuari dins Docker:
+
+```bash
+docker compose run --rm -it api node create-user.js --email a@example.com --name "Membre A" --household-name "Casa"
 ```
 
 ### Base de dades (Prisma)
@@ -129,6 +157,63 @@ Aturar i esborrar les dades locals:
 ```bash
 docker compose down -v
 ```
+
+## Autenticació
+
+Sense registre públic. Flux: **contrasenya → TOTP** (o alta del TOTP, obligatòria al primer login) → sessió completa. Fins aleshores no s'accedeix a res més.
+
+### Usuaris
+
+Es creen amb el CLI `create-user` (`apps/api/src/cli`). La contrasenya **només** es llegeix per stdin: oculta i demanada dues vegades en un terminal, o la primera línia d'un pipe (p. ex. des del gestor de contrasenyes). Mai per argument ni per variable d'entorn: el CLI rebutja `--password`.
+
+```bash
+# primer membre: crea la household (rol OWNER)
+node dist/apps/api/create-user.js --email a@example.com --name "Membre A" --household-name "Casa"
+# segon membre: s'uneix a la mateixa household (rol MEMBER)
+node dist/apps/api/create-user.js --email b@example.com --name "Membre B" --household-id <uuid que ha imprès l'anterior>
+```
+
+Contrasenya: 12–256 caràcters i diferent de l'email.
+
+### Paràmetres
+
+| Què                            | Valor                                                                     | Per què                                                                                                                                                                                                                                       |
+| ------------------------------ | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Hash de contrasenya            | argon2id, m = 19 MiB, t = 2, p = 1                                        | Configuració mínima de l'[OWASP Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#argon2id). Els hashes amb paràmetres antics es refan al següent login correcte.                |
+| Usuari inexistent              | Es verifica igualment contra un hash fictici                              | El temps de resposta no revela si l'usuari existeix.                                                                                                                                                                                          |
+| TOTP                           | RFC 6238, SHA-1, 6 dígits, 30 s, finestra ±1 pas, secret de 160 bits      | Compatible amb totes les apps d'autenticació. El secret es guarda **xifrat** (AES-256-GCM) i cada codi només es pot fer servir un cop (anti-replay). El QR es genera al servidor (cap servei extern veu el secret).                           |
+| Codis de recuperació           | 10 codis de 80 bits, d'un sol ús                                          | Es mostren **un sol cop**; a la BD només n'hi ha el SHA-256 (amb 80 bits aleatoris no cal un hash lent).                                                                                                                                      |
+| Cookie de sessió               | `__Host-ledge_session`, `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/` | Token aleatori de 256 bits; a la BD només el SHA-256.                                                                                                                                                                                         |
+| Caducitat                      | 15 min d'inactivitat · 8 h absoluta · 5 min per a la sessió a mig login   | [OWASP Session Management](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html#session-expiration). Logout revoca la sessió al servidor. En completar el 2FA es canvia el token (contra la fixació de sessió). |
+| Bloqueig per compte (Postgres) | 5 errors seguits (contrasenya, TOTP o codi de recuperació) → 15 min       | Sobreviu a reinicis. Durant el bloqueig, fins i tot la contrasenya bona falla amb el mateix missatge.                                                                                                                                         |
+| Límit per IP (memòria)         | 20 intents / 15 min als endpoints de login i 2FA → `429`                  | Complementa el bloqueig per compte. Darrere d'un proxy cal `API_TRUST_PROXY`.                                                                                                                                                                 |
+| Missatges d'error              | Sempre el mateix 401 genèric                                              | No revela si l'usuari existeix, si la contrasenya és bona o si el compte està bloquejat.                                                                                                                                                      |
+
+### CSRF
+
+Totes les peticions que modifiquen dades (`POST`, `PATCH`, `PUT`, `DELETE`):
+
+1. Es rebutgen si `Sec-Fetch-Site: cross-site` o si `Origin` no és el mateix origen ni és a `WEB_ORIGINS`.
+2. Han de ser `Content-Type: application/json` (un formulari HTML no ho pot enviar, i un `fetch` d'un altre origen necessitaria un preflight CORS que l'API no concedeix).
+3. Amb sessió, han de dur `X-CSRF-Token` amb el token sincronitzador de la sessió (HMAC del token de sessió; l'API el retorna a `GET /api/auth/session` i en fer login). L'únic `POST` sense sessió és el login, cobert per 1 i 2.
+
+A més, `SameSite=Strict` impedeix que el navegador enviï la cookie des d'un altre lloc.
+
+### Auditoria
+
+Cada intent de login (contrasenya, TOTP, codi de recuperació, alta del TOTP) i cada logout va a `audit_logs`, correcte o fallit, amb `action`, `outcome`, `reason` (p. ex. `invalid_password`, `replayed_code`, `locked`), usuari, household, IP i user agent. **Mai** contrasenyes, codis, tokens, secrets ni l'email escrit quan no correspon a cap usuari (podria ser una contrasenya escrita al camp equivocat). Si l'event no es pot escriure, el login falla.
+
+### Endpoints
+
+| Mètode i ruta                       | Sessió    | Què fa                                                                     |
+| ----------------------------------- | --------- | -------------------------------------------------------------------------- |
+| `GET /api/auth/session`             | cap       | Estat de la sessió, usuari, households i token CSRF                        |
+| `POST /api/auth/login`              | cap       | Contrasenya → sessió parcial (`next: totp` o `totp-setup`)                 |
+| `POST /api/auth/totp/setup`         | parcial   | Nou secret TOTP (xifrat) + QR. Només si el 2FA encara no està actiu        |
+| `POST /api/auth/totp/setup/confirm` | parcial   | Confirma amb un codi → sessió completa + codis de recuperació (un sol cop) |
+| `POST /api/auth/totp/verify`        | parcial   | Codi TOTP → sessió completa                                                |
+| `POST /api/auth/recovery`           | parcial   | Codi de recuperació → sessió completa                                      |
+| `POST /api/auth/logout`             | qualsevol | Revoca la sessió                                                           |
 
 ## Qualitat
 

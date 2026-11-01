@@ -16,6 +16,7 @@
     "jest.integration.config.cts",
     "src/**/*.spec.ts",
     "src/**/*.int-spec.ts",
+    "src/test/**",
     "src/**/*.test.ts"
   ]
 }

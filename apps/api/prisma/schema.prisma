@@ -27,11 +27,26 @@ model User {
   displayName  String   @map("display_name")
   /// argon2id PHC string. Never the password.
   passwordHash String   @map("password_hash")
+
+  /// TOTP secret, AES-256-GCM encrypted (EncryptionService, AAD users.totp_secret.<id>).
+  totpSecretEnc        String?   @map("totp_secret_enc")
+  /// Secret being enrolled, encrypted; moved to totp_secret_enc once confirmed.
+  totpPendingSecretEnc String?   @map("totp_pending_secret_enc")
+  totpEnabledAt        DateTime? @map("totp_enabled_at") @db.Timestamptz(3)
+  /// Last accepted TOTP time step: a code can only be used once.
+  totpLastUsedStep     BigInt?   @map("totp_last_used_step")
+
+  /// Consecutive failed password/TOTP/recovery attempts (reset on success).
+  failedAuthCount Int       @default(0) @map("failed_auth_count")
+  lockedUntil     DateTime? @map("locked_until") @db.Timestamptz(3)
+
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  memberships Membership[]
-  auditLogs   AuditLog[]
+  memberships   Membership[]
+  auditLogs     AuditLog[]
+  sessions      Session[]
+  recoveryCodes RecoveryCode[]
 
   @@map("users")
 }
@@ -106,4 +121,52 @@ model AuditLog {
   @@index([userId, createdAt])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+enum SessionStage {
+  /// Password checked; only the TOTP (or TOTP enrolment) endpoints are allowed.
+  PASSWORD_VERIFIED
+  /// Password + TOTP: full access.
+  AUTHENTICATED
+
+  @@map("session_stage")
+}
+
+/// Server-side sessions. The cookie holds a random token; only its SHA-256
+/// is stored, so a database leak does not give working cookies.
+model Session {
+  id         String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tokenHash  String       @unique @map("token_hash")
+  userId     String       @map("user_id") @db.Uuid
+  stage      SessionStage
+  lastSeenAt DateTime     @map("last_seen_at") @db.Timestamptz(3)
+  /// Absolute expiry, whatever the activity.
+  expiresAt  DateTime     @map("expires_at") @db.Timestamptz(3)
+  revokedAt  DateTime?    @map("revoked_at") @db.Timestamptz(3)
+  ip         String?
+  userAgent  String?      @map("user_agent")
+  createdAt  DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt  DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+/// One-time 2FA recovery codes. Only a SHA-256 of each code is stored (80-bit
+/// random codes, so a fast hash is enough); the codes are shown once.
+model RecoveryCode {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  codeHash  String    @map("code_hash")
+  usedAt    DateTime? @map("used_at") @db.Timestamptz(3)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, codeHash])
+  @@map("recovery_codes")
 }

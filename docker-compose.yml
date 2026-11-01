@@ -83,6 +83,12 @@ services:
       # written in every ciphertext so the key can be rotated.
       LEDGE_MASTER_KEY_FILE: /run/secrets/ledge_master_key
       LEDGE_MASTER_KEY_VERSION: ${LEDGE_MASTER_KEY_VERSION:-1}
+      # Extra origins allowed to send state-changing requests (CSRF check),
+      # comma-separated. Same-origin requests are always allowed.
+      WEB_ORIGINS: ${WEB_ORIGINS:-}
+      # Number of reverse-proxy hops to trust for the client IP (rate limits).
+      # Empty = X-Forwarded-For is ignored.
+      API_TRUST_PROXY: ${API_TRUST_PROXY:-}
     secrets:
       - postgres_password
       - ledge_master_key
