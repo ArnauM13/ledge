@@ -1,0 +1,879 @@
+<!doctype html>
+<html lang="ca">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#17181b" />
+    <title>Resum sense dades · ledge (referència)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+    />
+    <link rel="stylesheet" href="reference.css" />
+    <style>
+      /*
+       * Marc en T (ruled T-frame): barra lateral de 232px i barra superior de 64px
+       * sobre el mateix fons, separades només per regles d'1px.
+       * Aritmètica a 1440px: 1440 − 232 − 1 (regla) = 1207 de llenç;
+       * 1207 − 2 × 29 (marges) = 1149 de contingut = 306 (columna fixa) + 24 + 819;
+       * 819 = 2 × 397,5 + 24 (graella dreta de 2 columnes).
+       */
+      .frame {
+        display: grid;
+        grid-template-columns: 232px minmax(0, 1fr);
+        min-height: 100vh;
+      }
+      .side {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        border-right: 1px solid var(--ledge-rule);
+        padding: 0 12px 16px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        height: 64px;
+        padding: 0 8px;
+        font-weight: 600;
+        font-size: var(--fs-section);
+      }
+      .group {
+        margin-top: 20px;
+      }
+      .group h2 {
+        font-size: var(--fs-small);
+        font-weight: 400;
+        color: var(--ledge-content-subtle);
+        padding: 0 8px 6px;
+      }
+      .nav a {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        height: 34px;
+        padding: 0 8px;
+        border-radius: 8px;
+        color: #bbbbbb;
+        text-decoration: none;
+        transition: color 0.15s ease;
+      }
+      .nav a:hover,
+      .nav a[aria-current='page'] {
+        color: #ffffff;
+      }
+      .nav svg {
+        width: 16px;
+        height: 16px;
+        flex: none;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .nav .later {
+        margin-left: auto;
+        font-size: var(--fs-small);
+        color: var(--ledge-content-subtle);
+      }
+      .side-foot {
+        margin-top: auto;
+      }
+      .person {
+        display: inline-grid;
+        place-items: center;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        font-size: var(--fs-small);
+        font-weight: 600;
+        color: #17181b;
+        flex: none;
+      }
+      .pa {
+        background: var(--ledge-person-a);
+      }
+      .pb {
+        background: var(--ledge-person-b);
+      }
+      .user {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 8px 0;
+      }
+      .linkbtn {
+        background: none;
+        border: 0;
+        padding: 0;
+        font: inherit;
+        font-size: var(--fs-small);
+        color: var(--ledge-content-muted);
+        cursor: pointer;
+        text-align: left;
+      }
+      .linkbtn:hover {
+        color: var(--ledge-content);
+      }
+
+      .top {
+        display: flex;
+        align-items: center;
+        height: 64px;
+        border-bottom: 1px solid var(--ledge-rule);
+      }
+      .top .fresh {
+        flex: 1;
+        padding: 0 29px;
+        color: var(--ledge-content-muted);
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+      .switcher {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 29px 0 20px;
+        border-left: 1px solid var(--ledge-rule);
+        background: none;
+        border-top: 0;
+        border-right: 0;
+        border-bottom: 0;
+        color: var(--ledge-content);
+        font: inherit;
+        cursor: pointer;
+      }
+      .switcher .pair {
+        display: flex;
+      }
+      .switcher .pair .person + .person {
+        margin-left: -6px;
+        outline: 2px solid var(--ledge-canvas);
+      }
+
+      main {
+        padding: 36px 29px 64px;
+      }
+      .titlerow {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 24px;
+      }
+      .titlerow h1 {
+        font-size: var(--fs-title);
+        font-weight: 600;
+        line-height: 32px;
+      }
+      .finding {
+        margin-top: 4px;
+        color: var(--ledge-content-muted);
+        font-size: var(--fs-section);
+        line-height: 24px;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: 306px minmax(0, 1fr);
+        gap: var(--gap);
+        align-items: start;
+      }
+      .card {
+        background: var(--ledge-surface);
+        border-radius: var(--radius-card);
+        padding: var(--card-pad);
+        min-width: 0;
+      }
+      .card-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .card h2 {
+        font-size: var(--fs-section);
+        font-weight: 600;
+        line-height: 24px;
+      }
+      .period {
+        color: var(--ledge-content-subtle);
+        font-size: var(--fs-small);
+      }
+      .muted {
+        color: var(--ledge-content-muted);
+      }
+
+      /* Columna fixa: patrimoni net + arbre de comptes */
+      .pinned {
+        position: sticky;
+        top: 24px;
+      }
+      .nw-label {
+        font-size: var(--fs-section);
+        font-weight: 600;
+      }
+      .nw-value {
+        font-size: var(--fs-lead);
+        line-height: 40px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        margin-top: 6px;
+      }
+      .nw-delta {
+        margin-top: 4px;
+        color: var(--ledge-content-muted);
+      }
+      .pos {
+        color: var(--ledge-positive);
+      }
+      .tree {
+        list-style: none;
+        margin: 24px 0 0;
+        padding: 0;
+        display: grid;
+        gap: 14px;
+      }
+      .tree .grp {
+        display: flex;
+        justify-content: space-between;
+        height: 30px;
+        align-items: center;
+        font-weight: 500;
+      }
+      .tree ul {
+        list-style: none;
+        margin: 0;
+        padding: 0 0 0 8px;
+      }
+      .tree ul li {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        height: 30px;
+        align-items: center;
+        color: var(--ledge-content-muted);
+      }
+      .tree ul li span:first-child {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .tree .debt .grp span:last-child {
+        color: var(--ledge-content);
+      }
+
+      /* Graella dreta */
+      .right {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--gap);
+        align-items: start;
+      }
+      .span2 {
+        grid-column: 1 / -1;
+      }
+      .seg {
+        display: inline-flex;
+        gap: 2px;
+        padding: 2px;
+        border-radius: 999px;
+        background: var(--ledge-canvas);
+      }
+      .seg button {
+        height: 28px;
+        padding: 0 12px;
+        border: 0;
+        border-radius: 999px;
+        background: none;
+        color: var(--ledge-content-muted);
+        font: inherit;
+        font-size: var(--fs-small);
+        cursor: pointer;
+      }
+      .seg button[aria-pressed='true'] {
+        background: var(--ledge-surface-raised);
+        color: var(--ledge-content);
+      }
+      .chart {
+        position: relative;
+        margin-top: 16px;
+      }
+      .chart svg {
+        display: block;
+        width: 100%;
+        height: auto;
+        overflow: visible;
+      }
+      .chart:focus-visible {
+        outline-offset: 4px;
+        border-radius: 8px;
+      }
+      .tip {
+        position: absolute;
+        top: 0;
+        pointer-events: none;
+        padding: 4px 8px;
+        border-radius: 6px;
+        background: var(--ledge-surface-raised);
+        font-size: var(--fs-small);
+        white-space: nowrap;
+        box-shadow: 0 4px 12px rgb(0 0 0 / 0.3); /* taste-skill-ignore: tooltip, flota */
+      }
+
+      /* Element propi: tres franges, A · Conjunt · B */
+      .lanes {
+        display: grid;
+        grid-template-columns: 1fr 1.25fr 1fr;
+        gap: 2px;
+        margin-top: 16px;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .lane {
+        background: var(--ledge-surface-raised);
+        padding: 14px 16px;
+        min-width: 0;
+      }
+      .lane-head {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 500;
+      }
+      .lane-total {
+        font-size: 20px;
+        line-height: 28px;
+        font-weight: 600;
+        margin-top: 8px;
+      }
+      .lane ul {
+        list-style: none;
+        margin: 10px 0 0;
+        padding: 0;
+        display: grid;
+        gap: 4px;
+        color: var(--ledge-content-muted);
+        font-size: 13px;
+      }
+      .lane li {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .joint-split {
+        margin-top: 10px;
+        font-size: 13px;
+        color: var(--ledge-content-subtle);
+      }
+      .totals {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-top: 14px;
+      }
+      .totals div {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+
+      /* Per revisar */
+      .rows {
+        list-style: none;
+        margin: 12px 0 0;
+        padding: 0;
+      }
+      .rows li {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 4px 12px;
+        align-items: center;
+        padding: 10px 0;
+        border-top: 1px solid var(--ledge-line);
+      }
+      .rows li:first-child {
+        border-top: 0;
+      }
+      .rows .sub {
+        grid-column: 1;
+        font-size: var(--fs-small);
+        color: var(--ledge-content-subtle);
+      }
+      .rows .btn {
+        grid-row: 1 / span 2;
+        grid-column: 2;
+      }
+
+      /* Hipoteca */
+      .track {
+        position: relative;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--ledge-surface-raised);
+        margin: 18px 0 8px;
+        overflow: hidden;
+      }
+      .track span {
+        position: absolute;
+        inset: 0 auto 0 0;
+        background: var(--ledge-content);
+        border-radius: 999px;
+      }
+      .ends {
+        display: flex;
+        justify-content: space-between;
+        font-size: var(--fs-small);
+        color: var(--ledge-content-subtle);
+      }
+      .kv {
+        display: grid;
+        gap: 6px;
+        margin-top: 16px;
+      }
+      .kv div {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .kv dt {
+        color: var(--ledge-content-muted);
+      }
+      .kv dd {
+        margin: 0;
+        text-align: right;
+      }
+
+      .ref-note {
+        margin-top: 32px;
+        color: var(--ledge-content-subtle);
+        font-size: var(--fs-small);
+      }
+
+      /* Mòbil i tauleta: la barra lateral es plega (troballa de l'inspector a 768px) */
+      .menu-btn {
+        display: none;
+      }
+      @media (max-width: 1100px) {
+        .frame {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .side {
+          position: fixed;
+          inset: 0;
+          height: auto;
+          z-index: 20;
+          background: var(--ledge-canvas);
+          border-right: 0;
+          overflow-y: auto;
+          overscroll-behavior: contain;
+          padding-top: env(safe-area-inset-top, 0px);
+        }
+        .side[hidden] {
+          display: none !important;
+        }
+        .menu-btn {
+          display: inline-flex;
+        }
+        .top {
+          position: sticky;
+          top: env(safe-area-inset-top, 0px);
+          z-index: 10;
+          height: 56px;
+          background: var(--ledge-canvas);
+          padding-left: max(16px, env(safe-area-inset-left, 0px));
+        }
+        .top .fresh {
+          padding: 0 12px;
+          font-size: var(--fs-small);
+        }
+        .switcher {
+          padding-right: max(16px, env(safe-area-inset-right, 0px));
+        }
+        .switcher .name {
+          display: none;
+        }
+        main {
+          padding: 24px max(16px, env(safe-area-inset-right, 0px)) 48px
+            max(16px, env(safe-area-inset-left, 0px));
+        }
+      }
+      @media (max-width: 860px) {
+        .layout,
+        .right {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .pinned {
+          position: static;
+        }
+        .tree ul {
+          display: none;
+        }
+        .lanes {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .totals {
+          grid-template-columns: minmax(0, 1fr);
+          gap: 8px;
+        }
+      }
+
+      .setup {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 4px 16px;
+        align-items: center;
+      }
+      .setup .track {
+        grid-column: 1 / -1;
+        margin: 12px 0 4px;
+      }
+      .steps {
+        list-style: none;
+        margin: 8px 0 0;
+        padding: 0;
+        grid-column: 1 / -1;
+      }
+      .steps li {
+        display: grid;
+        grid-template-columns: 20px minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: center;
+        padding: 12px 0;
+        border-top: 1px solid var(--ledge-line);
+      }
+      .dot {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 1.5px solid #6b6f78;
+      }
+      .dot.done {
+        background: var(--ledge-content);
+        border-color: var(--ledge-content);
+      }
+      .empty-slot {
+        margin-top: 16px;
+        border: 1px dashed #44464c;
+        border-radius: 8px;
+        padding: 12px 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        color: var(--ledge-content-muted);
+      }
+      .dash {
+        color: var(--ledge-content-subtle);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="frame">
+      <aside class="side" id="side" aria-label="Navegació">
+        <div class="brand">
+          <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+            <rect width="24" height="24" rx="6" fill="#f5f5f6" />
+            <path
+              d="M8.5 6.5v11h7"
+              fill="none"
+              stroke="#17181b"
+              stroke-width="2.4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span translate="no">ledge</span>
+          <button
+            class="linkbtn menu-btn"
+            type="button"
+            style="margin-left: auto; font-size: var(--fs-body)"
+            data-close
+          >
+            Tanca
+          </button>
+        </div>
+        <nav class="nav">
+          <div class="group">
+            <h2>Patrimoni</h2>
+            <a href="#" aria-current="page"
+              ><svg viewBox="0 0 16 16">
+                <path d="M2 13.5V7l6-4.5L14 7v6.5H2z" /></svg
+              >Resum</a
+            >
+            <a href="#"
+              ><svg viewBox="0 0 16 16">
+                <rect x="2" y="4" width="12" height="9" rx="1.5" />
+                <path d="M2 7h12" /></svg
+              >Comptes</a
+            >
+            <a href="#"
+              ><svg viewBox="0 0 16 16"><path d="M2 12l4-4 3 3 5-6" /></svg
+              >Inversions</a
+            >
+            <a href="#"
+              ><svg viewBox="0 0 16 16">
+                <circle cx="8" cy="8" r="6" />
+                <path d="M8 4.5v7M5.5 6.5h4a1.5 1.5 0 010 3h-4" /></svg
+              >Cripto</a
+            >
+            <a href="#"
+              ><svg viewBox="0 0 16 16">
+                <path d="M3 14V6.5l5-3.5 5 3.5V14M6.5 14v-4h3v4" /></svg
+              >Immobles</a
+            >
+            <a href="#"
+              ><svg viewBox="0 0 16 16"><path d="M3 4h10M3 8h10M3 12h6" /></svg
+              >Deutes</a
+            >
+          </div>
+          <div class="group">
+            <h2>Activitat</h2>
+            <a href="#"
+              ><svg viewBox="0 0 16 16">
+                <path d="M3 5.5h10l-2.5-2.5M13 10.5H3l2.5 2.5" /></svg
+              >Moviments<span class="later">Fase 3</span></a
+            >
+            <a href="#"
+              ><svg viewBox="0 0 16 16"><path d="M3 13V9M8 13V4M13 13V7" /></svg
+              >Anàlisi<span class="later">Fase 4</span></a
+            >
+          </div>
+        </nav>
+        <div class="side-foot nav">
+          <a href="#"
+            ><svg viewBox="0 0 16 16">
+              <circle cx="8" cy="8" r="2.2" />
+              <path
+                d="M8 1.8v2M8 12.2v2M1.8 8h2M12.2 8h2M3.6 3.6L5 5M11 11l1.4 1.4M3.6 12.4L5 11M11 5l1.4-1.4"
+              /></svg
+            >Configuració</a
+          >
+          <div class="user">
+            <span class="person pa" aria-hidden="true">A</span>
+            <div style="display: grid; min-width: 0">
+              <span>Membre A</span>
+              <button class="linkbtn" type="button">Tanca la sessió</button>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <div style="min-width: 0">
+        <header class="top">
+          <button
+            class="btn btn-ghost btn-sm menu-btn"
+            type="button"
+            id="menuBtn"
+            aria-controls="side"
+            aria-expanded="false"
+          >
+            Menú
+          </button>
+          <div class="fresh">
+            <span>Cap font connectada</span>
+          </div>
+          <button
+            class="switcher"
+            type="button"
+            aria-label="Household: Casa, 2 membres"
+          >
+            <span class="pair" aria-hidden="true"
+              ><span class="person pa">A</span
+              ><span class="person pb">B</span></span
+            >
+            <span class="name">Casa</span>
+          </button>
+        </header>
+
+        <main>
+          <div class="titlerow">
+            <div>
+              <h1>Resum</h1>
+              <p class="finding">
+                Encara no hi ha cap valor. El patrimoni net apareixerà quan n'hi
+                hagi un.
+              </p>
+            </div>
+            <button class="btn btn-primary" type="button">
+              Afegeix un valor
+            </button>
+          </div>
+
+          <div class="layout">
+            <section class="card pinned" aria-labelledby="nw">
+              <div class="card-head">
+                <h2 class="nw-label" id="nw">Patrimoni net</h2>
+                <span class="period">Sense dades</span>
+              </div>
+              <p class="nw-value num">
+                <span class="dash" aria-label="Sense valor">—</span>
+              </p>
+              <ul class="tree">
+                <li>
+                  <div class="grp">
+                    <span>Efectiu</span><span class="dash">—</span>
+                  </div>
+                </li>
+                <li>
+                  <div class="grp">
+                    <span>Inversions</span><span class="dash">—</span>
+                  </div>
+                </li>
+                <li>
+                  <div class="grp">
+                    <span>Cripto</span><span class="dash">—</span>
+                  </div>
+                </li>
+                <li>
+                  <div class="grp">
+                    <span>Immobles</span><span class="dash">—</span>
+                  </div>
+                </li>
+                <li>
+                  <div class="grp">
+                    <span>Deutes</span><span class="dash">—</span>
+                  </div>
+                </li>
+              </ul>
+              <div class="empty-slot">
+                <span>Cap compte encara</span>
+                <a href="#" class="linkbtn" style="font-size: var(--fs-body)"
+                  >+ Afegeix un compte</a
+                >
+              </div>
+            </section>
+
+            <div class="right">
+              <section class="card span2 setup" aria-labelledby="st">
+                <h2 id="st">Posada en marxa</h2>
+                <span class="period num">1 de 3 · 33 %</span>
+                <div class="track" role="img" aria-label="1 de 3 passos fets">
+                  <span style="width: 33.3%"></span>
+                </div>
+                <ol class="steps">
+                  <li>
+                    <span class="dot done" aria-label="Fet"></span>
+                    <div>
+                      <strong style="font-weight: 500">Accés segur</strong>
+                      <p class="hint">
+                        Contrasenya i verificació en dos passos actives per als
+                        dos membres.
+                      </p>
+                    </div>
+                    <span class="chip">Fet</span>
+                  </li>
+                  <li>
+                    <span class="dot" aria-label="Pendent"></span>
+                    <div>
+                      <strong style="font-weight: 500">Valors manuals</strong>
+                      <p class="hint">
+                        Habitatge, hipoteca, fons de MyInvestor i ETF de Trade
+                        Republic.
+                      </p>
+                    </div>
+                    <span class="chip">Fase 2</span>
+                  </li>
+                  <li>
+                    <span class="dot" aria-label="Pendent"></span>
+                    <div>
+                      <strong style="font-weight: 500"
+                        >Connexions automàtiques</strong
+                      >
+                      <p class="hint">
+                        BBVA, Binance i wallets, quan les proves reals siguin
+                        GO.
+                      </p>
+                    </div>
+                    <span class="chip">Fase 3</span>
+                  </li>
+                </ol>
+              </section>
+
+              <section class="card span2" aria-labelledby="g1">
+                <div class="card-head">
+                  <h2 id="g1">Evolució del patrimoni net</h2>
+                  <span class="period">Sense dades</span>
+                </div>
+                <svg
+                  viewBox="0 0 760 180"
+                  style="
+                    display: block;
+                    width: 100%;
+                    height: auto;
+                    margin-top: 16px;
+                  "
+                  role="img"
+                  aria-label="Gràfica buida: encara no hi ha cap valor"
+                >
+                  <line
+                    x1="56"
+                    x2="680"
+                    y1="154"
+                    y2="154"
+                    stroke="#3a3d43"
+                    stroke-width="1"
+                  />
+                  <text
+                    x="46"
+                    y="158"
+                    text-anchor="end"
+                    font-size="12"
+                    fill="#949494"
+                  >
+                    0 €
+                  </text>
+                  <text
+                    x="368"
+                    y="96"
+                    text-anchor="middle"
+                    font-size="14"
+                    fill="#b4b4b4"
+                  >
+                    La línia apareixerà amb el primer valor guardat.
+                  </text>
+                </svg>
+              </section>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script>
+      // Menú en mòbil i tauleta: full sencer, es tanca amb Esc
+      const side = document.getElementById('side'),
+        btn = document.getElementById('menuBtn');
+      const mq = matchMedia('(max-width: 1100px)');
+      const sync = () => {
+        side.hidden = mq.matches;
+        btn.setAttribute('aria-expanded', 'false');
+      };
+      sync();
+      mq.addEventListener('change', sync);
+      const open = (o) => {
+        side.hidden = !o;
+        btn.setAttribute('aria-expanded', String(o));
+        (o ? side.querySelector('a') : btn).focus();
+      };
+      btn.addEventListener('click', () => open(true));
+      side
+        .querySelector('[data-close]')
+        .addEventListener('click', () => open(false));
+      document.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Escape' && mq.matches && !side.hidden) open(false);
+      });
+    </script>
+  </body>
+</html>

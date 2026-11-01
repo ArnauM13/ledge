@@ -2,11 +2,10 @@
 
 Dashboard patrimonial privat per a una household de dues persones.
 
-- Viabilitat de les integracions: [`INTEGRATION_FEASIBILITY.md`](INTEGRATION_FEASIBILITY.md)
-- Fases i gates: [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md)
-- Full de ruta: [`NEXT_STEPS.md`](NEXT_STEPS.md)
-- Spikes de la Fase 0 (paquet independent): [`spikes/README.md`](spikes/README.md)
-- Disseny de les gràfiques: [`docs/CHARTS.md`](docs/CHARTS.md)
+**Tota la documentació: [`docs/README.md`](docs/README.md)** (índex: quin document mana per a cada cosa).
+
+- Vols veure la web funcionant? [`docs/MANUAL_SETUP.md`](docs/MANUAL_SETUP.md)
+- Estat del projecte: [`docs/ANALYSIS.md`](docs/ANALYSIS.md) · Què queda: [`NEXT_STEPS.md`](NEXT_STEPS.md)
 
 ## Estructura
 
@@ -18,7 +17,8 @@ apps/
 libs/
   shared/types/   Tipus compartits web ↔ api (@ledge/shared-types)
   web/charts/     Gràfiques SVG (Angular + d3-scale/d3-shape) (@ledge/web-charts)
-docs/             Documents de disseny (gràfiques: CHARTS.md)
+docs/             Índex, anàlisi, disseny (CHARTS, DESIGN_CHANGES + referències HTML a docs/design/) i guia manual
+scripts/          Hooks de git i install-skills.mjs (skills de Claude Code, docs/MANUAL_SETUP.md §5)
 spikes/           Scripts de la Fase 0, amb el seu propi package.json (fora de Nx)
 ```
 
@@ -323,6 +323,8 @@ npm run secrets:scan
 
 ## Estat
 
-Fase 1, punts 0–7: gitleaks, monorepo, Tailwind, Docker Compose, Prisma, auth amb TOTP obligatori, aïllament de household i xifratge. Els usuaris poden fer login amb 2FA i veuen un **Overview buit**: **cap xifra**, perquè encara no hi ha cap font de dades connectada.
+Fase 1, punts 0–7: gitleaks, monorepo, Tailwind, Docker Compose, Prisma, auth amb TOTP obligatori, aïllament de household i xifratge. Els usuaris poden fer login amb 2FA i veuen un **Overview buit**: **cap xifra**, perquè encara no hi ha cap font de dades connectada. Provat de punta a punta en un navegador l'01/11/2026.
 
-Següent: punts 8–9, CI i Vercel (prompt a `NEXT_STEPS.md` §3c). Pendents tècnics coneguts a la mateixa secció.
+Gràfiques: lib `libs/web/charts` i G-1, visibles només a la galeria `/dev/charts` amb dades de prova (build de desenvolupament).
+
+Següent: punts 8–9, CI i Vercel (prompt a `NEXT_STEPS.md` §3c), i els canvis de disseny (`docs/DESIGN_CHANGES.md`). Pendents tècnics coneguts a `NEXT_STEPS.md` §3c.

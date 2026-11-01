@@ -2,6 +2,7 @@
 
 > Creat l'1/11/2026. Defineix **què** es mostra, **amb quines dades** i **com** es dibuixa.
 > Relacionat: `IMPLEMENTATION_PLAN.md` (Fases 2, 4 i 5) · `apps/web/src/styles.css` (tokens).
+> **Ajustos pendents** de la revisió de disseny (01/11/2026): G-1 amb una sola sèrie per defecte, G-2 sense quatre tons, G-3 sense fila de KPI i el violeta fora de la paleta. Vegeu `docs/DESIGN_CHANGES.md` DC-13.
 
 ## 1. Principis
 

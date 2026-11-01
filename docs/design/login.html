@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="ca">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#17181b" />
+    <title>Accés · ledge (referència)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+    />
+    <link rel="stylesheet" href="reference.css" />
+    <style>
+      main {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding-block: 36px 64px;
+        padding-left: max(16px, env(safe-area-inset-left, 0px));
+        padding-right: max(16px, env(safe-area-inset-right, 0px));
+        display: grid;
+        gap: 24px;
+      }
+      .intro h1 {
+        font-size: var(--fs-title);
+        font-weight: 600;
+        line-height: 32px;
+      }
+      .intro p {
+        margin-top: 4px;
+        color: var(--ledge-content-muted);
+        font-size: var(--fs-section);
+        line-height: 24px;
+        max-width: 65ch;
+      }
+      .states {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 24px;
+        align-items: start;
+      }
+      .state {
+        display: grid;
+        gap: 12px;
+        min-width: 0;
+      }
+      .state > h2 {
+        font-size: var(--fs-body);
+        font-weight: 500;
+        color: var(--ledge-content-muted);
+      }
+      .card {
+        background: var(--ledge-surface);
+        border-radius: var(--radius-card);
+        padding: 28px;
+        display: grid;
+        gap: 20px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+        font-size: var(--fs-section);
+      }
+      .card h3 {
+        font-size: 20px;
+        line-height: 28px;
+        font-weight: 600;
+      }
+      .lede {
+        margin-top: 4px;
+        color: var(--ledge-content-muted);
+      }
+      form {
+        display: grid;
+        gap: 16px;
+      }
+      .otp {
+        font-size: 24px;
+        letter-spacing: 0.4em;
+        text-align: center;
+        height: 52px;
+        font-variant-numeric: tabular-nums;
+      }
+      .alert {
+        display: flex;
+        gap: 8px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        background: #2c1a20;
+        color: var(--ledge-negative);
+      }
+      .codes {
+        margin: 0;
+        padding: 12px 16px;
+        list-style: none;
+        display: grid;
+        gap: 4px;
+        border-radius: 8px;
+        background: var(--ledge-surface-raised);
+        font-family:
+          ui-monospace, 'SF Mono', Menlo, monospace; /* taste-skill-ignore: codis literals */
+        font-size: var(--fs-body);
+      }
+      .check {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        cursor: pointer;
+      }
+      .check input {
+        width: 18px;
+        height: 18px;
+        margin: 1px 0 0;
+        accent-color: var(--ledge-content);
+      }
+      .linkbtn {
+        justify-self: start;
+        background: none;
+        border: 0;
+        padding: 0;
+        font: inherit;
+        color: var(--ledge-content-muted);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        cursor: pointer;
+      }
+      .linkbtn:hover {
+        color: var(--ledge-content);
+      }
+      .foot {
+        color: var(--ledge-content-subtle);
+        font-size: var(--fs-small);
+        text-align: center;
+      }
+      .btn-wide {
+        width: 100%;
+      }
+      @media (max-width: 960px) {
+        .states {
+          grid-template-columns: minmax(0, 1fr);
+          max-width: 420px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="intro">
+        <h1>Pantalles d'accés</h1>
+        <p>
+          Referència per a
+          <span translate="no">apps/web/src/app/pages/login</span>: inici de
+          sessió amb error, codi de verificació i codis de recuperació (DC-5 de
+          <span translate="no">docs/DESIGN_CHANGES.md</span>). Els codis són
+          inventats.
+        </p>
+      </div>
+
+      <div class="states">
+        <section class="state" aria-labelledby="s1">
+          <h2 id="s1">Inici de sessió amb error</h2>
+          <div class="card">
+            <div class="brand">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <rect width="24" height="24" rx="6" fill="#f5f5f6" />
+                <path
+                  d="M8.5 6.5v11h7"
+                  fill="none"
+                  stroke="#17181b"
+                  stroke-width="2.4"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              <span translate="no">ledge</span>
+            </div>
+            <div>
+              <h3>Inicia la sessió</h3>
+              <p class="lede">Accés privat de la household.</p>
+            </div>
+            <form onsubmit="return false;" novalidate>
+              <div>
+                <label class="label" for="email">Correu</label>
+                <input
+                  class="input"
+                  id="email"
+                  name="email"
+                  type="email"
+                  autocomplete="username"
+                  spellcheck="false"
+                  value="a@ledge.local"
+                />
+              </div>
+              <div>
+                <label class="label" for="pw">Contrasenya</label>
+                <input
+                  class="input"
+                  id="pw"
+                  name="password"
+                  type="password"
+                  autocomplete="current-password"
+                  aria-describedby="err"
+                />
+              </div>
+              <div class="alert" role="alert" id="err">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  aria-hidden="true"
+                  style="flex: none; margin-top: 2px"
+                >
+                  <circle
+                    cx="8"
+                    cy="8"
+                    r="7"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  />
+                  <path
+                    d="M8 4.5v4.2M8 11.2v.3"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                  />
+                </svg>
+                <span
+                  >No s'ha pogut iniciar la sessió. Revisa el correu i la
+                  contrasenya, o torna-ho a provar d'aquí a 15 minuts.</span
+                >
+              </div>
+              <button class="btn btn-primary btn-wide" type="submit">
+                Inicia la sessió
+              </button>
+            </form>
+          </div>
+          <p class="foot">
+            Sense registre públic · Verificació en dos passos obligatòria
+          </p>
+        </section>
+
+        <section class="state" aria-labelledby="s2">
+          <h2 id="s2">Codi de verificació, enviant</h2>
+          <div class="card">
+            <div>
+              <h3>Verificació en dos passos</h3>
+              <p class="lede">El codi de 6 xifres de l'app d'autenticació.</p>
+            </div>
+            <form onsubmit="return false;" novalidate>
+              <div>
+                <label class="label" for="otp">Codi</label>
+                <input
+                  class="input otp"
+                  id="otp"
+                  name="code"
+                  inputmode="numeric"
+                  autocomplete="one-time-code"
+                  maxlength="6"
+                  value="482915"
+                  readonly
+                />
+              </div>
+              <button
+                class="btn btn-primary btn-wide"
+                type="submit"
+                aria-busy="true"
+              >
+                Verificant…
+              </button>
+              <button class="linkbtn" type="button">
+                Fes servir un codi de recuperació
+              </button>
+            </form>
+          </div>
+          <p class="foot">S'envia sol en escriure la 6a xifra.</p>
+        </section>
+
+        <section class="state" aria-labelledby="s3">
+          <h2 id="s3">Codis de recuperació</h2>
+          <div class="card">
+            <div>
+              <h3>Desa els codis de recuperació</h3>
+              <p class="lede">
+                Cada codi obre la sessió un sol cop si perds el mòbil. No es
+                tornaran a mostrar.
+              </p>
+            </div>
+            <ol class="codes num" translate="no">
+              <li>7KQ2-M9XA-P4LD-W8RT</li>
+              <li>H3VN-2CZE-K6YB-Q1FS</li>
+              <li>R8DW-T5JM-X2PA-L7GC</li>
+              <li>B4NF-Y9QK-E3HV-Z6MD</li>
+              <li>W1XC-G7RS-N5TB-J2KP</li>
+            </ol>
+            <button
+              class="btn btn-ghost"
+              type="button"
+              style="justify-self: start"
+            >
+              Copia els 10 codis
+            </button>
+            <label class="check" for="saved">
+              <input id="saved" type="checkbox" checked />
+              <span>Els he desat al gestor de contrasenyes</span>
+            </label>
+            <button class="btn btn-primary btn-wide" type="button">
+              Entra al Resum
+            </button>
+          </div>
+          <p class="foot">Se'n mostren 5 de 10 a la referència.</p>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>
