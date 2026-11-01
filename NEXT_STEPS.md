@@ -8,14 +8,14 @@
 
 | Element | Estat |
 |---|---|
-| Repo `ArnauM13/ledge` | Privat. `main` = Fase 1 punts 0–7 + disseny de gràfiques |
+| Repo `ArnauM13/ledge` | Privat. `main` = Fase 1 punts 0–7 + gràfiques (disseny, lib i G-1) |
 | Estudi de viabilitat | Fet (recerca documental, **sense proves reals**) |
 | Spikes (`spikes/enable-banking`, `binance`, `wallets`) | **Escrits i testejats en local; cap executat amb credencials reals** |
 | Fase 1, punts 0–7 | ✅ A `main` (PR #6 i #8): gitleaks, Nx, Tailwind, Docker Compose, Prisma, auth amb TOTP, aïllament de household, xifratge. Flux de login provat al navegador l'01/11 |
 | Fase 1, punts 8–9 (CI + Vercel) | Pendent (§3c). El punt 9 depèn de D4, D5 i del compte de Vercel |
-| Gràfiques | Disseny ✅ (`docs/CHARTS.md`). Lib + G-1 **fetes però no a `main`**: el PR #10 es va fusionar a `docs/charts-design` (`docs/ANALYSIS.md` T1) |
-| Disseny de la UI | Revisat l'01/11 (`docs/ANALYSIS.md` §4). Canvis proposats amb referències HTML a `docs/DESIGN_CHANGES.md` (§3e). Pendent D6 (idioma) |
-| Fase 2 (domini financer) | No començada. No depèn de cap gate (§3f) |
+| Gràfiques | Disseny ✅ (`docs/CHARTS.md`). Lib `libs/web/charts` + G-1 ✅ a `main` (PR #10 i #11), només a `/dev/charts` amb dades de prova. Següent: G-2 + G-3 (§3e) i G-4 + G-5 (§3f) |
+| Disseny de la UI | Revisat l'01/11 (`docs/ANALYSIS.md` §4). Canvis proposats amb referències HTML a `docs/DESIGN_CHANGES.md` (§3g). Pendent D6 (idioma) |
+| Fase 2 (domini financer) | No començada. No depèn de cap gate (§3h) |
 | Gates G1–G4 | Pendents |
 
 ---
@@ -24,10 +24,9 @@
 
 Guia pas a pas de tot el que és manual: [`docs/MANUAL_SETUP.md`](docs/MANUAL_SETUP.md).
 
-1. **Fusionar `docs/charts-design → main`** (5 min, `docs/MANUAL_SETUP.md` §1).
-2. **Veure la web en local** (`docs/MANUAL_SETUP.md` §2): crear els dos usuaris, donar d'alta el TOTP i **desar els codis de recuperació**.
-3. **Decidir D6** (idioma de la UI, `docs/DESIGN_CHANGES.md` §0), **D1**, **D2**, **D4** i **D5**.
-4. **Enable Banking** (~30 min):
+1. **Veure la web en local** (`docs/MANUAL_SETUP.md` §1): crear els dos usuaris, donar d'alta el TOTP i **desar els codis de recuperació**.
+2. **Decidir D6** (idioma de la UI, `docs/DESIGN_CHANGES.md` §0), **D1**, **D2**, **D4** i **D5**.
+3. **Enable Banking** (~30 min):
    1. App de **producció** en estat *Active (restricted)* amb els comptes del membre A (§1.3).
    2. El `.pem` fora del repo, a `~/.secrets/ledge/`, i còpia al gestor de contrasenyes (§1.4).
    3. Enviar l'Annex A de `INTEGRATION_FEASIBILITY.md` a `support.api@enablebanking.com`.
@@ -39,10 +38,10 @@ Guia pas a pas de tot el que és manual: [`docs/MANUAL_SETUP.md`](docs/MANUAL_SE
       npm run eb:fetch -- --member A
       ```
    5. El mateix amb `--member B` quan pugui.
-5. **Binance i wallets**: claus (`spikes/README.md` §3b i §3c) i `npm run binance` / `npm run wallets`.
-6. Passar els `spikes/output/*.report.md`, **revisats**, a una sessió nova amb el prompt de la §5 (mai els `.raw.json` ni `eb-session-*.json`).
+4. **Binance i wallets**: claus (`spikes/README.md` §3b i §3c) i `npm run binance` / `npm run wallets`.
+5. Passar els `spikes/output/*.report.md`, **revisats**, a una sessió nova amb el prompt de la §5 (mai els `.raw.json` ni `eb-session-*.json`).
 
-**Sessions de Claude** (en paral·lel): §3c (CI, després Vercel) → §3e (disseny) → §3f (Fase 2).
+**Sessions de Claude** (en paral·lel): §3c (CI, després Vercel) → §3g (disseny) → §3e/§3f (gràfiques) → §3h (Fase 2).
 
 ---
 
@@ -71,11 +70,15 @@ Guia pas a pas de tot el que és manual: [`docs/MANUAL_SETUP.md`](docs/MANUAL_SE
 2. [x] Fase 1, punts 1–3 (PR #6)
 3. [x] Fase 1, punts 0 i 4–7 (PR #8)
 4. [x] Disseny de gràfiques (`docs/CHARTS.md`, PR #9)
-5. [~] Lib de gràfiques + G-1 (PR #10): fet, **pendent d'arribar a `main`**
+5. [x] Lib de gràfiques + G-1 (PR #10 i #11)
 6. [x] Revisió de l'estat i del disseny + centralització de la documentació (`docs/ANALYSIS.md`, `docs/DESIGN_CHANGES.md`, `docs/MANUAL_SETUP.md`)
 7. [ ] **Fase 1, punts 8–9** → §3c (CI ara; Vercel quan hi hagi D4, D5 i Vercel)
-8. [ ] **Disseny, PR 1–3** de `docs/DESIGN_CHANGES.md` §5 → §3e (el PR 2 necessita D6)
-9. [ ] **Fase 2** → §3f
+8. [ ] **Disseny, PR 1–3** de `docs/DESIGN_CHANGES.md` §5 → §3g (el PR 2 necessita D6)
+9. [ ] **G-2 + G-3** (distribució + KPIs) → §3e. No depèn dels gates
+10. [ ] **G-4 + G-5** (hipoteca) → §3f. Es pot fer amb fixtures abans de la Fase 2.4
+11. [ ] **Fase 2** → §3h
+12. [ ] **Connectar G-1…G-5 a l'API** quan la Fase 2 tingui els endpoints (`docs/CHARTS.md` §8, punt 5)
+13. [ ] **G-6 a G-9** quan les Fases 3 i 4 donin dades
 
 ### D. Executar els spikes (vosaltres) → `spikes/README.md`
 - [ ] `npm run eb:aspsps` → hi ha MyInvestor i Trade Republic?
@@ -139,7 +142,7 @@ Fonts: [Quick start](https://enablebanking.com/docs/api/quick-start) · [Linked 
 
 ## 3c. Prompt: sessió de la Fase 1, punts 8–9 (CI + Vercel)
 
-Abans d'obrir-la: fusiona `docs/charts-design → main` (`docs/MANUAL_SETUP.md` §1), així el CI també cobreix la lib de gràfiques. Per al punt 9 cal haver decidit **D4** (domini) i **D5** (VPS) i tenir el compte de Vercel connectat a GitHub. Si encara no, la sessió fa el punt 8 i deixa el 9 preparat però sense desplegar.
+Per al punt 9 cal haver decidit **D4** (domini) i **D5** (VPS) i tenir el compte de Vercel connectat a GitHub. Si encara no, la sessió fa el punt 8 i deixa el 9 preparat però sense desplegar.
 
 Obrir una sessió nova amb el repo `ArnauM13/ledge` seleccionat i enganxar:
 
@@ -147,7 +150,7 @@ Obrir una sessió nova amb el repo `ArnauM13/ledge` seleccionat i enganxar:
 Projecte: "ledge", un dashboard patrimonial privat per a una household de dues persones. Repo: ArnauM13/ledge.
 
 ## Context
-Abans de fer res, llegeix del repo: CLAUDE.md, docs/README.md (índex), README.md, IMPLEMENTATION_PLAN.md (Fase 1 i les decisions dels punts 4–7), NEXT_STEPS.md i docs/MANUAL_SETUP.md §4.
+Abans de fer res, llegeix del repo: CLAUDE.md, docs/README.md (índex), README.md, IMPLEMENTATION_PLAN.md (Fase 1 i les decisions dels punts 4–7), NEXT_STEPS.md i docs/MANUAL_SETUP.md §3.
 
 Ja és a main (Fase 1, punts 0–7, i la lib de gràfiques `libs/web/charts` amb G-1 a `/dev/charts`):
 - Monorepo Nx 24: apps/web (Angular 21, zoneless, signals), apps/api (NestJS 11 + Prisma 7 + PostgreSQL), libs/shared/types.
@@ -201,7 +204,86 @@ No són de la Fase 1 però convé no perdre'ls:
 
 ---
 
-## 3e. Prompt: canvis de disseny (PR 1–3)
+## 3e. Prompt: G-2 (distribució per classe d'actiu) + G-3 (KPIs)
+
+Obrir una sessió nova amb el repo `ArnauM13/ledge` seleccionat i enganxar:
+
+~~~~text
+Projecte: "ledge" (repo ArnauM13/ledge). Abans de fer res, llegeix CLAUDE.md, README.md i docs/CHARTS.md (sobretot §1, §2, §4–§8).
+Mira també com està feta la G-1: libs/web/charts (line-chart.*, chart-frame.ts, format.ts),
+apps/web/src/app/charts (net-worth.ts, net-worth-card.ts, decimal.ts) i apps/web/src/app/dev (galeria i fixtures).
+
+Tasca: el PR 3 de docs/CHARTS.md §8.
+
+G-2 — Distribució per classe d'actiu (Overview):
+- Contracte a libs/shared/types, amb guard i tests (mateix patró que NetWorthSeries):
+  - Imports com a string decimal.
+  - Classes fixes en aquest ordre: cash, investments, crypto, real-estate, other. L'ordre fixa el color (slots 1–5).
+  - Els deutes NO entren a la barra: es mostren a part, a G-3.
+- Lib: `ledge-stacked-bar` (una barra horitzontal 100% apilada) + geometria pura testejada:
+  - Barra de 24px, extrems de 4px arrodonits, separació de 2px entre segments.
+  - Etiqueta dins el segment només si hi cap (mesura-ho); si no, va a la llegenda, al tooltip i a la taula.
+  - Llegenda sempre, amb % i import. Tooltip per segment (hover i focus). Vista de taula.
+  - Segments de valor 0: no es dibuixen, però surten a la taula.
+- Els percentatges es calculen per dibuixar. Si el backend no els envia, mostra'ls arrodonits a 1 decimal i comprova amb un test que la llegenda no suma 99,9% per culpa de l'arrodoniment (fes servir el mètode del residu més gran).
+
+G-3 — KPIs (Overview, stat tiles, no és una gràfica):
+- Patrimoni net, variació 30 dies (positive/negative + signe, mai només color) i deute viu.
+- Component `ledge-stat-tile` a la lib, amb estat buit (sense xifres).
+- La variació es calcula amb subtractDecimal (no amb floats).
+
+Comú:
+- Tot es mostra a /dev/charts amb fixtures deterministes i el segell «Dades de prova», amb tots els estats (empty, loading, loading stale, error).
+- L'Overview continua SENSE xifres (el test "shows no figures in any section" ha de seguir passant).
+- Cap dependència nova si no és imprescindible. Si n'hi ha, justifica-la i fixa'n la versió.
+- Abans d'acabar, fes captures (Playwright, ja instal·lat) a 1280px i 390px, revisa-les tu mateix (col·lisions d'etiquetes, desbordaments) i comprova que el build de producció no conté «Dades de prova».
+- Documentació (regla de CLAUDE.md): docs/CHARTS.md (§3 contracte, §8 ✅), NEXT_STEPS.md, IMPLEMENTATION_PLAN.md i README.md.
+- `npx nx run-many -t lint test build` i `npx prettier --check .` han de passar.
+Branca nova des de main i PR cap a main.
+~~~~
+
+## 3f. Prompt: G-4 (saldo pendent de la hipoteca) + G-5 (capital vs interès)
+
+Obrir una sessió nova amb el repo `ArnauM13/ledge` seleccionat i enganxar:
+
+~~~~text
+Projecte: "ledge" (repo ArnauM13/ledge). Abans de fer res, llegeix CLAUDE.md, README.md, docs/CHARTS.md i IMPLEMENTATION_PLAN.md (Fase 2, punt 4: hipoteca).
+Reutilitza el que ja hi ha a libs/web/charts (line-chart, chart-frame, format) i a apps/web/src/app/charts.
+
+Tasca: el PR 4 de docs/CHARTS.md §8, a la secció Liabilities. Si la Fase 2.4 encara no és a main, treballa amb fixtures i defineix el contracte perquè el backend el pugui complir després.
+
+Contracte (libs/shared/types, guard i tests):
+- Calendari d'amortització: una fila per mes amb data, quota, capital, interès i saldo pendent.
+  - Imports com a string decimal.
+  - `quality: 'MANUAL_REAL' | 'ESTIMATED'`, alineat amb la Fase 2.4.
+- Fixture: sistema francès calculat amb aritmètica exacta (cèntims enters o BigInt). Cas conegut amb test: 180.000 €, 25 anys, 3% fix → la quota mensual ha de coincidir amb la fórmula fins al cèntim.
+
+G-4 — Saldo pendent:
+- `ledge-line-chart` existent, una sèrie.
+- El tram passat `MANUAL_REAL` va continu i el futur `ESTIMATED` discontinu.
+- Afegeix una línia vertical «avui» (hairline, color content-subtle, amb etiqueta). Si cal, amplia la lib amb una API genèrica de "marcadors" i testeja-la.
+
+G-5 — Quota anual: capital vs interès:
+- Gràfica SEPARADA de G-4 (un sol eix Y per gràfica; mai doble eix).
+- Columnes apilades per any: capital (slot 1) i interès (slot 2).
+  - Columnes de ≤ 24px, extrem superior arrodonit a 4px i quadrat a la base, separació de 2px.
+  - Tooltip per columna, llegenda i vista de taula.
+- Nou component `ledge-stacked-columns` a la lib, amb geometria pura testejada.
+- Els anys parcials (el primer i l'últim) s'indiquen a l'eix o a la taula.
+
+Comú: el mateix que la §3e.
+- Galeria /dev/charts amb «Dades de prova» i tots els estats.
+- La pàgina Liabilities continua sense xifres fins que hi hagi l'endpoint.
+- Captures a 1280px i 390px revisades.
+- Res de «Dades de prova» al build de producció.
+- Documentació actualitzada.
+- lint, test, build i prettier en verd.
+Branca nova des de main i PR cap a main.
+~~~~
+
+---
+
+## 3g. Prompt: canvis de disseny (PR 1–3)
 
 ~~~~text
 Projecte: "ledge" (repo ArnauM13/ledge). Llegeix CLAUDE.md, docs/README.md, docs/ANALYSIS.md §4 i docs/DESIGN_CHANGES.md abans de fer res.
@@ -218,7 +300,7 @@ Branca nova des de main per a cada PR.
 
 ---
 
-## 3f. Prompt: Fase 2, domini financer
+## 3h. Prompt: Fase 2, domini financer
 
 ~~~~text
 Projecte: "ledge" (repo ArnauM13/ledge). Llegeix CLAUDE.md, docs/README.md, IMPLEMENTATION_PLAN.md (Fase 2), INTEGRATION_FEASIBILITY.md §8–9, docs/CHARTS.md §3 i docs/DESIGN_CHANGES.md DC-11 abans de fer res.

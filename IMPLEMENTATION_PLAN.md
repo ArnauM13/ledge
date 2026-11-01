@@ -86,7 +86,7 @@ Ordre de treball, un PR per punt:
 
 **Definition of Done de la Fase 1:** els dos usuaris poden fer login amb 2FA i veuen un Overview buit a Vercel.
 
-**Estat (01/11/2026):** punts 0–7 a `main`; el flux de login funciona en local (provat al navegador). Falten els punts 8–9. El punt 9 necessita D4 i D5, perquè la cookie `SameSite=Strict` obliga web i API al mateix site. Passos manuals: `docs/MANUAL_SETUP.md` §4.
+**Estat (01/11/2026):** punts 0–7 a `main`; el flux de login funciona en local (provat al navegador). Falten els punts 8–9. El punt 9 necessita D4 i D5, perquè la cookie `SameSite=Strict` obliga web i API al mateix site. Passos manuals: `docs/MANUAL_SETUP.md` §3.
 
 ## Fase 2 — Domini financer (no depèn de cap gate)
 
@@ -123,7 +123,10 @@ Desplegament del backend al VPS en aquest punt (necessari per a la redirecció d
 
 Les del handoff, sense canvis: analytics (TWR, XIRR, FX), dashboard complet i producció (backups, monitoring, revisió de seguretat).
 
-**Gràfiques** (avançat respecte a la Fase 5, perquè no depèn de cap gate): disseny ✅ a `docs/CHARTS.md`. Lib `libs/web/charts` + G-1 fetes (PR #10), però fusionades a `docs/charts-design` en lloc de `main`: cal un PR cap a `main` (`docs/ANALYSIS.md` T1).
+**Gràfiques** (avançat respecte a la Fase 5, perquè no depèn de cap gate):
+- Disseny ✅ a `docs/CHARTS.md`.
+- Lib `libs/web/charts` + G-1 (evolució del patrimoni net) ✅, només a `/dev/charts` amb dades de prova.
+- Següents: G-2/G-3 i G-4/G-5 (`NEXT_STEPS.md` §3e i §3f).
 
 **Disseny de la UI** (revisat l'01/11/2026): problemes a `docs/ANALYSIS.md` §4, solucions i referències HTML a `docs/DESIGN_CHANGES.md`. Es fa en 5 PR; els 3 primers no depenen de cap fase (només de D6).
 
@@ -131,7 +134,8 @@ Decisions:
 - SVG propi amb `d3-scale` + `d3-shape`, sense llibreria de gràfiques.
 - Paleta categòrica validada sense verds ni vermells.
 - Imports com a string decimal.
-- Fixtures només a `/dev/charts` (build de desenvolupament).
+- Fixtures només a `/dev/charts`. Les rutes de dev s'eliminen del build de producció amb `fileReplacements`.
+- L'única aritmètica d'imports al frontend és la resta exacta (`BigInt`) de la variació del rang.
 
 Cada gràfica es connecta a l'API quan la seva fase en doni dades.
 

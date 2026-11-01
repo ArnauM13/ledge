@@ -16,6 +16,7 @@ apps/
     prisma/       schema.prisma i migracions SQL
 libs/
   shared/types/   Tipus compartits web ↔ api (@ledge/shared-types)
+  web/charts/     Gràfiques SVG (Angular + d3-scale/d3-shape) (@ledge/web-charts)
 docs/             Índex, anàlisi, disseny (CHARTS, DESIGN_CHANGES + referències HTML a docs/design/) i guia manual
 spikes/           Scripts de la Fase 0, amb el seu propi package.json (fora de Nx)
 ```
@@ -250,7 +251,13 @@ npx nx run api:test-integration            # -- --keep-db per deixar la BD engeg
 - La contrasenya de la BD de test es crea sola a `secrets/postgres_test_password`, i la clau mestra és un fitxer temporal per execució.
 - Si ja hi ha `DB_HOST` definit (p. ex. un servei de CI), fa servir aquella BD. En tots dos casos, **es nega a executar-se si `DB_NAME` no acaba en `_test`**.
 
-Per projecte: `npx nx test web`, `npx nx lint api`, `npx nx build web`…
+Per projecte: `npx nx test web`, `npx nx lint api`, `npx nx build web`, `npx nx test web-charts`…
+
+### Galeria de gràfiques (només en desenvolupament)
+
+Amb `npx nx serve web`, obre http://localhost:4200/dev/charts. Hi ha totes les gràfiques i els seus estats (buit, carregant, error) amb **dades de prova**.
+
+La galeria no demana login, no surt al menú i no existeix al build de producció: `fileReplacements` substitueix `apps/web/src/app/dev/dev-routes.ts` per una versió buida. Disseny i regles: [`docs/CHARTS.md`](docs/CHARTS.md).
 
 ## Secrets al repo (gitleaks)
 
@@ -306,6 +313,10 @@ npm run secrets:scan
   - `content` / `content-muted` / `content-subtle` (text)
   - `positive` (maragda, només guanys) · `negative` (vermell, només pèrdues o alertes)
 - Components: standalone + `ChangeDetectionStrategy.OnPush` (és el default del generador a `nx.json`).
+- Gràfiques:
+  - Colors de sèrie `series-1`…`series-5` (tokens a `styles.css`, paleta validada; veure `docs/CHARTS.md` §4).
+  - Imports com a string decimal.
+  - Res de xifres a les seccions fins que hi hagi dades reals.
 - Rutes de negoci de l'API sota `/api/*`; `/health` queda a l'arrel.
 - Cap secret al repo: `.env`, `*.pem` i `*.key` són al `.gitignore`.
 
@@ -313,6 +324,6 @@ npm run secrets:scan
 
 Fase 1, punts 0–7: gitleaks, monorepo, Tailwind, Docker Compose, Prisma, auth amb TOTP obligatori, aïllament de household i xifratge. Els usuaris poden fer login amb 2FA i veuen un **Overview buit**: **cap xifra**, perquè encara no hi ha cap font de dades connectada. Provat de punta a punta en un navegador l'01/11/2026.
 
-La lib de gràfiques (`libs/web/charts`, galeria `/dev/charts`) és a la branca `docs/charts-design`, pendent d'arribar a `main` ([`docs/ANALYSIS.md`](docs/ANALYSIS.md) T1).
+Gràfiques: lib `libs/web/charts` i G-1, visibles només a la galeria `/dev/charts` amb dades de prova (build de desenvolupament).
 
 Següent: punts 8–9, CI i Vercel (prompt a `NEXT_STEPS.md` §3c), i els canvis de disseny (`docs/DESIGN_CHANGES.md`). Pendents tècnics coneguts a `NEXT_STEPS.md` §3c.

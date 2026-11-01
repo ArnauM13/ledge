@@ -158,12 +158,12 @@ Les xifres de la referència són fixtures coherents amb el cas de test de la Fa
 
 ## 5. Pla d'implementació
 
-| PR  | Abast                                                                   | Depèn de                  |
-| --- | ----------------------------------------------------------------------- | ------------------------- |
-| 1   | DC-1, DC-2, DC-4 (tokens, focus, lletra, escala). Sense canvis de text. | —                         |
-| 2   | DC-3 + DC-5 (idioma i pantalles d'accés)                                | D6                        |
-| 3   | DC-6 a DC-9 (shell) + DC-10 (estat buit guiat)                          | PR 2                      |
-| 4   | DC-11 (xip d'origen) a `libs/web/charts` o a una lib `libs/web/ui`      | Lib de gràfiques a `main` |
-| 5   | DC-12, DC-13 connectats a l'API                                         | Fase 2                    |
+| PR  | Abast                                                                   | Depèn de |
+| --- | ----------------------------------------------------------------------- | -------- |
+| 1   | DC-1, DC-2, DC-4 (tokens, focus, lletra, escala). Sense canvis de text. | —        |
+| 2   | DC-3 + DC-5 (idioma i pantalles d'accés)                                | D6       |
+| 3   | DC-6 a DC-9 (shell) + DC-10 (estat buit guiat)                          | PR 2     |
+| 4   | DC-11 (xip d'origen) a `libs/web/charts` o a una lib `libs/web/ui`      | —        |
+| 5   | DC-12, DC-13 connectats a l'API                                         | Fase 2   |
 
 Cada PR: tests de components afectats, captura abans/després a la descripció i `npx nx run-many -t lint test build` + `npx prettier --check .`.
