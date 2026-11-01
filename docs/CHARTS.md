@@ -141,7 +141,7 @@ Només hi ha tema fosc. Superfície de gràfica = `surface` (`#1f2125`).
   1. **Geometria pura** (`*.geometry.ts`): dades → escales, camins i ticks. Funcions sense DOM, testejades amb casos coneguts.
   2. **Components** (`ledge-line-chart`, `ledge-chart-frame`): només pinten el resultat de la geometria i gestionen hover, teclat i estats.
 - **Mida:** un `ResizeObserver` dona l'amplada al contenidor i l'alçada és fixa per gràfica (G-1: 240px).
-- **Galeria** `/dev/charts` (`apps/web/src/app/dev/`): fixtures deterministes i el segell «Dades de prova». La ruta surt de `dev-routes.ts`. Al build de producció, `fileReplacements` el substitueix per `dev-routes.prod.ts` (buit), així que ni la galeria ni les fixtures arriben al bundle. Comprovat: no hi apareix «Dades de prova».
+- **Galeria** `/dev/charts` (`apps/web/src/app/dev/`): fixtures deterministes i el segell «Dades de prova». Queda fora del login (no hi ha cap dada real i així funciona sense l'API). La ruta surt de `dev-routes.ts`. Al build de producció, `fileReplacements` el substitueix per `dev-routes.prod.ts` (buit), així que ni la galeria ni les fixtures arriben al bundle. Comprovat: no hi apareix «Dades de prova».
   - Amb `isDevMode()` no n'hi havia prou: la ruta quedava inaccessible però el chunk s'empaquetava igualment.
 - **Targetes de domini** (`apps/web/src/app/charts/`): per exemple `ledge-net-worth-card`, que fa de pont entre el contracte de l'API i la lib. La lib no coneix el domini (rep `LineSeries`).
 

@@ -11,7 +11,9 @@ import { netWorthFixture } from './net-worth.fixture';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NetWorthCard],
   template: `
-    <section class="t-flex t-flex-col t-gap-6">
+    <section
+      class="t-mx-auto t-flex t-max-w-6xl t-flex-col t-gap-6 t-px-4 t-py-6 md:t-px-10 md:t-py-10"
+    >
       <h1 class="t-text-2xl t-font-semibold t-tracking-tight">
         Galeria de gràfiques
       </h1>

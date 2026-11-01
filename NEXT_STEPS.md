@@ -15,8 +15,9 @@
 | Spike de Binance (`spikes/binance`) | **Escrit i testejat en local; no s'ha executat mai amb credencials reals** |
 | Spike de wallets (`spikes/wallets`) | **Escrit i testejat en local; no s'ha executat mai contra l'API real** |
 | Codi de l'app (monorepo) | Fase 1 punts 1–3 a `main` (PR #6): Nx + Angular 21 + NestJS + Tailwind `t-` + Docker Compose amb secrets en fitxers (veure `README.md`) |
-| Fase 1 punts 4–7 + gitleaks | Pendent. Prompt a la §3b |
-| Gràfiques | Disseny a `docs/CHARTS.md`. Lib `libs/web/charts` + G-1 (evolució del patrimoni net) fetes, visibles només a `/dev/charts` amb dades de prova. Següent: G-2 + G-3 (§3d) i G-4 + G-5 (§3e) |
+| Fase 1 punts 4–7 + gitleaks | **Fet** a la branca `feat/phase1-auth-security` (PR pendent de revisar): gitleaks, Prisma, auth amb TOTP, aïllament de household i xifratge (veure `README.md`) |
+| Fase 1 punts 8–9 (CI + Vercel) | Pendent. Prompt a la §3c. El punt 9 depèn de D4, D5 i del compte de Vercel |
+| Gràfiques | Disseny a `docs/CHARTS.md`. Lib `libs/web/charts` + G-1 (evolució del patrimoni net) fetes, visibles només a `/dev/charts` amb dades de prova. Següent: G-2 + G-3 (§3e) i G-4 + G-5 (§3f) |
 | Gates G1–G4 (proves reals) | Pendents |
 
 ---
@@ -38,8 +39,11 @@
 6. Obre una sessió nova i passa-hi els `spikes/output/*.report.md`, **revisats abans** (mai els `.raw.json` ni `eb-session-*.json`), amb el prompt de la §5.
 
 **En paral·lel:**
-- Sessió de la Fase 1, punts 4–7 + gitleaks (prompt de la §3b). No depèn dels gates.
-- Instal·lar `gitleaks` a la vostra màquina (el hook de pre-commit el necessitarà): https://github.com/gitleaks/gitleaks#installing
+- Revisar i fusionar el PR de la Fase 1, punts 4–7 (branca `feat/phase1-auth-security`).
+- Instal·lar `gitleaks` 8.30.1 a la vostra màquina (`README.md` → "Secrets al repo"). Sense ell, el hook de pre-commit bloqueja els commits. Després, `npm install` al repo per activar el hook.
+- Provar el login en local (`README.md` → "Arrencar en local"): crear els dos usuaris amb `create-user`, donar d'alta el TOTP i **desar els codis de recuperació** al gestor de contrasenyes.
+- Decidir **D4** (domini) i **D5** (VPS) i crear el compte de Vercel: el punt 9 (§3c) no es pot acabar sense.
+- Sessió de la Fase 1, punts 8–9 (prompt de la §3c). El CI (punt 8) no depèn de res.
 - Claus de Binance (només "Enable Reading" i restricció d'IP) i d'Etherscan → `spikes/README.md` §3b i §3c.
 - Executa els spikes de Binance i wallets (omple abans `BINANCE_*`, `BTC_ADDRESSES`, `EVM_ADDRESSES`, `EVM_CHAINS` i `ETHERSCAN_API_KEY` al `.env`):
   ```bash
@@ -71,12 +75,12 @@
 ### C. Sessions de Claude Code (en aquest ordre)
 1. [x] **Sessió de spikes** → fet. Enable Banking (`spikes/enable-banking`), Binance (`spikes/binance`) i wallets (`spikes/wallets`) són a `main`. Estan escrits però no executats.
 2. [x] **Sessió de la Fase 1, punts 1–3** → prompt a la §3. Fusionat (PR #6).
-3. [ ] **Fase 1, punts 4–7 + gitleaks** → prompt a la §3b: gitleaks (pre-commit + workflow), Prisma (`users`, `households`, `memberships`, `audit_logs`), auth amb argon2 + TOTP, guard de household i servei AES-256-GCM.
-4. [ ] **Fase 1, punts 8–9**: CI (GitHub Actions) i Vercel (requereix el compte de Vercel).
+3. [x] **Fase 1, punts 4–7 + gitleaks** → prompt a la §3b. Fet (branca `feat/phase1-auth-security`, PR pendent de fusionar).
+4. [ ] **Fase 1, punts 8–9** → prompt a la §3c: CI (GitHub Actions) i Vercel (requereix D4, D5 i el compte de Vercel).
 5. [x] **Disseny de gràfiques** → `docs/CHARTS.md`.
-6. [x] **Lib de gràfiques + G-1 (evolució del patrimoni net)** → §3c.
-7. [ ] **G-2 + G-3** (distribució per classe d'actiu + KPIs de l'Overview) → prompt a la §3d. No depèn dels gates.
-8. [ ] **G-4 + G-5** (hipoteca: saldo pendent + capital vs interès) → prompt a la §3e. Es pot fer amb fixtures abans de la Fase 2.4.
+6. [x] **Lib de gràfiques + G-1 (evolució del patrimoni net)** → §3d.
+7. [ ] **G-2 + G-3** (distribució per classe d'actiu + KPIs de l'Overview) → prompt a la §3e. No depèn dels gates.
+8. [ ] **G-4 + G-5** (hipoteca: saldo pendent + capital vs interès) → prompt a la §3f. Es pot fer amb fixtures abans de la Fase 2.4.
 9. [ ] **Connectar G-1…G-5 a l'API**: quan la Fase 2 tingui els endpoints (`docs/CHARTS.md` §8, punt 5).
 10. [ ] **G-6 a G-9**: quan les Fases 3 i 4 donin dades (prompt per escriure aleshores, amb el mateix patró).
 
@@ -243,7 +247,9 @@ Decisions encara pendents de l'usuari, que no has d'assumir: D4 (domini), D5 (pr
 
 ---
 
-## 3b. Prompt: sessió de la Fase 1, punts 4–7 + gitleaks
+## 3b. Prompt: sessió de la Fase 1, punts 4–7 + gitleaks (✅ fet)
+
+> Fet el 01/11/2026 a la branca `feat/phase1-auth-security`. Es conserva com a referència: **no el tornis a fer servir**.
 
 Obrir una sessió nova amb el repo `ArnauM13/ledge` seleccionat i enganxar:
 
@@ -320,7 +326,71 @@ Per què gitleaks va primer: protegeix els commits de Prisma i auth, que és on 
 
 ---
 
-## 3c. Lib de gràfiques + G-1 (✅ fet)
+## 3c. Prompt: sessió de la Fase 1, punts 8–9 (CI + Vercel)
+
+Abans d'obrir-la: fusiona el PR dels punts 4–7. Per al punt 9 cal haver decidit **D4** (domini) i **D5** (VPS) i tenir el compte de Vercel connectat a GitHub. Si encara no, la sessió fa el punt 8 i deixa el 9 preparat però sense desplegar.
+
+Obrir una sessió nova amb el repo `ArnauM13/ledge` seleccionat i enganxar:
+
+~~~~text
+Projecte: "ledge", un dashboard patrimonial privat per a una household de dues persones. Repo: ArnauM13/ledge.
+
+## Context
+Abans de fer res, llegeix del repo: CLAUDE.md, README.md, IMPLEMENTATION_PLAN.md (Fase 1 i les decisions dels punts 4–7) i NEXT_STEPS.md.
+
+Ja és a main (Fase 1, punts 0–7):
+- Monorepo Nx 24: apps/web (Angular 21, zoneless, signals), apps/api (NestJS 11 + Prisma 7 + PostgreSQL), libs/shared/types.
+- gitleaks 8.30.1: hook de pre-commit i `.github/workflows/secrets.yml` (només gitleaks, sobre tot l'historial).
+- Auth: argon2id + TOTP obligatori, sessions a Postgres en cookie `__Host-ledge_session` (HttpOnly, Secure, SameSite=Strict), CSRF amb token de sessió, bloqueig i rate limit. Usuaris amb el CLI `create-user` (contrasenya per stdin).
+- Aïllament de household (404, no 403) i xifratge AES-256-GCM amb clau mestra en fitxer.
+- Secrets sempre en fitxers (/run/secrets/*), mai en variables d'entorn ni al .env.
+- Tests: `nx test` (unitaris) i `nx run api:test-integration` (Postgres real; es nega si DB_NAME no acaba en `_test`; si DB_HOST ja hi és, no arrenca Docker).
+- spikes/ és un paquet independent, fora del graf de Nx. No el toquis.
+
+## Tasca d'aquesta sessió: Fase 1, punts 8 i 9
+
+8. CI (GitHub Actions), workflow nou `.github/workflows/ci.yml` (no toquis `secrets.yml`):
+   - A cada PR i a cada push a main: `npm ci`, `npx prettier --check .`, `npx nx run-many -t lint test build`, i `npx nx run api:test-integration` amb un servei Postgres 17.
+   - La contrasenya del Postgres de CI és d'un sol ús: genera-la al job, escriu-la en un fitxer (DB_PASSWORD_FILE) i no la posis mai com a text al workflow ni als logs. DB_NAME ha d'acabar en `_test`.
+   - Actions fixades per SHA de commit (com a `secrets.yml`), `permissions: contents: read`, `persist-credentials: false`, timeout per job i cache de npm.
+   - Comprova que el job falla de debò si un test falla (fes-ho en local o amb un commit temporal que no arribi a main).
+
+9. Vercel (només si D4, D5 i el compte de Vercel estan decidits; si no, prepara la configuració i explica què falta):
+   - Projecte connectat al repo que construeixi `apps/web` (`npx nx build web`, sortida `dist/apps/web/browser`), amb fallback SPA.
+   - La cookie és SameSite=Strict: la web i l'API han de ser el mateix site. Proposa com fer-ho (p. ex. rewrite de `/api/*` de Vercel cap a l'API del VPS, o subdominis del domini de D4) i pregunta abans de decidir. Recorda `WEB_ORIGINS` i `API_TRUST_PROXY` (vegeu `.env.example`).
+   - Capçaleres de seguretat a la web (CSP estricta, `X-Frame-Options`/`frame-ancestors`, `Referrer-Policy`, HSTS).
+   - Definition of Done de la Fase 1: els dos usuaris fan login amb 2FA i veuen un Overview buit a Vercel. Si l'API encara no està desplegada (depèn de D5), digues-ho clarament: no ho donis per fet.
+
+## Requisits
+- Actualitza la documentació (regla de CLAUDE.md): README (CI i desplegament), NEXT_STEPS.md (estat, checklist i prompt de la sessió següent) i IMPLEMENTATION_PLAN.md (✅ i decisions).
+- `nx lint`, `nx test`, `nx build`, `nx run api:test-integration`, `prettier --check .` i gitleaks sobre tot l'historial han de passar abans d'acabar.
+- Justifica cada dependència o action nova i fixa'n la versió.
+
+## Fora d'abast
+Model de dades financer (Fase 2), integracions (Fase 3) i el desplegament del backend al VPS (Fase 3), tret que l'usuari ho demani.
+
+## Forma de treballar
+- Branca nova des de main i PR cap a main. Commits petits: un per punt.
+- Si cal una decisió que no surt als documents, pregunta-ho abans de decidir.
+- Al final, resumeix què has fet, què has verificat (amb la sortida) i què queda pendent.
+
+Decisions encara pendents de l'usuari, que no has d'assumir: D4 (domini), D5 (VPS) i el compte de Vercel.
+~~~~
+
+### Pendents tècnics coneguts (de la sessió dels punts 4–7)
+
+No són de la Fase 1 però convé no perdre'ls:
+
+- **Rotació de la clau mestra**: el format ja porta la versió i l'API accepta claus antigues (`LEDGE_MASTER_KEY_PREVIOUS_FILES`), però falta el job que torna a xifrar els valors antics.
+- **Rols de BD separats**: ara l'API i les migracions fan servir el mateix usuari de Postgres. Un rol per a l'API sense `TRUNCATE` ni permís per desactivar triggers reforçaria `audit_logs`.
+- **TOTP perdut + codis de recuperació perduts**: no hi ha procediment. Caldria una ordre del CLI per reiniciar el 2FA d'un usuari (amb auditoria).
+- **Neteja de sessions caducades**: les files de `sessions` revocades o caducades no s'esborren (no afecta la seguretat, només l'espai).
+- **Capçaleres de seguretat de l'API** (helmet o equivalent): no afegides.
+- **Build de Docker darrere d'un proxy TLS**: `docker compose build` no passa el secret `npm_ca`; cal `docker build` a mà (`README.md`).
+
+---
+
+## 3d. Lib de gràfiques + G-1 (✅ fet)
 
 Ja és a la branca `feat/charts-net-worth`:
 - `libs/web/charts`: geometria pura, `ledge-chart-frame` i `ledge-line-chart`.
@@ -330,7 +400,7 @@ Ja és a la branca `feat/charts-net-worth`:
 
 L'Overview continua sense xifres.
 
-## 3d. Prompt: G-2 (distribució per classe d'actiu) + G-3 (KPIs)
+## 3e. Prompt: G-2 (distribució per classe d'actiu) + G-3 (KPIs)
 
 Obrir una sessió nova amb el repo `ArnauM13/ledge` seleccionat i enganxar:
 
@@ -368,7 +438,7 @@ Comú:
 Branca nova des de main i PR cap a main.
 ~~~~
 
-## 3e. Prompt: G-4 (saldo pendent de la hipoteca) + G-5 (capital vs interès)
+## 3f. Prompt: G-4 (saldo pendent de la hipoteca) + G-5 (capital vs interès)
 
 Obrir una sessió nova amb el repo `ArnauM13/ledge` seleccionat i enganxar:
 
@@ -397,7 +467,7 @@ G-5 — Quota anual: capital vs interès:
 - Nou component `ledge-stacked-columns` a la lib, amb geometria pura testejada.
 - Els anys parcials (el primer i l'últim) s'indiquen a l'eix o a la taula.
 
-Comú: el mateix que la §3d.
+Comú: el mateix que la §3e.
 - Galeria /dev/charts amb «Dades de prova» i tots els estats.
 - La pàgina Liabilities continua sense xifres fins que hi hagi l'endpoint.
 - Captures a 1280px i 390px revisades.
@@ -453,7 +523,7 @@ Treballa en una branca nova i obre un PR cap a main.
 | Fase | Què fa Claude | Què fas tu |
 |---|---|---|
 | **0 — Spikes** | Escriure els scripts (EB ✅, Binance ✅, wallets ✅) | Executar-los, revisar i passar els `*.report.md` |
-| **1 — Infraestructura** (§3 ✅, §3b) | Monorepo, Docker, `/health` ✅ · gitleaks, Prisma, auth amb 2FA, aïllament de household, xifratge · CI i Vercel | Revisar i fusionar els PR. Instal·lar gitleaks. Al final de la fase: decidir D4 (domini) i D5 (VPS), i connectar Vercel a GitHub |
+| **1 — Infraestructura** (§3 ✅, §3b ✅, §3c) | Monorepo, Docker, `/health` ✅ · gitleaks, Prisma, auth amb 2FA, aïllament de household, xifratge ✅ · CI i Vercel | Revisar i fusionar els PR. Instal·lar gitleaks. Al final de la fase: decidir D4 (domini) i D5 (VPS), i connectar Vercel a GitHub |
 | **2 — Domini financer** | Model de dades financer, ownerships, entrades manuals, hipoteca, patrimoni net | Decidir D1 i D2. Preparar les dades manuals inicials (posicions de MyInvestor/TR, NAV, hipoteca, immobles) |
 | **3 — Integracions** | Un adapter per a cada gate en GO | Desplegar el backend amb domini HTTPS i canviar la Redirect URL de l'app de producció a `https://<domini>/...`. Posar els secrets al servidor (mai al repo) |
 | **4 — Sync i operació** | Sync nocturna, alertes de consentiment | Reconnectar BBVA quan caduqui el consentiment (cada ~90–180 dies, segons l'informe) |
