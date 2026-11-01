@@ -1,6 +1,7 @@
 # IMPLEMENTATION_PLAN.md
 
-> Basat en `INTEGRATION_FEASIBILITY.md` (31/10/2026).
+> Basat en `INTEGRATION_FEASIBILITY.md` (31/10/2026). Actualitzat l'01/11/2026.
+> Índex de la documentació: `docs/README.md`. Estat detallat: `docs/ANALYSIS.md`.
 > Principi: **el que no depèn de les integracions es comença ja**. El que en depèn espera que la seva prova (gate) sigui GO.
 
 ## Visió general
@@ -24,13 +25,14 @@ Fase 6                                                     ██████
 |---|---|---|---|
 | D1 | Abast de les posicions de MyInvestor / Trade Republic | Manual · aturar el projecte | **Manual**, etiquetat a la UI |
 | D2 | Font del NAV dels fons | Manual · font externa (cal aprovar-la) | **Manual** a l'MVP |
-| D3 | Nom i visibilitat del repo | — | `household-wealth`, **privat** |
+| D3 | Nom i visibilitat del repo | — | ✅ `ArnauM13/ledge`, **privat** |
 | D4 | Domini | Subdomini propi · `*.vercel.app` | Domini propi (necessari per a la redirecció HTTPS d'Enable Banking i l'API) |
 | D5 | Proveïdor del VPS | Hetzner · OVH · Scaleway | Hetzner (UE, ~4–7 €/mes) |
+| D6 | Idioma de la UI | Català · anglès | **Català** (els formats de les gràfiques ja són `ca-ES`). Vegeu `docs/DESIGN_CHANGES.md` §0 |
 
 ## Pas previ B — Comptes i accessos (ho feu vosaltres)
 
-- [ ] Crear el repo **buit** a GitHub i passar-me `owner/repo`.
+- [x] Crear el repo a GitHub (`ArnauM13/ledge`).
 - [ ] Compte de Vercel connectat a GitHub.
 - [ ] Compte d'Enable Banking + app de producció + clau `.pem` (fora del repo).
 - [ ] Enviar la consulta de l'Annex A a Enable Banking.
@@ -84,6 +86,8 @@ Ordre de treball, un PR per punt:
 
 **Definition of Done de la Fase 1:** els dos usuaris poden fer login amb 2FA i veuen un Overview buit a Vercel.
 
+**Estat (01/11/2026):** punts 0–7 a `main`; el flux de login funciona en local (provat al navegador). Falten els punts 8–9. El punt 9 necessita D4 i D5, perquè la cookie `SameSite=Strict` obliga web i API al mateix site. Passos manuals: `docs/MANUAL_SETUP.md` §4.
+
 ## Fase 2 — Domini financer (no depèn de cap gate)
 
 Aquesta part és necessària sigui quin sigui el resultat de les integracions:
@@ -119,7 +123,9 @@ Desplegament del backend al VPS en aquest punt (necessari per a la redirecció d
 
 Les del handoff, sense canvis: analytics (TWR, XIRR, FX), dashboard complet i producció (backups, monitoring, revisió de seguretat).
 
-**Gràfiques** (avançat respecte a la Fase 5, perquè no depèn de cap gate): disseny ✅ a `docs/CHARTS.md`.
+**Gràfiques** (avançat respecte a la Fase 5, perquè no depèn de cap gate): disseny ✅ a `docs/CHARTS.md`. Lib `libs/web/charts` + G-1 fetes (PR #10), però fusionades a `docs/charts-design` en lloc de `main`: cal un PR cap a `main` (`docs/ANALYSIS.md` T1).
+
+**Disseny de la UI** (revisat l'01/11/2026): problemes a `docs/ANALYSIS.md` §4, solucions i referències HTML a `docs/DESIGN_CHANGES.md`. Es fa en 5 PR; els 3 primers no depenen de cap fase (només de D6).
 
 Decisions:
 - SVG propi amb `d3-scale` + `d3-shape`, sense llibreria de gràfiques.

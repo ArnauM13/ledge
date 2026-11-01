@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="ca">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ledge · referència: accés</title>
+    <link rel="stylesheet" href="reference.css" />
+    <style>
+      .page {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding-block: 32px 64px;
+        padding-left: max(16px, env(safe-area-inset-left, 0px));
+        padding-right: max(16px, env(safe-area-inset-right, 0px));
+        display: grid;
+        gap: 24px;
+      }
+      .states {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+        align-items: start;
+      }
+      .state > .ref-note {
+        margin-bottom: 8px;
+      }
+      .card {
+        background: var(--ledge-surface);
+        border: 1px solid var(--ledge-line);
+        border-radius: var(--radius-md);
+        padding: 28px;
+        display: grid;
+        gap: 20px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+        font-size: var(--text-lg);
+        letter-spacing: -0.01em;
+      }
+      /* Marca: una «L» feta de dos traços, com un llibre major (ledger) */
+      .mark {
+        width: 22px;
+        height: 22px;
+      }
+      .card h1 {
+        font-size: var(--text-2xl);
+      }
+      .lede {
+        color: var(--ledge-content-muted);
+      }
+      .field {
+        display: grid;
+        gap: 4px;
+      }
+      form {
+        display: grid;
+        gap: 16px;
+      }
+      .otp {
+        font-family: var(--font-mono);
+        font-size: var(--text-2xl);
+        letter-spacing: 0.4em;
+        text-align: center;
+        padding: 10px 0;
+        font-variant-numeric: tabular-nums;
+      }
+      .alert {
+        display: flex;
+        gap: 8px;
+        padding: 10px 12px;
+        border-radius: var(--radius-sm);
+        border: 1px solid
+          color-mix(in srgb, var(--ledge-negative) 45%, transparent);
+        background: color-mix(in srgb, var(--ledge-negative) 10%, transparent);
+      }
+      .codes {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 4px;
+        margin: 0;
+        padding: 12px 16px;
+        list-style: none;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--ledge-line);
+        background: var(--ledge-canvas);
+        font-family: var(--font-mono);
+        font-size: var(--text-xs);
+      }
+      .row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .check {
+        display: flex;
+        gap: 8px;
+        align-items: flex-start;
+        color: var(--ledge-content-muted);
+      }
+      .foot {
+        color: var(--ledge-content-subtle);
+        font-size: var(--text-xs);
+        text-align: center;
+      }
+      .linkbtn {
+        background: none;
+        border: 0;
+        padding: 0;
+        color: var(--ledge-content-muted);
+        text-decoration: underline;
+        font: inherit;
+        cursor: pointer;
+        justify-self: start;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header>
+        <h1 style="font-size: var(--text-2xl)">
+          Referència · pantalles d'accés
+        </h1>
+        <p
+          class="lede"
+          style="color: var(--ledge-content-muted); margin-top: 6px"
+        >
+          Proposta per a <code>apps/web/src/app/pages/login/*</code>. Canvis
+          explicats a <code>docs/DESIGN_CHANGES.md</code> (DC-1 a DC-5).
+        </p>
+      </header>
+
+      <div class="states">
+        <!-- 1. Login amb error -->
+        <section class="state">
+          <p class="ref-note">
+            <b>Login · estat d'error.</b> Error en caixa amb icona, focus a
+            l'email, contrasenya buidada.
+          </p>
+          <div class="card">
+            <div class="brand">
+              <svg class="mark" viewBox="0 0 22 22" aria-hidden="true">
+                <rect
+                  x="1"
+                  y="1"
+                  width="20"
+                  height="20"
+                  rx="5"
+                  fill="none"
+                  stroke="var(--ledge-content)"
+                  stroke-width="1.5"
+                />
+                <path
+                  d="M7 6v10h8"
+                  fill="none"
+                  stroke="var(--ledge-content)"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              ledge
+            </div>
+            <div style="display: grid; gap: 6px">
+              <h1>Inicia la sessió</h1>
+              <p class="lede">Accés privat de la household.</p>
+            </div>
+            <form onsubmit="return false;" novalidate>
+              <div class="field">
+                <label class="label" for="email">Correu</label>
+                <input
+                  class="input"
+                  id="email"
+                  type="email"
+                  autocomplete="username"
+                  value="a@example.com"
+                />
+              </div>
+              <div class="field">
+                <label class="label" for="pw">Contrasenya</label>
+                <input
+                  class="input"
+                  id="pw"
+                  type="password"
+                  autocomplete="current-password"
+                />
+              </div>
+              <div class="alert" role="alert">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  aria-hidden="true"
+                  style="flex: none; margin-top: 2px"
+                >
+                  <circle
+                    cx="8"
+                    cy="8"
+                    r="7"
+                    fill="none"
+                    stroke="var(--ledge-negative)"
+                    stroke-width="1.5"
+                  />
+                  <path
+                    d="M8 4.5v4.2M8 11.2v.3"
+                    stroke="var(--ledge-negative)"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                  />
+                </svg>
+                <span class="error"
+                  >No s'ha pogut iniciar la sessió. Revisa les dades o torna-ho
+                  a provar d'aquí a uns minuts.</span
+                >
+              </div>
+              <button class="btn btn-primary" type="submit">Continua</button>
+            </form>
+          </div>
+          <p class="foot" style="margin-top: 12px">
+            Sense registre públic · Verificació en dos passos obligatòria
+          </p>
+        </section>
+
+        <!-- 2. TOTP -->
+        <section class="state">
+          <p class="ref-note">
+            <b>Codi de verificació.</b> Un camp gran i espaiat; envia sol en
+            arribar a 6 xifres.
+          </p>
+          <div class="card">
+            <div class="brand">
+              <svg class="mark" viewBox="0 0 22 22" aria-hidden="true">
+                <rect
+                  x="1"
+                  y="1"
+                  width="20"
+                  height="20"
+                  rx="5"
+                  fill="none"
+                  stroke="var(--ledge-content)"
+                  stroke-width="1.5"
+                />
+                <path
+                  d="M7 6v10h8"
+                  fill="none"
+                  stroke="var(--ledge-content)"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              ledge
+            </div>
+            <div style="display: grid; gap: 6px">
+              <h1>Verificació en dos passos</h1>
+              <p class="lede">
+                Escriu el codi de 6 xifres de l'app d'autenticació.
+              </p>
+            </div>
+            <form onsubmit="return false;" novalidate>
+              <div class="field">
+                <label class="label" for="otp">Codi</label>
+                <input
+                  class="input otp"
+                  id="otp"
+                  inputmode="numeric"
+                  autocomplete="one-time-code"
+                  maxlength="6"
+                  value="4829"
+                />
+                <p class="hint">
+                  Un sol camp: l'autoemplenat del mòbil i dels gestors de
+                  contrasenyes continua funcionant.
+                </p>
+              </div>
+              <button class="btn btn-primary" type="submit" aria-busy="true">
+                Verificant…
+              </button>
+              <button class="linkbtn" type="button">
+                Fes servir un codi de recuperació
+              </button>
+            </form>
+          </div>
+        </section>
+
+        <!-- 3. Codis de recuperació -->
+        <section class="state">
+          <p class="ref-note">
+            <b>Codis de recuperació.</b> Botó de copiar i confirmació explícita
+            abans de continuar.
+          </p>
+          <div class="card">
+            <div style="display: grid; gap: 6px">
+              <h1>Desa els codis de recuperació</h1>
+              <p class="lede">
+                Cada codi obre la sessió un sol cop si perds el mòbil. No es
+                tornaran a mostrar.
+              </p>
+            </div>
+            <ol class="codes num">
+              <li>7KQ2-M9XA-P4LD-W8RT</li>
+              <li>H3VN-2CZE-K6YB-Q1FS</li>
+              <li>R8DW-T5JM-X2PA-L7GC</li>
+              <li>B4NF-Y9QK-E3HV-Z6MD</li>
+              <li>W1XC-G7RS-N5TB-J2KP</li>
+              <li>P6LM-D3QZ-V8YA-F4HE</li>
+            </ol>
+            <p class="hint">Exemple: codis inventats per a la referència.</p>
+            <div class="row">
+              <button class="btn btn-ghost" type="button">
+                Copia els codis
+              </button>
+            </div>
+            <label class="check" for="saved">
+              <input id="saved" type="checkbox" checked />
+              Els he desat al gestor de contrasenyes
+            </label>
+            <button class="btn btn-primary" type="button">Entra a ledge</button>
+          </div>
+        </section>
+      </div>
+    </div>
+  </body>
+</html>

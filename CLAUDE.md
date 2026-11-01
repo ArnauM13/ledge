@@ -4,12 +4,18 @@ Regles per a qualsevol sessió de Claude Code en aquest repo.
 
 ## Documentació (sempre)
 
+Índex i font de veritat de cada tema: `docs/README.md`. Llegeix-lo abans de començar.
+
 Cada canvi actualitza la documentació que afecta, **al mateix PR**:
 
 - `NEXT_STEPS.md`: taula d'estat, checklist i prompts de les sessions següents.
 - `IMPLEMENTATION_PLAN.md`: punts fets (✅) i decisions que canvien.
 - `README.md`: com arrencar, provar i configurar el que s'hagi afegit.
 - `INTEGRATION_FEASIBILITY.md`: només amb evidències reals (informes anonimitzats).
+- `docs/MANUAL_SETUP.md`: si canvia algun pas que l'usuari ha de fer a mà.
+- `docs/DESIGN_CHANGES.md` i `docs/design/*`: marcar els DC fets (✅) o els que canvien.
+- `docs/ANALYSIS.md` és una foto datada: no s'actualitza, se'n fa una de nova.
+- Prompts de sessions acabades → `docs/archive/SESSION_PROMPTS.md`.
 
 Un PR que canvia codi o decisions sense tocar la documentació està incomplet.
 
