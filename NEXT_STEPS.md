@@ -10,7 +10,8 @@
 |---|---|
 | Fase 0 · spikes (`enable-banking`, `binance`, `wallets`) | **Escrits; cap executat amb credencials reals**. Gates G1–G4 pendents |
 | Fase 1 · punts 0–7 | ✅ A `main` (PR #6 i #8). Login amb TOTP provat al navegador l'01/11 |
-| Fase 1 · punts 8–9 (CI + Vercel) | Pendent (§2.1). El punt 9 depèn de D4, D5 i del compte de Vercel |
+| Fase 1 · punt 8 (CI) | ✅ `.github/workflows/ci.yml` (prettier, lint, test, build, test-integration). Falta fer-lo obligatori a GitHub (§1) |
+| Fase 1 · punt 9 (Vercel) | Pendent (§2.1). Depèn de D4, D5 i del compte de Vercel |
 | Gràfiques | Disseny ✅, lib + G-1 ✅ (PR #10 i #11), només a `/dev/charts`. Següent: G-2/G-3 i G-4/G-5 |
 | Disseny de la UI | Revisió amb skills ✅ (PR #12). Proposta a `docs/DESIGN_CHANGES.md`, **no implementada**. Pendent D6 |
 | Fase 2 · domini financer | No començada. No depèn de cap gate |
@@ -26,14 +27,15 @@ En aquest ordre. Cada pas enllaça la seva guia.
    ```bash
    git push origin --delete docs/charts-design docs/next-steps feat/charts-net-worth feat/phase1-auth-security petja/awesome-dijkstra-kcamhb petja/eager-bohr-i0juf8 petja/sharp-shannon-relsdl
    ```
-2. **Veure la web en local**: crear els dos usuaris, donar d'alta el TOTP i **desar els codis de recuperació** → `docs/MANUAL_SETUP.md` §1.
-3. **Decisions** → `docs/CONTEXT.md` §3:
+2. **Fer obligatori el CI** a `main` (ruleset amb els 3 checks) → `docs/MANUAL_SETUP.md` §3, primer paràgraf.
+3. **Veure la web en local**: crear els dos usuaris, donar d'alta el TOTP i **desar els codis de recuperació** → `docs/MANUAL_SETUP.md` §1.
+4. **Decisions** → `docs/CONTEXT.md` §3:
    - [ ] **D1** Posicions de MyInvestor / Trade Republic manuals? *(recomanat: sí)*
    - [ ] **D2** NAV dels fons manual? *(recomanat: sí, a l'MVP)*
    - [ ] **D4** Domini *(necessari per a Vercel, l'API i la redirecció d'Enable Banking)*
    - [ ] **D5** VPS *(recomanat: Hetzner, ~4–7 €/mes)*
    - [ ] **D6** Idioma de la UI *(recomanat: català, `docs/DESIGN_CHANGES.md` §0)*
-4. **Comptes i credencials**:
+5. **Comptes i credencials**:
    - [x] Enable Banking: compte creat
    - [ ] Enable Banking: app de producció activada amb el membre A → `docs/MANUAL_SETUP.md` §5
    - [ ] Enviar l'Annex A de `INTEGRATION_FEASIBILITY.md` a `support.api@enablebanking.com`
@@ -42,7 +44,7 @@ En aquest ordre. Cada pas enllaça la seva guia.
    - [ ] Gestor de contrasenyes compartit (`.pem`, claus, codis de recuperació)
    - [ ] gitleaks 8.30.1 instal·lat (`README.md` → Secrets al repo)
    - [ ] Vercel: compte connectat a GitHub (Fase 1, punt 9)
-5. **Executar els spikes** a la teva màquina → `spikes/README.md`:
+6. **Executar els spikes** a la teva màquina → `spikes/README.md`:
    - [ ] `npm run eb:aspsps` → hi ha MyInvestor i Trade Republic?
    - [ ] `npm run eb:connect -- --aspsp BBVA --member A` + `npm run eb:fetch -- --member A` → **G1**
    - [ ] El mateix amb `--member B` → **G2**
@@ -56,19 +58,18 @@ Cada sessió nova: el hook instal·la les skills sol, i el prompt diu què llegi
 
 | # | Sessió | Prompt | Depèn de |
 |---|---|---|---|
-| 1 | Fase 1, punt 8: CI (lint, test, build, test-integration) | §2.1 | — |
-| 2 | Disseny, PR 1–3 de `docs/DESIGN_CHANGES.md` §5 | §2.4 | D6 (només el PR 2) |
-| 3 | G-2 + G-3 (distribució i KPI) | §2.2 | — |
-| 4 | G-4 + G-5 (hipoteca) | §2.3 | — (amb fixtures) |
-| 5 | Fase 2: domini financer | §2.5 | D1, D2 |
-| 6 | Fase 1, punt 9: Vercel + API desplegada | §2.1 | D4, D5, Vercel |
-| 7 | Connectar G-1…G-5 a l'API | — | Fase 2 |
-| 8 | Viabilitat amb els informes dels spikes | §5 | Spikes executats |
-| 9 | Fase 3: adapters dels gates en GO | — | 6, 8 |
+| 1 | Disseny, PR 1–3 de `docs/DESIGN_CHANGES.md` §5 | §2.4 | D6 (només el PR 2) |
+| 2 | G-2 + G-3 (distribució i KPI) | §2.2 | — |
+| 3 | G-4 + G-5 (hipoteca) | §2.3 | — (amb fixtures) |
+| 4 | Fase 2: domini financer | §2.5 | D1, D2 |
+| 5 | Fase 1, punt 9: Vercel + API desplegada | §2.1 | D4, D5, Vercel |
+| 6 | Connectar G-1…G-5 a l'API | — | Fase 2 |
+| 7 | Viabilitat amb els informes dels spikes | §5 | Spikes executats |
+| 8 | Fase 3: adapters dels gates en GO | — | 5, 7 |
 
-### 2.1 Prompt: Fase 1, punts 8–9 (CI + Vercel)
+### 2.1 Prompt: Fase 1, punt 9 (Vercel)
 
-Per al punt 9 cal haver decidit **D4** (domini) i **D5** (VPS) i tenir el compte de Vercel connectat a GitHub. Si encara no, la sessió fa el punt 8 i deixa el 9 preparat però sense desplegar.
+Cal haver decidit **D4** (domini) i **D5** (VPS) i tenir el compte de Vercel connectat a GitHub (`docs/MANUAL_SETUP.md` §3). El CI (punt 8) ja és a `ci.yml`.
 
 Obrir una sessió nova amb el repo `ArnauM13/ledge` seleccionat i enganxar:
 
@@ -76,45 +77,27 @@ Obrir una sessió nova amb el repo `ArnauM13/ledge` seleccionat i enganxar:
 Projecte: "ledge", un dashboard patrimonial privat per a una household de dues persones. Repo: ArnauM13/ledge.
 
 ## Context
-Abans de fer res, llegeix del repo: CLAUDE.md, docs/CONTEXT.md, docs/README.md (índex), README.md, IMPLEMENTATION_PLAN.md (Fase 1 i les decisions dels punts 4–7), NEXT_STEPS.md i docs/MANUAL_SETUP.md §3.
+Abans de fer res, llegeix del repo: CLAUDE.md, docs/CONTEXT.md, docs/README.md (índex), README.md (sobretot Autenticació, CSRF i CI), IMPLEMENTATION_PLAN.md (Fase 1), NEXT_STEPS.md i docs/MANUAL_SETUP.md §3.
 
-Ja és a main (Fase 1, punts 0–7, i la lib de gràfiques `libs/web/charts` amb G-1 a `/dev/charts`):
-- Monorepo Nx 24: apps/web (Angular 21, zoneless, signals), apps/api (NestJS 11 + Prisma 7 + PostgreSQL), libs/shared/types.
-- gitleaks 8.30.1: hook de pre-commit i `.github/workflows/secrets.yml` (només gitleaks, sobre tot l'historial).
-- Auth: argon2id + TOTP obligatori, sessions a Postgres en cookie `__Host-ledge_session` (HttpOnly, Secure, SameSite=Strict), CSRF amb token de sessió, bloqueig i rate limit. Usuaris amb el CLI `create-user` (contrasenya per stdin).
-- Aïllament de household (404, no 403) i xifratge AES-256-GCM amb clau mestra en fitxer.
-- Secrets sempre en fitxers (/run/secrets/*), mai en variables d'entorn ni al .env.
-- Tests: `nx test` (unitaris) i `nx run api:test-integration` (Postgres real; es nega si DB_NAME no acaba en `_test`; si DB_HOST ja hi és, no arrenca Docker).
-- spikes/ és un paquet independent, fora del graf de Nx. No el toquis.
+Fase 1, punts 0–8, ja és a main: monorepo Nx (Angular 21 + NestJS 11 + Prisma 7), auth amb TOTP i cookie `__Host-ledge_session` SameSite=Strict, CSRF, aïllament de household, xifratge, gitleaks (`secrets.yml`) i CI (`ci.yml`: prettier, lint, test, build i test-integration). spikes/ és un paquet independent: no el toquis.
 
-## Tasca d'aquesta sessió: Fase 1, punts 8 i 9
+## Tasca d'aquesta sessió: Fase 1, punt 9
+Domini (D4): [omple]. VPS (D5): [omple]. Projecte de Vercel: [omple].
 
-8. CI (GitHub Actions), workflow nou `.github/workflows/ci.yml` (no toquis `secrets.yml`):
-   - A cada PR i a cada push a main: `npm ci`, `npx prettier --check .`, `npx nx run-many -t lint test build`, i `npx nx run api:test-integration` amb un servei Postgres 17.
-   - La contrasenya del Postgres de CI és d'un sol ús: genera-la al job, escriu-la en un fitxer (DB_PASSWORD_FILE) i no la posis mai com a text al workflow ni als logs. DB_NAME ha d'acabar en `_test`.
-   - Actions fixades per SHA de commit (com a `secrets.yml`), `permissions: contents: read`, `persist-credentials: false`, timeout per job i cache de npm.
-   - Comprova que el job falla de debò si un test falla (fes-ho en local o amb un commit temporal que no arribi a main).
-
-9. Vercel (només si D4, D5 i el compte de Vercel estan decidits; si no, prepara la configuració i explica què falta):
-   - Projecte connectat al repo que construeixi `apps/web` (`npx nx build web`, sortida `dist/apps/web/browser`), amb fallback SPA.
-   - La cookie és SameSite=Strict: la web i l'API han de ser el mateix site. Proposa com fer-ho (p. ex. rewrite de `/api/*` de Vercel cap a l'API del VPS, o subdominis del domini de D4) i pregunta abans de decidir. Recorda `WEB_ORIGINS` i `API_TRUST_PROXY` (vegeu `.env.example`).
-   - Capçaleres de seguretat a la web (CSP estricta, `X-Frame-Options`/`frame-ancestors`, `Referrer-Policy`, HSTS).
-   - Definition of Done de la Fase 1: els dos usuaris fan login amb 2FA i veuen un Overview buit a Vercel. Si l'API encara no està desplegada (depèn de D5), digues-ho clarament: no ho donis per fet.
+- Projecte de Vercel connectat al repo que construeixi `apps/web` (`npx nx build web`, sortida `dist/apps/web/browser`), amb fallback SPA.
+- La cookie és SameSite=Strict: web i API han de ser el mateix site. Proposa com fer-ho (rewrite de `/api/*` de Vercel cap a l'API del VPS, o subdominis del domini de D4) i pregunta abans de decidir. Recorda `WEB_ORIGINS` i `API_TRUST_PROXY` (`.env.example`).
+- Capçaleres de seguretat a la web (CSP estricta, `frame-ancestors`, `Referrer-Policy`, HSTS).
+- Definition of Done de la Fase 1: els dos usuaris fan login amb 2FA i veuen un Overview buit a la URL pública. Si l'API encara no està desplegada, digues-ho clarament: no ho donis per fet.
 
 ## Requisits
-- Actualitza la documentació (regla de CLAUDE.md): README (CI i desplegament), NEXT_STEPS.md (estat, checklist i prompt de la sessió següent) i IMPLEMENTATION_PLAN.md (✅ i decisions).
-- `nx lint`, `nx test`, `nx build`, `nx run api:test-integration`, `prettier --check .` i gitleaks sobre tot l'historial han de passar abans d'acabar.
-- Justifica cada dependència o action nova i fixa'n la versió.
-
-## Fora d'abast
-Model de dades financer (Fase 2), integracions (Fase 3) i el desplegament del backend al VPS (Fase 3), tret que l'usuari ho demani.
+- Actualitza la documentació (regla de CLAUDE.md).
+- `npx nx run-many -t lint test build`, `npx prettier --check .` i el CI en verd abans d'acabar.
+- Justifica cada dependència nova i fixa'n la versió.
 
 ## Forma de treballar
-- Branca nova des de main i PR cap a main. Commits petits: un per punt.
+- Branca nova des de main i PR cap a main.
 - Si cal una decisió que no surt als documents, pregunta-ho abans de decidir.
 - Al final, resumeix què has fet, què has verificat (amb la sortida) i què queda pendent.
-
-Decisions encara pendents de l'usuari, que no has d'assumir: D4 (domini), D5 (VPS) i el compte de Vercel.
 ~~~~
 
 ### 2.2 Prompt: G-2 (distribució per classe d'actiu) + G-3 (KPIs)
@@ -287,7 +270,7 @@ Treballa en una branca nova i obre un PR cap a main.
 | Fase | Què fa Claude | Què fas tu |
 |---|---|---|
 | **0 — Spikes** | Escriure els scripts (EB ✅, Binance ✅, wallets ✅) | Executar-los, revisar i passar els `*.report.md` |
-| **1 — Infraestructura** (§2.1) | Monorepo, Docker, `/health` ✅ · gitleaks, Prisma, auth amb 2FA, aïllament de household, xifratge ✅ · CI i Vercel | Revisar i fusionar els PR. Instal·lar gitleaks. Al final de la fase: decidir D4 (domini) i D5 (VPS), i connectar Vercel a GitHub |
+| **1 — Infraestructura** (§2.1) | Monorepo, Docker, `/health` ✅ · gitleaks, Prisma, auth amb 2FA, aïllament de household, xifratge, CI ✅ · Vercel | Revisar i fusionar els PR. Instal·lar gitleaks. Al final de la fase: decidir D4 (domini) i D5 (VPS), i connectar Vercel a GitHub |
 | **2 — Domini financer** | Model de dades financer, ownerships, entrades manuals, hipoteca, patrimoni net | Decidir D1 i D2. Preparar les dades manuals inicials (posicions de MyInvestor/TR, NAV, hipoteca, immobles) |
 | **3 — Integracions** | Un adapter per a cada gate en GO | Desplegar el backend amb domini HTTPS i canviar la Redirect URL de l'app de producció a `https://<domini>/...`. Posar els secrets al servidor (mai al repo) |
 | **4 — Sync i operació** | Sync nocturna, alertes de consentiment | Reconnectar BBVA quan caduqui el consentiment (cada ~90–180 dies, segons l'informe) |

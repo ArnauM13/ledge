@@ -81,9 +81,9 @@ L'inspector no pot fer login amb TOTP. Per revisar l'Overview o qualsevol pantal
 
 ## 4. Límits coneguts
 
-| Límit                                                          | Conseqüència                                                                 |
-| -------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| UXKIN (comparar amb webs reals a `web-review`)                 | Necessita compte i autorització; sense això, la revisió es fa sense comparar |
-| L'inspector no passa el login                                  | Les pantalles amb sessió es revisen amb captures de Playwright               |
-| `api:test-integration` necessita el dimoni de Docker           | No es pot executar al núvol; ho farà el CI (Fase 1, punt 8)                  |
-| La sortida de les skills (`.taste-skill/`, `.playwright-cli/`) | És a `.gitignore`: no es puja mai                                            |
+| Límit                                                          | Conseqüència                                                                                  |
+| -------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| UXKIN (comparar amb webs reals a `web-review`)                 | Necessita compte i autorització; sense això, la revisió es fa sense comparar                  |
+| L'inspector no passa el login                                  | Les pantalles amb sessió es revisen amb captures de Playwright                                |
+| `api:test-integration` necessita el dimoni de Docker           | Al núvol, amb el Postgres del contenidor i `DB_HOST` (`CONTEXT.md` §6); el CI ho fa a cada PR |
+| La sortida de les skills (`.taste-skill/`, `.playwright-cli/`) | És a `.gitignore`: no es puja mai                                                             |

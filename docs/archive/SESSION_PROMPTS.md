@@ -10,6 +10,7 @@
 | Fase 1, punts 0 i 4–7                                        | PR #8                                                                                     |
 | Lib de gràfiques + G-1                                       | PR #10 i #11 (el #10 es va fusionar a `docs/charts-design`; el #11 el va portar a `main`) |
 | Revisió de l'estat i del disseny, documentació centralitzada | PR #12 (sense prompt: petició directa)                                                    |
+| Fase 1, punt 8 (CI)                                          | `ci.yml`. El punt 9 (Vercel) no es va fer: D4, D5 i Vercel pendents                       |
 
 ---
 
@@ -211,4 +212,57 @@ Tasca: el PR 2 de docs/CHARTS.md §8.
 - Actualitza la documentació (regla de CLAUDE.md).
 - `npx nx run-many -t lint test build` i `npx prettier --check .` han de passar.
 Branca nova des de main i PR cap a main.
+```
+
+---
+
+## 3e. Prompt: Fase 1, punts 8–9 (✅ punt 8 fet; el 9 continua a `NEXT_STEPS.md` §2.1)
+
+Per al punt 9 cal haver decidit **D4** (domini) i **D5** (VPS) i tenir el compte de Vercel connectat a GitHub. Si encara no, la sessió fa el punt 8 i deixa el 9 preparat però sense desplegar.
+
+Obrir una sessió nova amb el repo `ArnauM13/ledge` seleccionat i enganxar:
+
+```text
+Projecte: "ledge", un dashboard patrimonial privat per a una household de dues persones. Repo: ArnauM13/ledge.
+
+## Context
+Abans de fer res, llegeix del repo: CLAUDE.md, docs/CONTEXT.md, docs/README.md (índex), README.md, IMPLEMENTATION_PLAN.md (Fase 1 i les decisions dels punts 4–7), NEXT_STEPS.md i docs/MANUAL_SETUP.md §3.
+
+Ja és a main (Fase 1, punts 0–7, i la lib de gràfiques `libs/web/charts` amb G-1 a `/dev/charts`):
+- Monorepo Nx 24: apps/web (Angular 21, zoneless, signals), apps/api (NestJS 11 + Prisma 7 + PostgreSQL), libs/shared/types.
+- gitleaks 8.30.1: hook de pre-commit i `.github/workflows/secrets.yml` (només gitleaks, sobre tot l'historial).
+- Auth: argon2id + TOTP obligatori, sessions a Postgres en cookie `__Host-ledge_session` (HttpOnly, Secure, SameSite=Strict), CSRF amb token de sessió, bloqueig i rate limit. Usuaris amb el CLI `create-user` (contrasenya per stdin).
+- Aïllament de household (404, no 403) i xifratge AES-256-GCM amb clau mestra en fitxer.
+- Secrets sempre en fitxers (/run/secrets/*), mai en variables d'entorn ni al .env.
+- Tests: `nx test` (unitaris) i `nx run api:test-integration` (Postgres real; es nega si DB_NAME no acaba en `_test`; si DB_HOST ja hi és, no arrenca Docker).
+- spikes/ és un paquet independent, fora del graf de Nx. No el toquis.
+
+## Tasca d'aquesta sessió: Fase 1, punts 8 i 9
+
+8. CI (GitHub Actions), workflow nou `.github/workflows/ci.yml` (no toquis `secrets.yml`):
+   - A cada PR i a cada push a main: `npm ci`, `npx prettier --check .`, `npx nx run-many -t lint test build`, i `npx nx run api:test-integration` amb un servei Postgres 17.
+   - La contrasenya del Postgres de CI és d'un sol ús: genera-la al job, escriu-la en un fitxer (DB_PASSWORD_FILE) i no la posis mai com a text al workflow ni als logs. DB_NAME ha d'acabar en `_test`.
+   - Actions fixades per SHA de commit (com a `secrets.yml`), `permissions: contents: read`, `persist-credentials: false`, timeout per job i cache de npm.
+   - Comprova que el job falla de debò si un test falla (fes-ho en local o amb un commit temporal que no arribi a main).
+
+9. Vercel (només si D4, D5 i el compte de Vercel estan decidits; si no, prepara la configuració i explica què falta):
+   - Projecte connectat al repo que construeixi `apps/web` (`npx nx build web`, sortida `dist/apps/web/browser`), amb fallback SPA.
+   - La cookie és SameSite=Strict: la web i l'API han de ser el mateix site. Proposa com fer-ho (p. ex. rewrite de `/api/*` de Vercel cap a l'API del VPS, o subdominis del domini de D4) i pregunta abans de decidir. Recorda `WEB_ORIGINS` i `API_TRUST_PROXY` (vegeu `.env.example`).
+   - Capçaleres de seguretat a la web (CSP estricta, `X-Frame-Options`/`frame-ancestors`, `Referrer-Policy`, HSTS).
+   - Definition of Done de la Fase 1: els dos usuaris fan login amb 2FA i veuen un Overview buit a Vercel. Si l'API encara no està desplegada (depèn de D5), digues-ho clarament: no ho donis per fet.
+
+## Requisits
+- Actualitza la documentació (regla de CLAUDE.md): README (CI i desplegament), NEXT_STEPS.md (estat, checklist i prompt de la sessió següent) i IMPLEMENTATION_PLAN.md (✅ i decisions).
+- `nx lint`, `nx test`, `nx build`, `nx run api:test-integration`, `prettier --check .` i gitleaks sobre tot l'historial han de passar abans d'acabar.
+- Justifica cada dependència o action nova i fixa'n la versió.
+
+## Fora d'abast
+Model de dades financer (Fase 2), integracions (Fase 3) i el desplegament del backend al VPS (Fase 3), tret que l'usuari ho demani.
+
+## Forma de treballar
+- Branca nova des de main i PR cap a main. Commits petits: un per punt.
+- Si cal una decisió que no surt als documents, pregunta-ho abans de decidir.
+- Al final, resumeix què has fet, què has verificat (amb la sortida) i què queda pendent.
+
+Decisions encara pendents de l'usuari, que no has d'assumir: D4 (domini), D5 (VPS) i el compte de Vercel.
 ```
