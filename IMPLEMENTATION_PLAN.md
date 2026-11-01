@@ -1,7 +1,7 @@
 # IMPLEMENTATION_PLAN.md
 
 > Basat en `INTEGRATION_FEASIBILITY.md` (31/10/2026). Actualitzat l'01/11/2026.
-> Índex de la documentació: `docs/README.md`. Estat detallat: `docs/ANALYSIS.md`.
+> Font de veritat de les **fases i les decisions**. Estat i coneixement: `docs/CONTEXT.md`. Què falta: `NEXT_STEPS.md`. Índex: `docs/README.md`.
 > Principi: **el que no depèn de les integracions es comença ja**. El que en depèn espera que la seva prova (gate) sigui GO.
 
 ## Visió general
@@ -32,13 +32,7 @@ Fase 6                                                     ██████
 
 ## Pas previ B — Comptes i accessos (ho feu vosaltres)
 
-- [x] Crear el repo a GitHub (`ArnauM13/ledge`).
-- [ ] Compte de Vercel connectat a GitHub.
-- [ ] Compte d'Enable Banking + app de producció + clau `.pem` (fora del repo).
-- [ ] Enviar la consulta de l'Annex A a Enable Banking.
-- [ ] API key de Binance read-only (quan tinguem la IP del VPS, o la vostra IP per a l'spike).
-- [ ] API key d'Etherscan (gratuïta).
-- [ ] Gestor de secrets compartit entre els dos (p. ex. 1Password / Bitwarden).
+La llista viva, amb el que ja està fet, és a `NEXT_STEPS.md` §1.4. Guies a `docs/MANUAL_SETUP.md`.
 
 **Regla:** cap secret al xat, al repo ni als logs.
 
@@ -46,14 +40,14 @@ Fase 6                                                     ██████
 
 ## Fase 0 — Tancar la viabilitat (en paral·lel a la Fase 1)
 
-| Spike | Qui | Resultat | Gate | Estat (31/10/2026) |
+| Spike | Qui | Resultat | Gate | Estat (01/11/2026) |
 |---|---|---|---|---|
 | `spikes/enable-banking` | Jo l'escric; vosaltres l'executeu | ASPSPs a ES, consentiment, saldos i historial de BBVA | **G1**: BBVA GO | Escrit, no executat |
 | Membre B vincula comptes | Vosaltres | Confirmació pràctica dels dos titulars | **G2**: 2 titulars GO | Pendent d'executar |
 | `spikes/binance` | Jo l'escric; vosaltres l'executeu | Endpoints i productes amb dades | **G3**: Binance GO | Escrit, no executat |
 | `spikes/wallets` | Jo l'escric; vosaltres l'executeu | Una adreça BTC i una ETH reals | **G4** | Escrit, no executat |
 
-Els tres spikes són a `main`. Instruccions a `spikes/README.md` i passos a `NEXT_STEPS.md` §0.
+Els tres spikes són a `main`. Instruccions a `spikes/README.md` i passos a `NEXT_STEPS.md` §1.5.
 
 Resultat: actualitzar `INTEGRATION_FEASIBILITY.md` amb les evidències (anonimitzades).
 
@@ -126,7 +120,7 @@ Les del handoff, sense canvis: analytics (TWR, XIRR, FX), dashboard complet i pr
 **Gràfiques** (avançat respecte a la Fase 5, perquè no depèn de cap gate):
 - Disseny ✅ a `docs/CHARTS.md`.
 - Lib `libs/web/charts` + G-1 (evolució del patrimoni net) ✅, només a `/dev/charts` amb dades de prova.
-- Següents: G-2/G-3 i G-4/G-5 (`NEXT_STEPS.md` §3e i §3f).
+- Següents: G-2/G-3 i G-4/G-5 (`NEXT_STEPS.md` §2.2 i §2.3).
 
 **Disseny de la UI** (revisat l'01/11/2026): problemes a `docs/ANALYSIS.md` §4, solucions i referències HTML a `docs/DESIGN_CHANGES.md`. Es fa en 5 PR; els 3 primers no depenen de cap fase (només de D6).
 
@@ -145,13 +139,7 @@ Cada gràfica es connecta a l'API quan la seva fase en doni dades.
 
 | Vosaltres | Jo |
 |---|---|
-| Decisions D1–D5 | Scripts dels spikes |
+| Decisions D1–D6 | Scripts dels spikes |
 | Comptes, claus i consentiments | Scaffold, codi, tests, migracions |
 | Executar els spikes amb els vostres secrets | Actualitzar la documentació amb les evidències |
 | Revisar i fer merge dels PRs | Un PR per tasca, amb descripció |
-
-## Primera setmana (concret)
-
-1. **Vosaltres:** D1–D5, crear el repo, compte a Enable Banking, enviar el correu.
-2. **Jo:** pujar els docs al repo → scaffold Nx (Fase 1, punts 1–3) → scripts dels spikes.
-3. **Vosaltres:** executar l'spike d'Enable Banking → em passeu el resultat anonimitzat.

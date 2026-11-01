@@ -5,7 +5,8 @@ Dashboard patrimonial privat per a una household de dues persones.
 **Tota la documentació: [`docs/README.md`](docs/README.md)** (índex: quin document mana per a cada cosa).
 
 - Vols veure la web funcionant? [`docs/MANUAL_SETUP.md`](docs/MANUAL_SETUP.md)
-- Estat del projecte: [`docs/ANALYSIS.md`](docs/ANALYSIS.md) · Què queda: [`NEXT_STEPS.md`](NEXT_STEPS.md)
+- Què sabem (estat, decisions, entorn): [`docs/CONTEXT.md`](docs/CONTEXT.md) · Què falta: [`NEXT_STEPS.md`](NEXT_STEPS.md)
+- Skills de Claude Code (s'instal·len soles a cada sessió al núvol): [`docs/SKILLS.md`](docs/SKILLS.md)
 
 ## Estructura
 
@@ -17,8 +18,9 @@ apps/
 libs/
   shared/types/   Tipus compartits web ↔ api (@ledge/shared-types)
   web/charts/     Gràfiques SVG (Angular + d3-scale/d3-shape) (@ledge/web-charts)
-docs/             Índex, anàlisi, disseny (CHARTS, DESIGN_CHANGES + referències HTML a docs/design/) i guia manual
-scripts/          Hooks de git i install-skills.mjs (skills de Claude Code, docs/MANUAL_SETUP.md §5)
+docs/             Índex, context, skills, passos manuals, disseny (CHARTS, DESIGN_CHANGES, docs/design/)
+.claude/          settings.json + hooks/session-start.sh (instal·la les skills a les sessions al núvol)
+scripts/          Hooks de git i install-skills.mjs (skills de Claude Code, docs/SKILLS.md)
 spikes/           Scripts de la Fase 0, amb el seu propi package.json (fora de Nx)
 ```
 
@@ -323,8 +325,4 @@ npm run secrets:scan
 
 ## Estat
 
-Fase 1, punts 0–7: gitleaks, monorepo, Tailwind, Docker Compose, Prisma, auth amb TOTP obligatori, aïllament de household i xifratge. Els usuaris poden fer login amb 2FA i veuen un **Overview buit**: **cap xifra**, perquè encara no hi ha cap font de dades connectada. Provat de punta a punta en un navegador l'01/11/2026.
-
-Gràfiques: lib `libs/web/charts` i G-1, visibles només a la galeria `/dev/charts` amb dades de prova (build de desenvolupament).
-
-Següent: punts 8–9, CI i Vercel (prompt a `NEXT_STEPS.md` §3c), i els canvis de disseny (`docs/DESIGN_CHANGES.md`). Pendents tècnics coneguts a `NEXT_STEPS.md` §3c.
+Resum a [`docs/CONTEXT.md`](docs/CONTEXT.md) §2. Què falta i en quin ordre: [`NEXT_STEPS.md`](NEXT_STEPS.md). Deute tècnic conegut: `NEXT_STEPS.md` §3.

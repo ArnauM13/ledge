@@ -3,12 +3,13 @@
 > Mogut des de `NEXT_STEPS.md` l'01/11/2026 per deixar-hi només el que queda per fer.
 > **No els tornis a fer servir.** Es conserven com a referència del que es va demanar a cada sessió.
 
-| Prompt                 | Resultat                                                                                  |
-| ---------------------- | ----------------------------------------------------------------------------------------- |
-| Spikes de la Fase 0    | PR #2 i #4 (a `main`)                                                                     |
-| Fase 1, punts 1–3      | PR #6                                                                                     |
-| Fase 1, punts 0 i 4–7  | PR #8                                                                                     |
-| Lib de gràfiques + G-1 | PR #10 i #11 (el #10 es va fusionar a `docs/charts-design`; el #11 el va portar a `main`) |
+| Prompt                                                       | Resultat                                                                                  |
+| ------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| Spikes de la Fase 0                                          | PR #2 i #4 (a `main`)                                                                     |
+| Fase 1, punts 1–3                                            | PR #6                                                                                     |
+| Fase 1, punts 0 i 4–7                                        | PR #8                                                                                     |
+| Lib de gràfiques + G-1                                       | PR #10 i #11 (el #10 es va fusionar a `docs/charts-design`; el #11 el va portar a `main`) |
+| Revisió de l'estat i del disseny, documentació centralitzada | PR #12 (sense prompt: petició directa)                                                    |
 
 ---
 

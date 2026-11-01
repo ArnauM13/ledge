@@ -35,6 +35,16 @@ El moviment de l'estil, que no s'ha de trencar:
 
 **Shell redibuixat** (`--redraw shell`): la skill va donar «sense barra lateral», pensat per a 3–5 destinacions. El ledge en té 8, així que s'ha triat el **marc en T**: barra lateral de 232 px i barra superior de 64 px sobre el mateix fons, separades només per regles d'1 px.
 
+Per tornar a imprimir el full d'estil en una sessió nova (genera `.taste-skill/direction.json`, que no es puja al repo):
+
+```bash
+K=~/.claude/skills/design-taste-frontend/scripts/draw.mjs
+node $K --app --kind finance --theme dark --keep palette,type --style true-black-flat --seed 520370458 \
+  --screens overview,list,settings \
+  --brief "ledge: patrimoni net privat d'una parella (membre A, membre B i el que és conjunt); comptes, inversions, cripto, immobles i hipoteca; molts valors manuals o estimats"
+node $K --redraw shell   # → «Ruled T-frame» (provat l'01/11/2026)
+```
+
 ## 1. Tokens i base (DC-1 a DC-4)
 
 Tots a `apps/web/src/styles.css` i `tailwind.config.js`. Contrastos WCAG 2.x calculats.

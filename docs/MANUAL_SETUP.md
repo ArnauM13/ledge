@@ -1,14 +1,14 @@
-# Què has de fer tu per veure la web
+# Passos manuals
 
-> 01/11/2026. Passos manuals, en ordre. Tot el que és codi ho fa Claude; això són coses que necessiten la teva màquina, els teus comptes o una decisió teva.
+> Actualitzat l'01/11/2026. Guies de tot el que has de fer tu: necessiten la teva màquina, els teus comptes o una decisió teva. L'ordre en què fer-ho és a [`../NEXT_STEPS.md`](../NEXT_STEPS.md) §1.
 > El flux local (§1) s'ha provat el 01/11/2026 de punta a punta: login, alta del TOTP, codis de recuperació i Overview.
 
-| #   | Què                                       | Temps  | Resultat                                  |
-| --- | ----------------------------------------- | ------ | ----------------------------------------- |
-| 1   | Arrencar-la en local                      | 20 min | Web a `http://localhost:4200` amb login   |
-| 2   | Veure la galeria de gràfiques             | 2 min  | G-1 amb dades de prova a `/dev/charts`    |
-| 3   | Decisions i comptes per publicar-la       | 1–2 h  | Claude pot fer el CI, Vercel i el VPS     |
-| 5   | Skills de disseny a les sessions al núvol | 5 min  | Claude les fa servir a totes les sessions |
+| #   | Què                                 | Temps  | Resultat                                 |
+| --- | ----------------------------------- | ------ | ---------------------------------------- |
+| 1   | Arrencar-la en local                | 20 min | Web a `http://localhost:4200` amb login  |
+| 2   | Veure la galeria de gràfiques       | 2 min  | G-1 amb dades de prova a `/dev/charts`   |
+| 3   | Decisions i comptes per publicar-la | 1–2 h  | Claude pot fer el CI, Vercel i el VPS    |
+| 5   | Registrar l'app a Enable Banking    | 30 min | App de producció activa per a l'spike G1 |
 
 ---
 
@@ -105,15 +105,15 @@ docker compose down -v     # atura i esborra la BD (usuaris inclosos)
 
 ### 1.8 Problemes habituals
 
-| Símptoma                                         | Causa i solució                                                                                                                 |
-| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
-| `docker compose up` falla amb «secret not found» | Falta un fitxer a `secrets/` (§1.2)                                                                                             |
-| Error de certificat a `npm ci` dins Docker       | Proxy TLS corporatiu: [`../README.md`](../README.md#darrere-dun-proxy-tls-corporatiu)                                           |
-| El login no avança i no hi ha error              | Safari, o `http://127.0.0.1` en lloc de `localhost`. Fes servir `http://localhost:4200` a Chrome/Firefox                        |
-| «The server is not responding»                   | L'API no està engegada: `docker compose ps`                                                                                     |
-| «Too many attempts»                              | Límit de 20 intents / 15 min per IP, o bloqueig de 15 min del compte després de 5 errors. Espera                                |
-| Codi TOTP sempre incorrecte                      | Rellotge del mòbil desajustat: activa l'hora automàtica                                                                         |
-| Has perdut el mòbil i els codis                  | Encara no hi ha procediment ([`../NEXT_STEPS.md`](../NEXT_STEPS.md) §3c). En local: `docker compose down -v` i torna a començar |
+| Símptoma                                         | Causa i solució                                                                                                                |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| `docker compose up` falla amb «secret not found» | Falta un fitxer a `secrets/` (§1.2)                                                                                            |
+| Error de certificat a `npm ci` dins Docker       | Proxy TLS corporatiu: [`../README.md`](../README.md#darrere-dun-proxy-tls-corporatiu)                                          |
+| El login no avança i no hi ha error              | Safari, o `http://127.0.0.1` en lloc de `localhost`. Fes servir `http://localhost:4200` a Chrome/Firefox                       |
+| «The server is not responding»                   | L'API no està engegada: `docker compose ps`                                                                                    |
+| «Too many attempts»                              | Límit de 20 intents / 15 min per IP, o bloqueig de 15 min del compte després de 5 errors. Espera                               |
+| Codi TOTP sempre incorrecte                      | Rellotge del mòbil desajustat: activa l'hora automàtica                                                                        |
+| Has perdut el mòbil i els codis                  | Encara no hi ha procediment ([`../NEXT_STEPS.md`](../NEXT_STEPS.md) §3). En local: `docker compose down -v` i torna a començar |
 
 Alternativa sense dades persistents (BD a la RAM, la que fan servir els tests): [`../README.md`](../README.md#arrencar-en-local).
 
@@ -136,15 +136,15 @@ Per veure com hauria de quedar el disseny proposat, obre directament al navegado
 
 Vercel sol no n'hi ha prou: la web necessita l'API, i la cookie de sessió (`SameSite=Strict`) obliga que web i API siguin al mateix domini. Per això cal:
 
-| #   | Què has de fer                                                                                                                                             | Decisió |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| 3.1 | Triar i comprar un **domini** (o fer servir un subdomini d'un que ja tinguis), p. ex. `ledge.<el-teu-domini>`                                              | D4      |
-| 3.2 | Crear un **VPS** a la UE (recomanat Hetzner CX22, ~4–7 €/mes) amb Ubuntu 24.04 i accés per clau SSH                                                        | D5      |
-| 3.3 | Crear el compte de **Vercel** i connectar-lo a GitHub (repo `ArnauM13/ledge`)                                                                              | —       |
-| 3.4 | Apuntar el DNS: `ledge.<domini>` → Vercel, `api.ledge.<domini>` (o una ruta `/api` via rewrite) → IP del VPS                                               | —       |
-| 3.5 | Obrir la sessió de la Fase 1, punts 8–9 (prompt a [`../NEXT_STEPS.md`](../NEXT_STEPS.md) §3c) i passar-li: domini, IP del VPS i nom del projecte de Vercel | —       |
-| 3.6 | Al VPS, copiar **tu** els fitxers de `secrets/` (per `scp`, mai pel xat ni pel repo)                                                                       | —       |
-| 3.7 | Crear els dos usuaris al VPS amb `create-user` (§1.4) i fer el primer login                                                                                | —       |
+| #   | Què has de fer                                                                                                                                              | Decisió |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| 3.1 | Triar i comprar un **domini** (o fer servir un subdomini d'un que ja tinguis), p. ex. `ledge.<el-teu-domini>`                                               | D4      |
+| 3.2 | Crear un **VPS** a la UE (recomanat Hetzner CX22, ~4–7 €/mes) amb Ubuntu 24.04 i accés per clau SSH                                                         | D5      |
+| 3.3 | Crear el compte de **Vercel** i connectar-lo a GitHub (repo `ArnauM13/ledge`)                                                                               | —       |
+| 3.4 | Apuntar el DNS: `ledge.<domini>` → Vercel, `api.ledge.<domini>` (o una ruta `/api` via rewrite) → IP del VPS                                                | —       |
+| 3.5 | Obrir la sessió de la Fase 1, punts 8–9 (prompt a [`../NEXT_STEPS.md`](../NEXT_STEPS.md) §2.1) i passar-li: domini, IP del VPS i nom del projecte de Vercel | —       |
+| 3.6 | Al VPS, copiar **tu** els fitxers de `secrets/` (per `scp`, mai pel xat ni pel repo)                                                                        | —       |
+| 3.7 | Crear els dos usuaris al VPS amb `create-user` (§1.4) i fer el primer login                                                                                 | —       |
 
 Quan acabi, la Definition of Done de la Fase 1 es compleix: els dos feu login amb 2FA i veieu l'Overview buit a la URL pública.
 
@@ -155,50 +155,55 @@ La web estarà buida fins que:
 - **Fase 2** (no depèn de res teu, tret de D1 i D2): podreu entrar a mà comptes, posicions, immobles i la hipoteca.
 - **Fase 3**: cal que executis els spikes ([`../spikes/README.md`](../spikes/README.md)) i que els gates siguin GO.
 
-## 5. Skills de Claude Code a totes les sessions
+## 5. Registrar l'app a Enable Banking
 
-L'script [`../scripts/install-skills.mjs`](../scripts/install-skills.mjs) instal·la les skills globals (taste-skill, web-design-guidelines, playwright-cli, design-md i la resta) a `~/.claude/skills`.
+### 5.1 Crear el compte
 
-| On treballes                     | Què has de fer                                                                                                   |
-| -------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Al teu ordinador                 | Res més. Ja el vas executar i hi queden per a totes les sessions locals                                          |
-| Sessions de Claude Code al núvol | Cada sessió arrenca en un contenidor nou, buit. Cal posar-lo a l'**script de configuració de l'entorn** (a sota) |
+1. Anar a https://enablebanking.com/sign-in/
+2. Posar l'email. El compte es crea automàticament el primer cop que s'hi entra.
+3. Obrir l'enllaç d'accés que arriba per correu.
 
-**Al núvol** (un sol cop): menú de l'entorn a la barra de títol de la sessió → **Edit** → **Setup script**, i enganxa:
+### 5.2 App de sandbox (per provar el flux sense risc)
 
-```bash
-#!/bin/bash
-set -u
-for s in "blader/humanizer" "anthropics/skills --skill skill-creator" "mattpocock/skills --skill grill-me" \
-         "JuliusBrussee/caveman" "coreyhaines31/marketingskills" "Leonxlnx/taste-skill" \
-         "vercel-labs/agent-skills --skill web-design-guidelines" "microsoft/playwright-cli" \
-         "Jakeschincariol/replica-skill"; do
-  npx -y skills add $s -g -a claude-code -y || echo "ha fallat: $s"
-done
-npm i -g @playwright/cli || echo "ha fallat: @playwright/cli"
-D="$HOME/.claude/awesome-design-md"
-[ -d "$D" ] || git clone --depth 1 https://github.com/VoltAgent/awesome-design-md.git "$D"
-mkdir -p "$HOME/.claude/skills/design-md"
-cat > "$HOME/.claude/skills/design-md/SKILL.md" <<'SKILL'
----
-name: design-md
-description: Aplica el sistema de disseny d'una marca coneguda (Stripe, Linear, Vercel, Apple...) a partir de la col·lecció awesome-design-md. Fes-la servir quan l'usuari demani un disseny "a l'estil de" una web o marca, o vulgui un DESIGN.md per al projecte.
----
+1. Menú superior → **API applications** (https://enablebanking.com/cp/applications).
+2. Formulari _Add a new application_:
+   - **Environment:** Sandbox
+   - **Private key:** opció per defecte (es genera al navegador)
+   - **Name:** `ledge`
+   - **Redirect URL:** `https://localhost:3000/callback`
+3. **Register** → es descarrega `<application-id>.pem`.
+   - Nom del fitxer = **ID de l'app** → variable `EB_APP_ID`
+   - Fitxer = **clau privada** → variable `EB_PRIVATE_KEY_PATH`
 
-# Design MD
+### 5.3 App de producció (llegeix el BBVA real)
 
-La col·lecció és a `~/.claude/awesome-design-md/`.
+1. El mateix formulari, amb **Environment: Production**.
+2. L'app apareix en estat **Inactive**.
+3. **Activate by linking accounts** → pàgina d'Enable Banking → BBVA (usuari, contrasenya i confirmació al mòbil).
+   - Primer el **membre A**.
+   - Vincular **tots** els comptes que es vulguin fer servir. Els que no es vinculin tornaran com a llista buida.
+4. L'app passa a **Active (restricted)**.
 
-1. Busca la marca demanada dins la col·lecció (cerca els fitxers `DESIGN.md` i el nom de la marca a la seva ruta).
-2. Llegeix el seu `DESIGN.md` sencer.
-3. Copia'l a l'arrel del projecte com a `DESIGN.md`.
-4. Aplica'n els colors, la tipografia, els espaiats i els components a tota la UI que generis.
-5. Si no hi ha la marca demanada, llista les disponibles i proposa'n la més semblant.
-SKILL
-exit 0
-```
+La prova del membre B (G2) es fa amb l'spike, no aquí.
 
-- Les sessions noves les tindran des del principi. Una sessió que ja està oberta no es veu afectada.
-- `playwright-cli` necessita també el binari (`npm i -g @playwright/cli`), que el CLI `skills` no instal·la; l'script de dalt ja ho fa.
-- L'skill «image to code» encara no té repositori (és `PENDENT` a l'script).
-- Són skills de tercers, i cada sessió en baixa la darrera versió.
+### 5.4 Seguretat de la clau `.pem`
+
+- Moure-la de _Descàrregues_ a una carpeta fora del repo, p. ex. `~/.secrets/ledge/`.
+- Còpia al gestor de contrasenyes.
+- Mai a GitHub ni al xat. Qui té el fitxer pot actuar com la vostra app.
+
+### 5.5 Per què `localhost` com a redirecció
+
+El banc redirigeix a aquesta URL amb un `code` a l'adreça. Amb `localhost` la pàgina no carrega (és normal): l'spike demana que copieu la URL i n'extreu el codi. Així el codi no surt del vostre ordinador. Amb un domini d'un tercer (p. ex. `example.com`), el codi acabaria als seus servidors.
+
+### 5.6 Què no aclareix la documentació
+
+- Si el formulari accepta `localhost`. Si el rebutja: posar una URL del vostre **propi** domini i adaptar l'spike.
+- On es mostra l'ID de l'app al panell (en tot cas, és el nom del `.pem`).
+- Si la clau es pot tornar a descarregar o regenerar.
+
+Fonts: [Quick start](https://enablebanking.com/docs/api/quick-start) · [Linked accounts](https://enablebanking.com/docs/api/linked-accounts/) · [FAQ](https://enablebanking.com/docs/faq/)
+
+## 6. Skills de Claude Code
+
+No cal fer res: el hook `SessionStart` del repo les instal·la a cada sessió al núvol, i al teu ordinador ja les tens. Detall i com afegir-ne: [`SKILLS.md`](SKILLS.md).
