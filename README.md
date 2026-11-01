@@ -6,6 +6,7 @@ Dashboard patrimonial privat per a una household de dues persones.
 - Fases i gates: [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md)
 - Full de ruta: [`NEXT_STEPS.md`](NEXT_STEPS.md)
 - Spikes de la Fase 0 (paquet independent): [`spikes/README.md`](spikes/README.md)
+- Disseny de les gràfiques: [`docs/CHARTS.md`](docs/CHARTS.md)
 
 ## Estructura
 
@@ -15,6 +16,7 @@ apps/
   api/            NestJS 11 — de moment només GET /health
 libs/
   shared/types/   Tipus compartits web ↔ api (@ledge/shared-types)
+docs/             Documents de disseny (gràfiques: CHARTS.md)
 spikes/           Scripts de la Fase 0, amb el seu propi package.json (fora de Nx)
 ```
 

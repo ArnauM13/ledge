@@ -16,6 +16,7 @@
 | Spike de wallets (`spikes/wallets`) | **Escrit i testejat en local; no s'ha executat mai contra l'API real** |
 | Codi de l'app (monorepo) | Fase 1 punts 1–3 a `main` (PR #6): Nx + Angular 21 + NestJS + Tailwind `t-` + Docker Compose amb secrets en fitxers (veure `README.md`) |
 | Fase 1 punts 4–7 + gitleaks | Pendent. Prompt a la §3b |
+| Gràfiques | Disseny fet a `docs/CHARTS.md` (catàleg G-1…G-9, contracte de dades, paleta validada). Següent: lib `libs/web/charts` + G-1 (§3c) |
 | Gates G1–G4 (proves reals) | Pendents |
 
 ---
@@ -72,6 +73,8 @@
 2. [x] **Sessió de la Fase 1, punts 1–3** → prompt a la §3. Fusionat (PR #6).
 3. [ ] **Fase 1, punts 4–7 + gitleaks** → prompt a la §3b: gitleaks (pre-commit + workflow), Prisma (`users`, `households`, `memberships`, `audit_logs`), auth amb argon2 + TOTP, guard de household i servei AES-256-GCM.
 4. [ ] **Fase 1, punts 8–9**: CI (GitHub Actions) i Vercel (requereix el compte de Vercel).
+5. [x] **Disseny de gràfiques** → `docs/CHARTS.md`.
+6. [ ] **Lib de gràfiques + G-1 (evolució del patrimoni net)** → prompt a la §3c. No depèn dels gates ni de la Fase 1, punts 4–7.
 
 ### D. Executar els spikes (vosaltres, a la vostra màquina) → instruccions a `spikes/README.md`
 - [ ] `npm run eb:aspsps` → hi ha MyInvestor i Trade Republic?
@@ -310,6 +313,27 @@ Decisions encara pendents de l'usuari, que no has d'assumir: D4 (domini), D5 (VP
 ~~~~
 
 Per què gitleaks va primer: protegeix els commits de Prisma i auth, que és on és més fàcil que s'escoli un secret. El workflow només fa gitleaks; el CI complet continua sent el punt 8.
+
+---
+
+## 3c. Prompt: lib de gràfiques + G-1
+
+Obrir una sessió nova amb el repo `ArnauM13/ledge` seleccionat i enganxar:
+
+~~~~text
+Projecte: "ledge" (repo ArnauM13/ledge). Llegeix CLAUDE.md, README.md i docs/CHARTS.md abans de fer res.
+
+Tasca: el PR 2 de docs/CHARTS.md §8.
+- Lib Angular `libs/web/charts` (`@ledge/web-charts`) amb d3-scale + d3-shape (versions fixades). d3 no toca el DOM.
+- Tokens de sèrie a apps/web/src/styles.css i tailwind.config.js (§4).
+- `NetWorthSeries` / `NetWorthPoint` a libs/shared/types, amb guard i tests.
+- Geometria pura (escales, camins, ticks, format ca-ES) amb tests de casos coneguts.
+- `ledge-line-chart` + `ledge-chart-frame`: estats empty/loading/error/ready, tooltip, teclat (← →), vista de taula, ESTIMATED discontinu.
+- Galeria `/dev/charts` només amb isDevMode() i el segell «Dades de prova». L'Overview continua sense xifres.
+- Actualitza la documentació (regla de CLAUDE.md).
+- `npx nx run-many -t lint test build` i `npx prettier --check .` han de passar.
+Branca nova des de main i PR cap a main.
+~~~~
 
 ---
 
