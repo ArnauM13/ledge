@@ -254,6 +254,20 @@ npx nx run api:test-integration            # -- --keep-db per deixar la BD engeg
 - La contrasenya de la BD de test es crea sola a `secrets/postgres_test_password`, i la clau mestra és un fitxer temporal per execució.
 - Si ja hi ha `DB_HOST` definit (p. ex. un servei de CI), fa servir aquella BD. En tots dos casos, **es nega a executar-se si `DB_NAME` no acaba en `_test`**.
 
+### CI
+
+`.github/workflows/ci.yml` s'executa a cada PR i a cada push a `main`, amb dos jobs en paral·lel (Node 22, cache de npm, timeout de 20 min):
+
+| Job           | Què fa                                                                                                                                                |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `checks`      | `npm ci`, `npx prettier --check .` i `npx nx run-many -t lint test build`                                                                             |
+| `integration` | `npm ci` i `npx nx run api:test-integration`: el mateix camí que en local (Postgres 17 de `docker-compose.test.yml`, contrasenya aleatòria en fitxer) |
+
+- Actions fixades per SHA de commit, `permissions: contents: read` i `persist-credentials: false`.
+- Un test que falla fa fallar el job (comprovat: `nx run-many` i `test-integration` surten amb codi 1).
+- gitleaks va a part, a `secrets.yml`.
+- Perquè bloquegi el merge, cal marcar els jobs com a obligatoris a GitHub (`docs/MANUAL_SETUP.md` §3).
+
 Per projecte: `npx nx test web`, `npx nx lint api`, `npx nx build web`, `npx nx test web-charts`…
 
 ### Galeria de gràfiques (només en desenvolupament)

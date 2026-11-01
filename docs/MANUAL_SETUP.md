@@ -7,7 +7,7 @@
 | --- | ----------------------------------- | ------ | ---------------------------------------- |
 | 1   | Arrencar-la en local                | 20 min | Web a `http://localhost:4200` amb login  |
 | 2   | Veure la galeria de gràfiques       | 2 min  | G-1 amb dades de prova a `/dev/charts`   |
-| 3   | Decisions i comptes per publicar-la | 1–2 h  | Claude pot fer el CI, Vercel i el VPS    |
+| 3   | Decisions i comptes per publicar-la | 1–2 h  | CI obligatori; Claude fa Vercel i el VPS |
 | 5   | Registrar l'app a Enable Banking    | 30 min | App de producció activa per a l'spike G1 |
 
 ---
@@ -134,17 +134,19 @@ Per veure com hauria de quedar el disseny proposat, obre directament al navegado
 
 ## 3. Publicar-la a Internet
 
+**Abans de res (5 min): fer obligatori el CI.** El workflow `ci.yml` ja s'executa a cada PR, però GitHub no impedeix fusionar si falla fins que no ho dius. A GitHub → _Settings_ → _Rules_ → _Rulesets_ → _New branch ruleset_: objectiu `main`, activa _Require a pull request before merging_ i _Require status checks to pass_, i afegeix `format, lint, test, build`, `API integration tests (PostgreSQL 17)` i `gitleaks (full history)` (apareixen després de la primera execució).
+
 Vercel sol no n'hi ha prou: la web necessita l'API, i la cookie de sessió (`SameSite=Strict`) obliga que web i API siguin al mateix domini. Per això cal:
 
-| #   | Què has de fer                                                                                                                                              | Decisió |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| 3.1 | Triar i comprar un **domini** (o fer servir un subdomini d'un que ja tinguis), p. ex. `ledge.<el-teu-domini>`                                               | D4      |
-| 3.2 | Crear un **VPS** a la UE (recomanat Hetzner CX22, ~4–7 €/mes) amb Ubuntu 24.04 i accés per clau SSH                                                         | D5      |
-| 3.3 | Crear el compte de **Vercel** i connectar-lo a GitHub (repo `ArnauM13/ledge`)                                                                               | —       |
-| 3.4 | Apuntar el DNS: `ledge.<domini>` → Vercel, `api.ledge.<domini>` (o una ruta `/api` via rewrite) → IP del VPS                                                | —       |
-| 3.5 | Obrir la sessió de la Fase 1, punts 8–9 (prompt a [`../NEXT_STEPS.md`](../NEXT_STEPS.md) §2.1) i passar-li: domini, IP del VPS i nom del projecte de Vercel | —       |
-| 3.6 | Al VPS, copiar **tu** els fitxers de `secrets/` (per `scp`, mai pel xat ni pel repo)                                                                        | —       |
-| 3.7 | Crear els dos usuaris al VPS amb `create-user` (§1.4) i fer el primer login                                                                                 | —       |
+| #   | Què has de fer                                                                                                                                           | Decisió |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| 3.1 | Triar i comprar un **domini** (o fer servir un subdomini d'un que ja tinguis), p. ex. `ledge.<el-teu-domini>`                                            | D4      |
+| 3.2 | Crear un **VPS** a la UE (recomanat Hetzner CX22, ~4–7 €/mes) amb Ubuntu 24.04 i accés per clau SSH                                                      | D5      |
+| 3.3 | Crear el compte de **Vercel** i connectar-lo a GitHub (repo `ArnauM13/ledge`)                                                                            | —       |
+| 3.4 | Apuntar el DNS: `ledge.<domini>` → Vercel, `api.ledge.<domini>` (o una ruta `/api` via rewrite) → IP del VPS                                             | —       |
+| 3.5 | Obrir la sessió de la Fase 1, punt 9 (prompt a [`../NEXT_STEPS.md`](../NEXT_STEPS.md) §2.1) i passar-li: domini, IP del VPS i nom del projecte de Vercel | —       |
+| 3.6 | Al VPS, copiar **tu** els fitxers de `secrets/` (per `scp`, mai pel xat ni pel repo)                                                                     | —       |
+| 3.7 | Crear els dos usuaris al VPS amb `create-user` (§1.4) i fer el primer login                                                                              | —       |
 
 Quan acabi, la Definition of Done de la Fase 1 es compleix: els dos feu login amb 2FA i veieu l'Overview buit a la URL pública.
 

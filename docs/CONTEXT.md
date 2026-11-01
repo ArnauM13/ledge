@@ -17,7 +17,7 @@ Dashboard patrimonial **privat** per a una household de dues persones (membre A 
 | Àrea                     | Estat                                                                                          | Detall                        |
 | ------------------------ | ---------------------------------------------------------------------------------------------- | ----------------------------- |
 | Fase 0 · viabilitat      | Recerca documental feta. **Cap prova real**: els 3 spikes estan escrits però no s'han executat | `INTEGRATION_FEASIBILITY.md`  |
-| Fase 1 · infraestructura | Punts 0–7 ✅ a `main`. **Falten 8 (CI) i 9 (Vercel)**                                          | `IMPLEMENTATION_PLAN.md`      |
+| Fase 1 · infraestructura | Punts 0–8 ✅ (CI a `ci.yml`). **Falta el 9 (Vercel)**: depèn de D4, D5 i del compte            | `IMPLEMENTATION_PLAN.md`      |
 | Gràfiques                | Disseny ✅, lib `libs/web/charts` + G-1 ✅ (només a `/dev/charts`)                             | `CHARTS.md`                   |
 | Disseny de la UI         | Revisat amb skills. Proposta i referències HTML **no implementades** a l'app                   | `DESIGN_CHANGES.md`           |
 | Fase 2 · domini financer | No començada. No depèn de cap gate                                                             | `IMPLEMENTATION_PLAN.md`      |
@@ -80,7 +80,8 @@ Només el que s'ha comprovat de debò, amb data.
 | 01/11/2026 | Les referències de disseny passen `inspect.mjs --app` (0 FAIL) a 1440/768/390                                                  | taste-skill                                  |
 | 01/11/2026 | El hook de les skills: instal·la des de zero (57 s), se salta la instal·lació si ja hi són (0,006 s), no fa res fora del núvol | Execució directa del hook                    |
 | —          | **Cap integració real** (BBVA, Binance, wallets) s'ha provat mai                                                               | Spikes pendents d'executar                   |
-| —          | `api:test-integration` no s'ha pogut executar en una sessió al núvol (no hi ha dimoni de Docker)                               | Pendent que ho faci el CI (punt 8)           |
+| 01/11/2026 | `api:test-integration`: 4 suites, 31 tests en verd sobre el Postgres 16 del contenidor (amb `DB_HOST`, sense Docker)           | Sessió del punt 8 (CI)                       |
+| 01/11/2026 | Un test que falla fa sortir amb codi 1 `nx run-many -t test` i `api:test-integration`; amb `DB_NAME` sense `_test` es nega     | Fitxers de prova temporals, esborrats        |
 
 Viabilitat per integració (documental, no provada): BBVA i Enable Banking **GO condicional**; Binance i wallets **GO**; fons, valors, hipoteca i immobles **manuals**. Detall a `INTEGRATION_FEASIBILITY.md` §0.
 
@@ -90,7 +91,7 @@ El que s'ha trobat en sessions anteriors i com resoldre-ho:
 
 | Situació                                                        | Què fer                                                                                                           |
 | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| **No hi ha dimoni de Docker** (`docker compose` falla)          | Fes servir el Postgres del contenidor (recepta a sota). `api:test-integration` no funciona aquí                   |
+| **No hi ha dimoni de Docker** (`docker compose` falla)          | Fes servir el Postgres del contenidor (recepta a sota). `api:test-integration` funciona amb `DB_HOST` exportat    |
 | **gitleaks no hi és** i el hook de pre-commit bloqueja          | Instal·la'l amb el checksum (`README.md` → Instal·lació). Mai `--no-verify`                                       |
 | **Push**: només es pot fer a la branca de la sessió             | El proxy de git rebutja altres branques i **no deixa esborrar-ne** (403). L'usuari ho ha de fer des de GitHub     |
 | **Skills**                                                      | Les instal·la el hook `SessionStart` (~1 min la primera sessió d'un contenidor nou). Si falten, `SKILLS.md` §2    |
@@ -121,6 +122,7 @@ Després, `npx nx serve api` i `npx nx serve web` en segon pla, i el navegador a
 
 ## 7. Lliçons
 
+- **Un servei de CI no pot rebre un secret generat al job.** Els `services:` de GitHub arrenquen abans dels passos i volen la contrasenya com a text: per això el CI fa servir `docker-compose.test.yml` amb un Compose secret.
 - **Base del PR sempre `main`.** El PR #10 es va fusionar a `docs/charts-design` quatre segons després que aquella branca s'hagués fusionat a `main`; va caldre el PR #11 per recuperar-lo.
 - **Una sessió per carpeta alhora.** Dues sessions sobre el mateix codi acaben en PR duplicats i force-pushes creuats.
 - **Les skills de l'ordinador no arriben al núvol.** Per això hi ha el hook `SessionStart` del repo (`SKILLS.md`).

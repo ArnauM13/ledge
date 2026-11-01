@@ -63,7 +63,7 @@ Ordre de treball, un PR per punt:
 5. ✅ **Auth**: login individual, contrasenya argon2id, **TOTP 2FA** obligatori, sessió en cookie `HttpOnly` + `Secure` + `SameSite=Strict`. Usuaris creats amb el CLI `create-user`.
 6. ✅ **Aïllament de household**: guard NestJS + filtre obligatori per `household_id`, amb test (404, no 403).
 7. ✅ **Xifratge**: servei AES-256-GCM, master key en un fitxer de secrets (`/run/secrets/*`), mai a la BD ni en variables d'entorn. Fet abans del punt 5 perquè el secret TOTP es guarda xifrat.
-8. **CI** (GitHub Actions): lint, test, build (gitleaks ja hi és des del punt 0).
+8. ✅ **CI** (GitHub Actions, `.github/workflows/ci.yml`): `prettier --check`, `nx run-many -t lint test build` i `nx run api:test-integration` amb Postgres 17 (gitleaks ja hi és des del punt 0, a `secrets.yml`).
 9. **Vercel**: projecte connectat al repo; deploy de `apps/web` (pantalla de login, sense dades).
 
 **Decisions preses als punts 4–7 (01/11/2026):**
@@ -76,11 +76,12 @@ Ordre de treball, un PR per punt:
 | Rate limiting | Bloqueig per compte a Postgres + límit per IP en memòria. Sense Redis. |
 | CSRF | Token sincronitzador lligat a la sessió + `Sec-Fetch-Site`/`Origin` + només JSON. |
 | Tests amb BD | Target propi `nx run api:test-integration` (Postgres d'un sol ús de `docker-compose.test.yml`). `nx test` són només unitaris. |
+| CI amb Postgres (punt 8) | El job d'integració **no** fa servir un `services:` de GitHub: un servei necessita la contrasenya com a text al workflow. Executa el mateix script que en local (`docker-compose.test.yml`, Postgres 17 en tmpfs), que genera una contrasenya aleatòria en un fitxer i la passa com a Compose secret. Actions fixades per SHA, `contents: read`, sense credencials persistides. |
 | Desplegament de la web | La cookie és `SameSite=Strict`: la web i l'API han de compartir site (mateix domini o subdominis). Depèn de D4. |
 
 **Definition of Done de la Fase 1:** els dos usuaris poden fer login amb 2FA i veuen un Overview buit a Vercel.
 
-**Estat (01/11/2026):** punts 0–7 a `main`; el flux de login funciona en local (provat al navegador). Falten els punts 8–9. El punt 9 necessita D4 i D5, perquè la cookie `SameSite=Strict` obliga web i API al mateix site. Passos manuals: `docs/MANUAL_SETUP.md` §3.
+**Estat (01/11/2026):** punts 0–8 a `main` (el 8, CI, a `ci.yml`); el flux de login funciona en local (provat al navegador). Falta el punt 9, que necessita D4 i D5, perquè la cookie `SameSite=Strict` obliga web i API al mateix site. Passos manuals: `docs/MANUAL_SETUP.md` §3.
 
 ## Fase 2 — Domini financer (no depèn de cap gate)
 
