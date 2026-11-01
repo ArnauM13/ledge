@@ -131,4 +131,13 @@ describe('App routing and shell', () => {
     expect(auth.logout).toHaveBeenCalled();
     expect(TestBed.inject(Router).url).toBe('/login');
   });
+
+  it('dev build: serves the chart gallery without a session, with the test-data banner', async () => {
+    setup({ authenticated: false });
+    const harness = await RouterTestingHarness.create('/dev/charts');
+    expect(TestBed.inject(Router).url).toBe('/dev/charts');
+    const el = harness.routeNativeElement as HTMLElement;
+    expect(el.querySelector('[data-testid="test-data-banner"]')).not.toBeNull();
+    expect(NAV_ITEMS.some((item) => item.path.startsWith('dev'))).toBe(false);
+  });
 });

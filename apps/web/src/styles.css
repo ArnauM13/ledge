@@ -21,6 +21,17 @@
   --ledge-content-subtle: 113 117 126; /* #71757e */
   --ledge-positive: 52 168 120; /* #34a878 */
   --ledge-negative: 229 72 77; /* #e5484d */
+
+  /*
+   * Chart series (categorical, fixed order; docs/CHARTS.md §4).
+   * Validated on the surface #1f2125. No greens or reds, so a series is
+   * never mistaken for a gain or a loss. Re-validate if you change them.
+   */
+  --ledge-series-1: 57 135 229; /* #3987e5 blue */
+  --ledge-series-2: 217 89 38; /* #d95926 orange */
+  --ledge-series-3: 144 133 233; /* #9085e9 violet */
+  --ledge-series-4: 201 133 0; /* #c98500 yellow */
+  --ledge-series-5: 213 81 129; /* #d55181 magenta */
 }
 
 @layer base {
