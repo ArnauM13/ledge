@@ -17,6 +17,7 @@
 | Codi de l'app (monorepo) | Fase 1 punts 1–3 a `main` (PR #6): Nx + Angular 21 + NestJS + Tailwind `t-` + Docker Compose amb secrets en fitxers (veure `README.md`) |
 | Fase 1 punts 4–7 + gitleaks | **Fet** a la branca `feat/phase1-auth-security` (PR pendent de revisar): gitleaks, Prisma, auth amb TOTP, aïllament de household i xifratge (veure `README.md`) |
 | Fase 1 punts 8–9 (CI + Vercel) | Pendent. Prompt a la §3c. El punt 9 depèn de D4, D5 i del compte de Vercel |
+| Gràfiques | Disseny fet a `docs/CHARTS.md` (catàleg G-1…G-9, contracte de dades, paleta validada). Següent: lib `libs/web/charts` + G-1 (§3d) |
 | Gates G1–G4 (proves reals) | Pendents |
 
 ---
@@ -76,6 +77,8 @@
 2. [x] **Sessió de la Fase 1, punts 1–3** → prompt a la §3. Fusionat (PR #6).
 3. [x] **Fase 1, punts 4–7 + gitleaks** → prompt a la §3b. Fet (branca `feat/phase1-auth-security`, PR pendent de fusionar).
 4. [ ] **Fase 1, punts 8–9** → prompt a la §3c: CI (GitHub Actions) i Vercel (requereix D4, D5 i el compte de Vercel).
+5. [x] **Disseny de gràfiques** → `docs/CHARTS.md`.
+6. [ ] **Lib de gràfiques + G-1 (evolució del patrimoni net)** → prompt a la §3d. No depèn dels gates.
 
 ### D. Executar els spikes (vosaltres, a la vostra màquina) → instruccions a `spikes/README.md`
 - [ ] `npm run eb:aspsps` → hi ha MyInvestor i Trade Republic?
@@ -380,6 +383,27 @@ No són de la Fase 1 però convé no perdre'ls:
 - **Neteja de sessions caducades**: les files de `sessions` revocades o caducades no s'esborren (no afecta la seguretat, només l'espai).
 - **Capçaleres de seguretat de l'API** (helmet o equivalent): no afegides.
 - **Build de Docker darrere d'un proxy TLS**: `docker compose build` no passa el secret `npm_ca`; cal `docker build` a mà (`README.md`).
+
+---
+
+## 3d. Prompt: lib de gràfiques + G-1
+
+Obrir una sessió nova amb el repo `ArnauM13/ledge` seleccionat i enganxar:
+
+~~~~text
+Projecte: "ledge" (repo ArnauM13/ledge). Llegeix CLAUDE.md, README.md i docs/CHARTS.md abans de fer res.
+
+Tasca: el PR 2 de docs/CHARTS.md §8.
+- Lib Angular `libs/web/charts` (`@ledge/web-charts`) amb d3-scale + d3-shape (versions fixades). d3 no toca el DOM.
+- Tokens de sèrie a apps/web/src/styles.css i tailwind.config.js (§4).
+- `NetWorthSeries` / `NetWorthPoint` a libs/shared/types, amb guard i tests.
+- Geometria pura (escales, camins, ticks, format ca-ES) amb tests de casos coneguts.
+- `ledge-line-chart` + `ledge-chart-frame`: estats empty/loading/error/ready, tooltip, teclat (← →), vista de taula, ESTIMATED discontinu.
+- Galeria `/dev/charts` només amb isDevMode() i el segell «Dades de prova». L'Overview continua sense xifres.
+- Actualitza la documentació (regla de CLAUDE.md).
+- `npx nx run-many -t lint test build` i `npx prettier --check .` han de passar.
+Branca nova des de main i PR cap a main.
+~~~~
 
 ---
 
