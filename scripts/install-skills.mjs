@@ -1,6 +1,6 @@
 // Instal·la skills globals per a Claude Code (a ~/.claude/skills).
 // Ús: node scripts/install-skills.mjs   · Requisits: Node >= 22 i Git.
-// Al núvol: posa-ho a l'script de configuració de l'entorn (docs/MANUAL_SETUP.md §4).
+// S'executa sol a cada sessió al núvol amb el hook .claude/hooks/session-start.sh (docs/SKILLS.md).
 import { execSync } from 'node:child_process';
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
