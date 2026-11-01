@@ -8,7 +8,10 @@ const { join } = require('node:path');
  */
 module.exports = {
   prefix: 't-',
-  content: [join(__dirname, 'src/**/*.{html,ts}')],
+  content: [
+    join(__dirname, 'src/**/*.{html,ts}'),
+    join(__dirname, '../../libs/web/charts/src/**/*.{html,ts}'),
+  ],
   theme: {
     extend: {
       colors: {
@@ -25,6 +28,13 @@ module.exports = {
         },
         positive: 'rgb(var(--ledge-positive) / <alpha-value>)',
         negative: 'rgb(var(--ledge-negative) / <alpha-value>)',
+        series: {
+          1: 'rgb(var(--ledge-series-1) / <alpha-value>)',
+          2: 'rgb(var(--ledge-series-2) / <alpha-value>)',
+          3: 'rgb(var(--ledge-series-3) / <alpha-value>)',
+          4: 'rgb(var(--ledge-series-4) / <alpha-value>)',
+          5: 'rgb(var(--ledge-series-5) / <alpha-value>)',
+        },
       },
       fontFamily: {
         sans: [

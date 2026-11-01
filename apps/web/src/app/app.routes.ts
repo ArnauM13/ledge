@@ -1,4 +1,5 @@
 import { Route } from '@angular/router';
+import { DEV_ROUTES } from './dev/dev-routes';
 import { NAV_ITEMS } from './navigation';
 
 export const appRoutes: Route[] = [
@@ -10,5 +11,6 @@ export const appRoutes: Route[] = [
     loadComponent: () =>
       import('./pages/empty-section').then((m) => m.EmptySection),
   })),
+  ...DEV_ROUTES,
   { path: '**', redirectTo: 'overview' },
 ];

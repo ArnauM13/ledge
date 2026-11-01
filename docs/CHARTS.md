@@ -8,7 +8,7 @@
 1. **Cap xifra inventada.** Sense dades reals, la gràfica mostra l'estat buit. Les dades de prova (fixtures) només es veuen a la galeria `/dev/charts`, que només existeix al build de desenvolupament i porta el segell **«Dades de prova»**.
 2. **El color té significat.** `positive` (maragda) i `negative` (vermell) només marquen el **signe d'una variació** (guany o pèrdua) o una alerta. Mai identifiquen una sèrie.
 3. **Un sol eix Y.** Si dues mesures tenen escales diferents (p. ex. saldo pendent i quota anual), van en dues gràfiques.
-4. **La gràfica no calcula.** El backend envia els imports ja calculats. El frontend només els converteix a `number` per dibuixar-los i formatar-los. No suma ni resta imports.
+4. **La gràfica no calcula.** El backend envia els imports ja calculats. El frontend només els converteix a `number` per dibuixar-los i formatar-los. No suma imports. L'única excepció és la variació del rang que es mostra a la capçalera (darrer − primer): es resta de manera exacta sobre els strings decimals, amb `BigInt` (`apps/web/src/app/charts/decimal.ts`).
 5. **Res no depèn només del color ni del hover.** Hi ha llegenda amb ≥2 sèries, etiquetes directes selectives i una vista de taula. El tooltip complementa, però no és l'única manera de veure un valor.
 
 ## 2. Catàleg
@@ -86,16 +86,15 @@ Només hi ha tema fosc. Superfície de gràfica = `surface` (`#1f2125`).
 
 ### Tokens nous (`apps/web/src/styles.css`)
 
-| Token                | Valor            | Ús                    |
-| -------------------- | ---------------- | --------------------- |
-| `--ledge-series-1`   | `#3987e5`        | blau (household / A)  |
-| `--ledge-series-2`   | `#d95926`        | taronja (B)           |
-| `--ledge-series-3`   | `#9085e9`        | violeta               |
-| `--ledge-series-4`   | `#c98500`        | groc                  |
-| `--ledge-series-5`   | `#d55181`        | magenta               |
-| `--ledge-chart-grid` | `line`           | graella i eixos (1px) |
-| `--ledge-chart-axis` | `content-subtle` | text dels eixos       |
+| Token              | Valor     | Ús                   |
+| ------------------ | --------- | -------------------- |
+| `--ledge-series-1` | `#3987e5` | blau (household / A) |
+| `--ledge-series-2` | `#d95926` | taronja (B)          |
+| `--ledge-series-3` | `#9085e9` | violeta              |
+| `--ledge-series-4` | `#c98500` | groc                 |
+| `--ledge-series-5` | `#d55181` | magenta              |
 
+- Graella i eixos fan servir els tokens existents: `t-stroke-line` (graella) i `t-fill-content-subtle` (text dels eixos). Les sèries també existeixen com a colors de Tailwind (`t-bg-series-1`…).
 - La paleta categòrica **exclou verds i vermells**, perquè no es confonguin amb `positive`/`negative`. Màxim 5 sèries; la 6a i següents s'agrupen a «Altres».
 - **Validada** sobre `#1f2125` en aquest ordre, amb el validador de paleta del skill de dataviz: banda de lluminositat, croma, contrast ≥ 3:1, separació amb daltonisme ΔE ≥ 8,7 (adjacents) i visió normal ΔE ≥ 19,3. Si es canvia l'ordre o un valor, cal tornar-la a validar.
 - **El color segueix l'entitat, no la posició.** Si un filtre amaga una sèrie, les altres no canvien de color.
@@ -112,7 +111,9 @@ Només hi ha tema fosc. Superfície de gràfica = `surface` (`#1f2125`).
 
 - Moneda: `Intl.NumberFormat('ca-ES', { style: 'currency', currency: 'EUR' })` → `130.000,00 €`.
 - Eixos compactes: `0 €`, `50 k€`, `100 k€`, amb `tabular-nums`.
-- Dates: `oct. 2026` als eixos i `31 oct. 2026` al tooltip.
+- Dates (UTC, sense desplaçament de zona horària):
+  - Eixos: `oct.` (al gener, l'any: `2026`). Si el rang és de menys de ~3 mesos, el dia: `12 d’oct.`.
+  - Tooltip i taula: `31 d’oct. del 2026`.
 
 ## 5. Estats
 
@@ -125,7 +126,8 @@ Només hi ha tema fosc. Superfície de gràfica = `surface` (`#1f2125`).
 
 ## 6. Accessibilitat
 
-- `<figure>` amb `<figcaption>` (títol) i un SVG amb `role="img"` i un `aria-label` resum. Per exemple: «Patrimoni net, de 1.000,00 € l'1 de gen. a 130.000,00 € el 31 d'oct.».
+- `<figure>` amb `<figcaption>` (títol). L'àrea de la gràfica és un grup focusable (`role="group"`) amb un `aria-label` resum. Per exemple: «Patrimoni net, de 110.000,00 € l'1 de nov. del 2025 a 130.000,00 € el 31 d’oct. del 2026». L'SVG és `aria-hidden`.
+- El valor sota el cursor s'anuncia per una regió `aria-live`.
 - Botó **«Veure com a taula»**: una taula real (`<table>`) amb les mateixes dades.
 - La gràfica és focusable i es pot fer servir amb el teclat (← →). Té focus visible.
 - `prefers-reduced-motion`: sense animacions.
@@ -138,13 +140,15 @@ Només hi ha tema fosc. Superfície de gràfica = `surface` (`#1f2125`).
 - **Dues capes:**
   1. **Geometria pura** (`*.geometry.ts`): dades → escales, camins i ticks. Funcions sense DOM, testejades amb casos coneguts.
   2. **Components** (`ledge-line-chart`, `ledge-chart-frame`): només pinten el resultat de la geometria i gestionen hover, teclat i estats.
-- **Mida:** un `ResizeObserver` dona l'amplada al contenidor i l'alçada és fixa per gràfica (G-1: 240px; 180px al mòbil).
-- **Galeria** `/dev/charts`: ruta registrada només amb `isDevMode()`, amb fixtures i el segell «Dades de prova». No s'inclou al build de producció.
+- **Mida:** un `ResizeObserver` dona l'amplada al contenidor i l'alçada és fixa per gràfica (G-1: 240px).
+- **Galeria** `/dev/charts` (`apps/web/src/app/dev/`): fixtures deterministes i el segell «Dades de prova». La ruta surt de `dev-routes.ts`. Al build de producció, `fileReplacements` el substitueix per `dev-routes.prod.ts` (buit), així que ni la galeria ni les fixtures arriben al bundle. Comprovat: no hi apareix «Dades de prova».
+  - Amb `isDevMode()` no n'hi havia prou: la ruta quedava inaccessible però el chunk s'empaquetava igualment.
+- **Targetes de domini** (`apps/web/src/app/charts/`): per exemple `ledge-net-worth-card`, que fa de pont entre el contracte de l'API i la lib. La lib no coneix el domini (rep `LineSeries`).
 
 ## 8. Pla de PRs
 
 1. ✅ **Disseny**: aquest document.
-2. **Lib + G-1**: `libs/web/charts`, tokens de sèrie, `NetWorthSeries` a shared-types, `ledge-line-chart` amb estats, tooltip, teclat i taula, i la galeria `/dev/charts`. L'Overview **no** mostra res fins que hi hagi l'endpoint (Fase 2).
+2. ✅ **Lib + G-1**: `libs/web/charts`, tokens de sèrie, `NetWorthSeries` a shared-types, `ledge-line-chart` amb estats, tooltip, teclat i taula, i la galeria `/dev/charts`. L'Overview **no** mostra res fins que hi hagi l'endpoint (Fase 2).
 3. **G-2 + G-3**: barra de distribució i stat tiles.
 4. **G-4 + G-5**: hipoteca, quan existeixi el calendari de la Fase 2.4.
 5. **Connexió a l'API**: `GET /api/net-worth?range=1A` quan la Fase 2 tingui snapshots. Substitueix les fixtures a l'Overview.

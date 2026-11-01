@@ -16,6 +16,7 @@ apps/
   api/            NestJS 11 — de moment només GET /health
 libs/
   shared/types/   Tipus compartits web ↔ api (@ledge/shared-types)
+  web/charts/     Gràfiques SVG (Angular + d3-scale/d3-shape) (@ledge/web-charts)
 docs/             Documents de disseny (gràfiques: CHARTS.md)
 spikes/           Scripts de la Fase 0, amb el seu propi package.json (fora de Nx)
 ```
@@ -101,7 +102,13 @@ npx nx run-many -t lint test build
 npx prettier --check .
 ```
 
-Per projecte: `npx nx test web`, `npx nx lint api`, `npx nx build web`…
+Per projecte: `npx nx test web`, `npx nx lint api`, `npx nx build web`, `npx nx test web-charts`…
+
+### Galeria de gràfiques (només en desenvolupament)
+
+Amb `npx nx serve web`, obre http://localhost:4200/dev/charts. Hi ha totes les gràfiques i els seus estats (buit, carregant, error) amb **dades de prova**.
+
+La ruta no surt al menú i no existeix al build de producció: `fileReplacements` substitueix `apps/web/src/app/dev/dev-routes.ts` per una versió buida. Disseny i regles: [`docs/CHARTS.md`](docs/CHARTS.md).
 
 ## Convencions
 
@@ -110,6 +117,10 @@ Per projecte: `npx nx test web`, `npx nx lint api`, `npx nx build web`…
   - `content` / `content-muted` / `content-subtle` (text)
   - `positive` (maragda, només guanys) · `negative` (vermell, només pèrdues o alertes)
 - Components: standalone + `ChangeDetectionStrategy.OnPush` (és el default del generador a `nx.json`).
+- Gràfiques:
+  - Colors de sèrie `series-1`…`series-5` (tokens a `styles.css`, paleta validada; veure `docs/CHARTS.md` §4).
+  - Imports com a string decimal.
+  - Res de xifres a les seccions fins que hi hagi dades reals.
 - Rutes de negoci de l'API sota `/api/*`; `/health` queda a l'arrel.
 - Cap secret al repo: `.env`, `*.pem` i `*.key` són al `.gitignore`.
 

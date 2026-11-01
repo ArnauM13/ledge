@@ -41,4 +41,11 @@ describe('App shell', () => {
       expect(text).not.toMatch(/\d/);
     }
   });
+
+  it('serves the dev chart gallery (dev build only) with the test-data banner', async () => {
+    const harness = await RouterTestingHarness.create('/dev/charts');
+    const el = harness.routeNativeElement as HTMLElement;
+    expect(el.querySelector('[data-testid="test-data-banner"]')).not.toBeNull();
+    expect(NAV_ITEMS.some((item) => item.path.startsWith('dev'))).toBe(false);
+  });
 });
