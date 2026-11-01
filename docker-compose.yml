@@ -2,7 +2,10 @@
 #
 #   cp .env.example .env
 #   mkdir -p secrets && openssl rand -base64 32 > secrets/postgres_password
+#   openssl rand -base64 32 > secrets/ledge_master_key
 #   docker compose up --build
+#
+# Startup order: db (healthy) -> migrate (prisma migrate deploy, exits 0) -> api.
 #
 # Secrets are files mounted at /run/secrets/* (never environment variables),
 # so they do not show up in `docker inspect`, `docker compose config` or logs.
@@ -30,20 +33,19 @@ services:
       timeout: 3s
       retries: 10
 
-  api:
-    image: ledge-api:local
+  # Applies pending Prisma migrations and exits. Also runnable on its own:
+  #   docker compose run --rm migrate
+  migrate:
+    image: ledge-api-migrate:local
     build:
       context: .
       dockerfile: apps/api/Dockerfile
-    restart: unless-stopped
+      target: migrate
+    restart: 'no'
     depends_on:
       db:
         condition: service_healthy
     environment:
-      API_HOST: 0.0.0.0
-      API_PORT: 3000
-      # Connection settings without the password. The password is read from
-      # DB_PASSWORD_FILE (not used yet: Prisma arrives in Phase 1, point 4).
       DB_HOST: db
       DB_PORT: 5432
       DB_USER: ${POSTGRES_USER}
@@ -51,6 +53,45 @@ services:
       DB_PASSWORD_FILE: /run/secrets/postgres_password
     secrets:
       - postgres_password
+    networks:
+      - backend
+
+  api:
+    image: ledge-api:local
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: runtime
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      API_HOST: 0.0.0.0
+      API_PORT: 3000
+      # Connection settings without the password. The API builds the URL at
+      # startup and reads the password from DB_PASSWORD_FILE.
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${POSTGRES_USER}
+      DB_NAME: ${POSTGRES_DB}
+      DB_PASSWORD_FILE: /run/secrets/postgres_password
+      # AES-256-GCM master key (32 bytes, base64) as a file. The API refuses
+      # to start if it is missing or invalid. The version is not secret: it is
+      # written in every ciphertext so the key can be rotated.
+      LEDGE_MASTER_KEY_FILE: /run/secrets/ledge_master_key
+      LEDGE_MASTER_KEY_VERSION: ${LEDGE_MASTER_KEY_VERSION:-1}
+      # Extra origins allowed to send state-changing requests (CSRF check),
+      # comma-separated. Same-origin requests are always allowed.
+      WEB_ORIGINS: ${WEB_ORIGINS:-}
+      # Number of reverse-proxy hops to trust for the client IP (rate limits).
+      # Empty = X-Forwarded-For is ignored.
+      API_TRUST_PROXY: ${API_TRUST_PROXY:-}
+    secrets:
+      - postgres_password
+      - ledge_master_key
     ports:
       # Bound to localhost only.
       - '127.0.0.1:${API_HOST_PORT:-3000}:3000'
@@ -62,6 +103,9 @@ secrets:
   postgres_password:
     # Git-ignored. Compose refuses to start if the file is missing.
     file: ./secrets/postgres_password
+  ledge_master_key:
+    # Git-ignored. `openssl rand -base64 32 > secrets/ledge_master_key`
+    file: ./secrets/ledge_master_key
 
 networks:
   backend:

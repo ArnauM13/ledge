@@ -1,0 +1,30 @@
+# gitleaks configuration — https://github.com/gitleaks/gitleaks#configuration
+# Used by the pre-commit hook (.githooks/pre-commit) and by
+# .github/workflows/secrets.yml. Pinned gitleaks version: 8.30.1.
+
+title = "ledge"
+
+[extend]
+# Keep every built-in rule of the gitleaks binary.
+useDefault = true
+
+# Allowlist policy (see README.md, "Secrets al repo"):
+# - Only for false positives that have been VERIFIED by hand.
+# - Each entry must be as narrow as possible: one rule (targetRules), one file
+#   (paths, anchored regex) and, if possible, the exact matched text (regexes).
+# - Never whole folders, broad regexes or `stopwords`.
+# - Inline `gitleaks:allow` comments are ignored on purpose (--ignore-gitleaks-allow):
+#   every exception must live here, where it is reviewed in the PR.
+# - Every entry carries a `description` explaining why it is a false positive.
+#
+# Current state (31/10/2026): none needed. A full-history scan with the default
+# rules finds nothing. In particular the test strings
+# '-----BEGIN PRIVATE KEY-----' in spikes/test/*.test.ts are NOT flagged by the
+# default `private-key` rule (it requires a key body), so they need no entry.
+#
+# Template:
+# [[allowlists]]
+# description = "Why this is a false positive (who verified it, when)"
+# targetRules = ["<rule-id>"]
+# paths = ['''^path/to/exact-file\.test\.ts$''']
+# regexes = ['''<exact matched text>''']
