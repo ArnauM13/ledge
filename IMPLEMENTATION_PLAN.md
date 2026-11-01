@@ -119,13 +119,17 @@ Desplegament del backend al VPS en aquest punt (necessari per a la redirecció d
 
 Les del handoff, sense canvis: analytics (TWR, XIRR, FX), dashboard complet i producció (backups, monitoring, revisió de seguretat).
 
-**Gràfiques** (avançat respecte a la Fase 5, perquè no depèn de cap gate): disseny ✅ a `docs/CHARTS.md`.
+**Gràfiques** (avançat respecte a la Fase 5, perquè no depèn de cap gate):
+- Disseny ✅ a `docs/CHARTS.md`.
+- Lib `libs/web/charts` + G-1 (evolució del patrimoni net) ✅, només a `/dev/charts` amb dades de prova.
+- Següents: G-2/G-3 i G-4/G-5 (`NEXT_STEPS.md` §3d i §3e).
 
 Decisions:
 - SVG propi amb `d3-scale` + `d3-shape`, sense llibreria de gràfiques.
 - Paleta categòrica validada sense verds ni vermells.
 - Imports com a string decimal.
-- Fixtures només a `/dev/charts` (build de desenvolupament).
+- Fixtures només a `/dev/charts`. Les rutes de dev s'eliminen del build de producció amb `fileReplacements`.
+- L'única aritmètica d'imports al frontend és la resta exacta (`BigInt`) de la variació del rang.
 
 Cada gràfica es connecta a l'API quan la seva fase en doni dades.
 

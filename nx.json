@@ -49,6 +49,15 @@
     "@angular/build:unit-test": {
       "cache": true,
       "inputs": ["default", "^production"]
+    },
+    "@nx/angular:ng-packagr-lite": {
+      "cache": true,
+      "dependsOn": ["^build"],
+      "inputs": ["production", "^production"]
+    },
+    "@nx/angular:unit-test": {
+      "cache": true,
+      "inputs": ["default", "^production"]
     }
   },
   "generators": {
@@ -59,8 +68,12 @@
       "unitTestRunner": "vitest-angular"
     },
     "@nx/angular:component": {
-      "changeDetection": "OnPush",
-      "style": "none"
+      "style": "none",
+      "changeDetection": "OnPush"
+    },
+    "@nx/angular:library": {
+      "linter": "eslint",
+      "unitTestRunner": "vitest-angular"
     }
   }
 }

@@ -21,7 +21,8 @@
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
-      "@ledge/shared-types": ["./libs/shared/types/src/index.ts"]
+      "@ledge/shared-types": ["./libs/shared/types/src/index.ts"],
+      "@ledge/web-charts": ["./libs/web/charts/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

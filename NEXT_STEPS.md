@@ -17,7 +17,7 @@
 | Codi de l'app (monorepo) | Fase 1 punts 1–3 a `main` (PR #6): Nx + Angular 21 + NestJS + Tailwind `t-` + Docker Compose amb secrets en fitxers (veure `README.md`) |
 | Fase 1 punts 4–7 + gitleaks | **Fet** a la branca `feat/phase1-auth-security` (PR pendent de revisar): gitleaks, Prisma, auth amb TOTP, aïllament de household i xifratge (veure `README.md`) |
 | Fase 1 punts 8–9 (CI + Vercel) | Pendent. Prompt a la §3c. El punt 9 depèn de D4, D5 i del compte de Vercel |
-| Gràfiques | Disseny fet a `docs/CHARTS.md` (catàleg G-1…G-9, contracte de dades, paleta validada). Següent: lib `libs/web/charts` + G-1 (§3d) |
+| Gràfiques | Disseny a `docs/CHARTS.md`. Lib `libs/web/charts` + G-1 (evolució del patrimoni net) fetes, visibles només a `/dev/charts` amb dades de prova. Següent: G-2 + G-3 (§3e) i G-4 + G-5 (§3f) |
 | Gates G1–G4 (proves reals) | Pendents |
 
 ---
@@ -78,7 +78,11 @@
 3. [x] **Fase 1, punts 4–7 + gitleaks** → prompt a la §3b. Fet (branca `feat/phase1-auth-security`, PR pendent de fusionar).
 4. [ ] **Fase 1, punts 8–9** → prompt a la §3c: CI (GitHub Actions) i Vercel (requereix D4, D5 i el compte de Vercel).
 5. [x] **Disseny de gràfiques** → `docs/CHARTS.md`.
-6. [ ] **Lib de gràfiques + G-1 (evolució del patrimoni net)** → prompt a la §3d. No depèn dels gates.
+6. [x] **Lib de gràfiques + G-1 (evolució del patrimoni net)** → §3d.
+7. [ ] **G-2 + G-3** (distribució per classe d'actiu + KPIs de l'Overview) → prompt a la §3e. No depèn dels gates.
+8. [ ] **G-4 + G-5** (hipoteca: saldo pendent + capital vs interès) → prompt a la §3f. Es pot fer amb fixtures abans de la Fase 2.4.
+9. [ ] **Connectar G-1…G-5 a l'API**: quan la Fase 2 tingui els endpoints (`docs/CHARTS.md` §8, punt 5).
+10. [ ] **G-6 a G-9**: quan les Fases 3 i 4 donin dades (prompt per escriure aleshores, amb el mateix patró).
 
 ### D. Executar els spikes (vosaltres, a la vostra màquina) → instruccions a `spikes/README.md`
 - [ ] `npm run eb:aspsps` → hi ha MyInvestor i Trade Republic?
@@ -386,22 +390,90 @@ No són de la Fase 1 però convé no perdre'ls:
 
 ---
 
-## 3d. Prompt: lib de gràfiques + G-1
+## 3d. Lib de gràfiques + G-1 (✅ fet)
+
+Ja és a la branca `feat/charts-net-worth`:
+- `libs/web/charts`: geometria pura, `ledge-chart-frame` i `ledge-line-chart`.
+- `NetWorthSeries` a shared-types.
+- `ledge-net-worth-card`.
+- Galeria `/dev/charts`, només al build de desenvolupament.
+
+L'Overview continua sense xifres.
+
+## 3e. Prompt: G-2 (distribució per classe d'actiu) + G-3 (KPIs)
 
 Obrir una sessió nova amb el repo `ArnauM13/ledge` seleccionat i enganxar:
 
 ~~~~text
-Projecte: "ledge" (repo ArnauM13/ledge). Llegeix CLAUDE.md, README.md i docs/CHARTS.md abans de fer res.
+Projecte: "ledge" (repo ArnauM13/ledge). Abans de fer res, llegeix CLAUDE.md, README.md i docs/CHARTS.md (sobretot §1, §2, §4–§8).
+Mira també com està feta la G-1: libs/web/charts (line-chart.*, chart-frame.ts, format.ts),
+apps/web/src/app/charts (net-worth.ts, net-worth-card.ts, decimal.ts) i apps/web/src/app/dev (galeria i fixtures).
 
-Tasca: el PR 2 de docs/CHARTS.md §8.
-- Lib Angular `libs/web/charts` (`@ledge/web-charts`) amb d3-scale + d3-shape (versions fixades). d3 no toca el DOM.
-- Tokens de sèrie a apps/web/src/styles.css i tailwind.config.js (§4).
-- `NetWorthSeries` / `NetWorthPoint` a libs/shared/types, amb guard i tests.
-- Geometria pura (escales, camins, ticks, format ca-ES) amb tests de casos coneguts.
-- `ledge-line-chart` + `ledge-chart-frame`: estats empty/loading/error/ready, tooltip, teclat (← →), vista de taula, ESTIMATED discontinu.
-- Galeria `/dev/charts` només amb isDevMode() i el segell «Dades de prova». L'Overview continua sense xifres.
-- Actualitza la documentació (regla de CLAUDE.md).
+Tasca: el PR 3 de docs/CHARTS.md §8.
+
+G-2 — Distribució per classe d'actiu (Overview):
+- Contracte a libs/shared/types, amb guard i tests (mateix patró que NetWorthSeries):
+  - Imports com a string decimal.
+  - Classes fixes en aquest ordre: cash, investments, crypto, real-estate, other. L'ordre fixa el color (slots 1–5).
+  - Els deutes NO entren a la barra: es mostren a part, a G-3.
+- Lib: `ledge-stacked-bar` (una barra horitzontal 100% apilada) + geometria pura testejada:
+  - Barra de 24px, extrems de 4px arrodonits, separació de 2px entre segments.
+  - Etiqueta dins el segment només si hi cap (mesura-ho); si no, va a la llegenda, al tooltip i a la taula.
+  - Llegenda sempre, amb % i import. Tooltip per segment (hover i focus). Vista de taula.
+  - Segments de valor 0: no es dibuixen, però surten a la taula.
+- Els percentatges es calculen per dibuixar. Si el backend no els envia, mostra'ls arrodonits a 1 decimal i comprova amb un test que la llegenda no suma 99,9% per culpa de l'arrodoniment (fes servir el mètode del residu més gran).
+
+G-3 — KPIs (Overview, stat tiles, no és una gràfica):
+- Patrimoni net, variació 30 dies (positive/negative + signe, mai només color) i deute viu.
+- Component `ledge-stat-tile` a la lib, amb estat buit (sense xifres).
+- La variació es calcula amb subtractDecimal (no amb floats).
+
+Comú:
+- Tot es mostra a /dev/charts amb fixtures deterministes i el segell «Dades de prova», amb tots els estats (empty, loading, loading stale, error).
+- L'Overview continua SENSE xifres (el test "shows no figures in any section" ha de seguir passant).
+- Cap dependència nova si no és imprescindible. Si n'hi ha, justifica-la i fixa'n la versió.
+- Abans d'acabar, fes captures (Playwright, ja instal·lat) a 1280px i 390px, revisa-les tu mateix (col·lisions d'etiquetes, desbordaments) i comprova que el build de producció no conté «Dades de prova».
+- Documentació (regla de CLAUDE.md): docs/CHARTS.md (§3 contracte, §8 ✅), NEXT_STEPS.md, IMPLEMENTATION_PLAN.md i README.md.
 - `npx nx run-many -t lint test build` i `npx prettier --check .` han de passar.
+Branca nova des de main i PR cap a main.
+~~~~
+
+## 3f. Prompt: G-4 (saldo pendent de la hipoteca) + G-5 (capital vs interès)
+
+Obrir una sessió nova amb el repo `ArnauM13/ledge` seleccionat i enganxar:
+
+~~~~text
+Projecte: "ledge" (repo ArnauM13/ledge). Abans de fer res, llegeix CLAUDE.md, README.md, docs/CHARTS.md i IMPLEMENTATION_PLAN.md (Fase 2, punt 4: hipoteca).
+Reutilitza el que ja hi ha a libs/web/charts (line-chart, chart-frame, format) i a apps/web/src/app/charts.
+
+Tasca: el PR 4 de docs/CHARTS.md §8, a la secció Liabilities. Si la Fase 2.4 encara no és a main, treballa amb fixtures i defineix el contracte perquè el backend el pugui complir després.
+
+Contracte (libs/shared/types, guard i tests):
+- Calendari d'amortització: una fila per mes amb data, quota, capital, interès i saldo pendent.
+  - Imports com a string decimal.
+  - `quality: 'MANUAL_REAL' | 'ESTIMATED'`, alineat amb la Fase 2.4.
+- Fixture: sistema francès calculat amb aritmètica exacta (cèntims enters o BigInt). Cas conegut amb test: 180.000 €, 25 anys, 3% fix → la quota mensual ha de coincidir amb la fórmula fins al cèntim.
+
+G-4 — Saldo pendent:
+- `ledge-line-chart` existent, una sèrie.
+- El tram passat `MANUAL_REAL` va continu i el futur `ESTIMATED` discontinu.
+- Afegeix una línia vertical «avui» (hairline, color content-subtle, amb etiqueta). Si cal, amplia la lib amb una API genèrica de "marcadors" i testeja-la.
+
+G-5 — Quota anual: capital vs interès:
+- Gràfica SEPARADA de G-4 (un sol eix Y per gràfica; mai doble eix).
+- Columnes apilades per any: capital (slot 1) i interès (slot 2).
+  - Columnes de ≤ 24px, extrem superior arrodonit a 4px i quadrat a la base, separació de 2px.
+  - Tooltip per columna, llegenda i vista de taula.
+- Nou component `ledge-stacked-columns` a la lib, amb geometria pura testejada.
+- Els anys parcials (el primer i l'últim) s'indiquen a l'eix o a la taula.
+
+Comú: el mateix que la §3e.
+- Galeria /dev/charts amb «Dades de prova» i tots els estats.
+- La pàgina Liabilities continua sense xifres fins que hi hagi l'endpoint.
+- Captures a 1280px i 390px revisades.
+- Res de «Dades de prova» al build de producció.
+- Documentació actualitzada.
+- lint, test, build i prettier en verd.
 Branca nova des de main i PR cap a main.
 ~~~~
 
