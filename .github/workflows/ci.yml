@@ -1,0 +1,73 @@
+# Full CI (Phase 1, point 8): format, lint, unit tests, build and the API
+# integration tests against a real PostgreSQL 17. Secret scanning is in
+# secrets.yml.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  NX_DAEMON: 'false'
+  NX_NO_CLOUD: 'true'
+
+jobs:
+  checks:
+    name: format, lint, test, build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js (npm cache)
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Prettier
+        run: npx prettier --check .
+
+      - name: Lint, unit tests and build
+        run: npx nx run-many -t lint test build --output-style=static
+
+  integration:
+    name: API integration tests (PostgreSQL 17)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js (npm cache)
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      # No DB_HOST: the script generates a one-off random password into
+      # secrets/postgres_test_password (a file, never an env var or a log line),
+      # starts docker-compose.test.yml (postgres:17-alpine, tmpfs, 127.0.0.1)
+      # with that file as a Compose secret, applies the migrations, runs the
+      # *.int-spec.ts suites and tears the database down. Same path as locally.
+      - name: Integration tests
+        run: npx nx run api:test-integration --output-style=static
