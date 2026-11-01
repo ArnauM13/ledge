@@ -6,6 +6,7 @@ import { PRISMA } from '../prisma/prisma.module';
 import type { AppPrismaClient } from '../prisma/prisma-client';
 import { createUserWithHousehold, TEST_PASSWORD } from '../../test/fixtures';
 import { TestClient } from '../../test/http-client';
+import { signInFirstTime } from '../../test/sign-in';
 import { GENERIC_AUTH_ERROR, SESSION_COOKIE } from './auth.constants';
 import { IpRateLimiter } from './ip-rate-limiter';
 import { hashToken } from './session.service';
@@ -34,28 +35,7 @@ describe('Auth (HTTP, real PostgreSQL)', () => {
     app.get(IpRateLimiter).reset();
   });
 
-  /** Password + TOTP enrolment. Returns the client (full session), the TOTP secret and the recovery codes. */
-  async function enrol(email: string) {
-    const client = new TestClient(baseUrl);
-    const login = await client.post('/api/auth/login', {
-      email,
-      password: TEST_PASSWORD,
-    });
-    expect(login.status).toBe(200);
-    expect(login.body.next).toBe('totp-setup');
-    const setup = await client.post('/api/auth/totp/setup');
-    expect(setup.status).toBe(200);
-    const secret: string = setup.body.secret;
-    const confirm = await client.post('/api/auth/totp/setup/confirm', {
-      code: currentTotp(secret),
-    });
-    expect(confirm.status).toBe(200);
-    return {
-      client,
-      secret,
-      recoveryCodes: confirm.body.recoveryCodes as string[],
-    };
-  }
+  const enrol = (email: string) => signInFirstTime(baseUrl, email);
 
   async function auditRows(userId: string | null, since: Date) {
     return prisma.auditLog.findMany({
@@ -90,6 +70,13 @@ describe('Auth (HTTP, real PostgreSQL)', () => {
       authenticated: false,
       next: 'totp-setup',
     });
+    const { household } = await prisma.membership.findFirstOrThrow({
+      where: { user: { email } },
+      include: { household: true },
+    });
+    expect((await client.get(`/api/households/${household.id}`)).status).toBe(
+      401,
+    );
 
     const setup = await client.post('/api/auth/totp/setup');
     expect(setup.body.qrDataUrl).toMatch(/^data:image\/png;base64,/);
@@ -281,7 +268,7 @@ describe('Auth (HTTP, real PostgreSQL)', () => {
   });
 
   it('logout invalidates the session on the server', async () => {
-    const { email } = await createUserWithHousehold(prisma);
+    const { email, household } = await createUserWithHousehold(prisma);
     const { client } = await enrol(email);
     const token = client.cookies.get(SESSION_COOKIE) as string;
     expect((await client.post('/api/auth/logout')).status).toBe(204);
@@ -293,6 +280,9 @@ describe('Auth (HTTP, real PostgreSQL)', () => {
     expect((await replay.get('/api/auth/session')).body).toEqual({
       authenticated: false,
     });
+    expect((await replay.get(`/api/households/${household.id}`)).status).toBe(
+      401,
+    );
   });
 
   it('expires sessions after inactivity and after the absolute lifetime', async () => {

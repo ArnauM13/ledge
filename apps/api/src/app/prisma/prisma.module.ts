@@ -6,17 +6,26 @@ import {
   OnApplicationShutdown,
 } from '@nestjs/common';
 import { buildDatabaseUrl } from '../config/database-url';
-import { AppPrismaClient, createPrismaClient } from './prisma-client';
+import {
+  AppPrismaClient,
+  BasePrismaClient,
+  createAppPrismaClient,
+  createBasePrismaClient,
+  createHouseholdClient,
+  HouseholdPrismaClient,
+} from './prisma-client';
 
-/** Injection token for the (extended) Prisma client. */
+/** Injection token for the application client (household filter enforced). */
 export const PRISMA = Symbol('PRISMA');
+/** Unrestricted client. Not exported from this module on purpose. */
+const BASE_PRISMA = Symbol('BASE_PRISMA');
 
 /**
  * Connects at startup. If the database is unreachable the API does not start.
  * Errors are rethrown without the connection URL.
  */
-export async function connectPrisma(): Promise<AppPrismaClient> {
-  const client = createPrismaClient(buildDatabaseUrl());
+export async function connectPrisma(): Promise<BasePrismaClient> {
+  const client = createBasePrismaClient(buildDatabaseUrl());
   try {
     await client.$connect();
     await client.$queryRaw`SELECT 1`;
@@ -31,18 +40,41 @@ export async function connectPrisma(): Promise<AppPrismaClient> {
   return client;
 }
 
+/**
+ * Hands out clients confined to one household. Only HouseholdGuard calls it,
+ * after checking the user's membership.
+ */
+@Injectable()
+export class HouseholdScope {
+  constructor(@Inject(BASE_PRISMA) private readonly base: BasePrismaClient) {}
+
+  forHousehold(householdId: string): HouseholdPrismaClient {
+    return createHouseholdClient(this.base, householdId);
+  }
+}
+
 @Injectable()
 class PrismaLifecycle implements OnApplicationShutdown {
-  constructor(@Inject(PRISMA) private readonly prisma: AppPrismaClient) {}
+  constructor(@Inject(BASE_PRISMA) private readonly base: BasePrismaClient) {}
 
   async onApplicationShutdown(): Promise<void> {
-    await this.prisma.$disconnect();
+    await this.base.$disconnect();
     new Logger('Prisma').log('Disconnected');
   }
 }
 
 @Module({
-  providers: [{ provide: PRISMA, useFactory: connectPrisma }, PrismaLifecycle],
-  exports: [PRISMA],
+  providers: [
+    { provide: BASE_PRISMA, useFactory: connectPrisma },
+    {
+      provide: PRISMA,
+      useFactory: (base: BasePrismaClient): AppPrismaClient =>
+        createAppPrismaClient(base),
+      inject: [BASE_PRISMA],
+    },
+    HouseholdScope,
+    PrismaLifecycle,
+  ],
+  exports: [PRISMA, HouseholdScope],
 })
 export class PrismaModule {}

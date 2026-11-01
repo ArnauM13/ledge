@@ -215,6 +215,21 @@ Cada intent de login (contrasenya, TOTP, codi de recuperació, alta del TOTP) i 
 | `POST /api/auth/recovery`           | parcial   | Codi de recuperació → sessió completa                                      |
 | `POST /api/auth/logout`             | qualsevol | Revoca la sessió                                                           |
 
+## Aïllament de household
+
+Totes les dades de negoci pertanyen a una household, i un usuari només veu les de les households on és membre.
+
+- **Rutes**: `/api/households/:householdId/...` amb `HouseholdGuard`. Comprova que l'usuari de la sessió en sigui membre; si no ho és, o la household no existeix, respon **404** (mai 403), així no es confirma ni que existeixi.
+- **Consultes**: el guard dona un client de Prisma confinat a la household (`@CurrentHousehold() household` → `household.db`). Afegeix `AND household_id = <id>` a totes les lectures, actualitzacions i esborrats, i escriu el `household_id` a les insercions (rebutja'n un altre o moure files entre households). Una fila d'una altra household és simplement "no trobada".
+- **Obligatori**: el client que s'injecta a la resta de l'API (`PRISMA`) **llança `UnscopedQueryError`** si una consulta a un model de negoci no porta el filtre de household (p. ex. `household.findMany()`). El client sense restriccions no s'exporta del `PrismaModule`.
+- **Taules noves**: s'han d'afegir a `HOUSEHOLD_SCOPED_MODELS` (`apps/api/src/app/household/household-scope.ts`). Un test llegeix `schema.prisma` i falla si una taula amb `household_id` no hi és (o a la llista d'excepcions justificades: `memberships`, que és la mateixa autorització, i `audit_logs`).
+- Tests: `household-isolation.int-spec.ts` (un usuari d'una household no pot llegir ni modificar l'altra: 404, i les dades no canvien) i `household-scope.spec.ts`.
+
+| Mètode i ruta                        | Què fa                                                    |
+| ------------------------------------ | --------------------------------------------------------- |
+| `GET /api/households/:householdId`   | Nom i rol de l'usuari a la household                      |
+| `PATCH /api/households/:householdId` | Canvia el nom (`{ "name": "..." }`), queda a `audit_logs` |
+
 ## Qualitat
 
 ```bash
