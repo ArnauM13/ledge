@@ -11,7 +11,7 @@
 | Fase 0 · spikes (`enable-banking`, `binance`, `wallets`) | **Escrits; cap executat amb credencials reals**. Gates G1–G4 pendents |
 | Fase 1 · punts 0–7 | ✅ A `main` (PR #6 i #8). Login amb TOTP provat al navegador l'01/11 |
 | Fase 1 · punt 8 (CI) | ✅ `.github/workflows/ci.yml` (prettier, lint, test, build, test-integration). Falta fer-lo obligatori a GitHub (§1) |
-| Fase 1 · punt 9 (Vercel) | Pendent (§2.1). Depèn de D4, D5 i del compte de Vercel |
+| Fase 1 · punt 9 (Vercel) | Pendent (§2.1). Projecte `ledge-am` creat, però enllaçat al repo equivocat (§1). Depèn de D4 i D5 |
 | Gràfiques | Disseny ✅, lib + G-1 ✅ (PR #10 i #11), només a `/dev/charts`. Següent: G-2/G-3 i G-4/G-5 |
 | Disseny de la UI | Revisió amb skills ✅ (PR #12). Proposta a `docs/DESIGN_CHANGES.md`, **no implementada**. Pendent D6 |
 | Fase 2 · domini financer | No començada. No depèn de cap gate |
@@ -43,7 +43,8 @@ En aquest ordre. Cada pas enllaça la seva guia.
    - [ ] Etherscan: API key gratuïta (`spikes/README.md` §3c)
    - [ ] Gestor de contrasenyes compartit (`.pem`, claus, codis de recuperació)
    - [ ] gitleaks 8.30.1 instal·lat (`README.md` → Secrets al repo)
-   - [ ] Vercel: compte connectat a GitHub (Fase 1, punt 9)
+   - [x] Vercel: projecte `ledge-am` creat (`ledge` estava agafat)
+   - [ ] Vercel: enllaçar `ledge-am` al repo **`ArnauM13/ledge`** (ara apunta a una còpia, `ArnauM13/ledge-am`) i esborrar la còpia → `docs/MANUAL_SETUP.md` §3.3
 6. **Executar els spikes** a la teva màquina → `spikes/README.md`:
    - [ ] `npm run eb:aspsps` → hi ha MyInvestor i Trade Republic?
    - [ ] `npm run eb:connect -- --aspsp BBVA --member A` + `npm run eb:fetch -- --member A` → **G1**
@@ -82,7 +83,7 @@ Abans de fer res, llegeix del repo: CLAUDE.md, docs/CONTEXT.md, docs/README.md (
 Fase 1, punts 0–8, ja és a main: monorepo Nx (Angular 21 + NestJS 11 + Prisma 7), auth amb TOTP i cookie `__Host-ledge_session` SameSite=Strict, CSRF, aïllament de household, xifratge, gitleaks (`secrets.yml`) i CI (`ci.yml`: prettier, lint, test, build i test-integration). spikes/ és un paquet independent: no el toquis.
 
 ## Tasca d'aquesta sessió: Fase 1, punt 9
-Domini (D4): [omple]. VPS (D5): [omple]. Projecte de Vercel: [omple].
+Domini (D4): [omple]. VPS (D5): [omple]. Projecte de Vercel: `ledge-am` (equip «Arnau Martinez's projects»).
 
 - Projecte de Vercel connectat al repo que construeixi `apps/web` (`npx nx build web`, sortida `dist/apps/web/browser`), amb fallback SPA.
 - La cookie és SameSite=Strict: web i API han de ser el mateix site. Proposa com fer-ho (rewrite de `/api/*` de Vercel cap a l'API del VPS, o subdominis del domini de D4) i pregunta abans de decidir. Recorda `WEB_ORIGINS` i `API_TRUST_PROXY` (`.env.example`).
