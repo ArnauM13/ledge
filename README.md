@@ -26,7 +26,7 @@ spikes/           Scripts de la Fase 0, amb el seu propi package.json (fora de N
 
 ## Requisits
 
-- Node.js ≥ 20.19 (provat amb 22) i npm 10
+- Node.js 20.19+ o 22 (provat amb 22; `engines` acotat a `<23` perquè Vercel no salti a una major nova) i npm 10
 - Docker amb Compose v2 (només per a l'stack local amb Postgres)
 
 ## Arrencar en local
