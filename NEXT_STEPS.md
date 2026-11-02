@@ -11,7 +11,7 @@
 | Fase 0 · spikes (`enable-banking`, `binance`, `wallets`) | **Escrits; cap executat amb credencials reals**. Gates G1–G4 pendents |
 | Fase 1 · punts 0–7 | ✅ A `main` (PR #6 i #8). Login amb TOTP provat al navegador l'01/11 |
 | Fase 1 · punt 8 (CI) | ✅ `.github/workflows/ci.yml` (prettier, lint, test, build, test-integration). Falta fer-lo obligatori a GitHub (§1) |
-| Fase 1 · punt 9 (Vercel) | Pendent (§2.1). Projecte `ledge-am` creat, però enllaçat al repo equivocat (§1). Depèn de D4 i D5 |
+| Fase 1 · punt 9 (Vercel) | Pendent (§2.1). Projecte `ledge-am` enllaçat a `ArnauM13/ledge` (previews per PR). Falten `vercel.json`, D4 i D5 |
 | Gràfiques | Disseny ✅, lib + G-1 ✅ (PR #10 i #11), només a `/dev/charts`. Següent: G-2/G-3 i G-4/G-5 |
 | Disseny de la UI | Revisió amb skills ✅ (PR #12). Proposta a `docs/DESIGN_CHANGES.md`, **no implementada**. Pendent D6 |
 | Fase 2 · domini financer | No començada. No depèn de cap gate |
@@ -44,7 +44,8 @@ En aquest ordre. Cada pas enllaça la seva guia.
    - [ ] Gestor de contrasenyes compartit (`.pem`, claus, codis de recuperació)
    - [ ] gitleaks 8.30.1 instal·lat (`README.md` → Secrets al repo)
    - [x] Vercel: projecte `ledge-am` creat (`ledge` estava agafat)
-   - [ ] Vercel: enllaçar `ledge-am` al repo **`ArnauM13/ledge`** (ara apunta a una còpia, `ArnauM13/ledge-am`) i esborrar la còpia → `docs/MANUAL_SETUP.md` §3.3
+   - [x] Vercel: `ledge-am` enllaçat a `ArnauM13/ledge`
+   - [ ] Esborrar el repo còpia `ArnauM13/ledge-am` de GitHub, si encara hi és
 6. **Executar els spikes** a la teva màquina → `spikes/README.md`:
    - [ ] `npm run eb:aspsps` → hi ha MyInvestor i Trade Republic?
    - [ ] `npm run eb:connect -- --aspsp BBVA --member A` + `npm run eb:fetch -- --member A` → **G1**

@@ -138,15 +138,15 @@ Per veure com hauria de quedar el disseny proposat, obre directament al navegado
 
 Vercel sol no n'hi ha prou: la web necessita l'API, i la cookie de sessió (`SameSite=Strict`) obliga que web i API siguin al mateix domini. Per això cal:
 
-| #   | Què has de fer                                                                                                                                                                                                          | Decisió |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| 3.1 | Triar i comprar un **domini** (o fer servir un subdomini d'un que ja tinguis), p. ex. `ledge.<el-teu-domini>`                                                                                                           | D4      |
-| 3.2 | Crear un **VPS** a la UE (recomanat Hetzner CX22, ~4–7 €/mes) amb Ubuntu 24.04 i accés per clau SSH                                                                                                                     | D5      |
-| 3.3 | ✅ Projecte de **Vercel** `ledge-am` creat (02/11/2026). **Pendent**: a Vercel → _Settings_ → _Git_, desconnectar `ArnauM13/ledge-am` i connectar `ArnauM13/ledge`; després esborrar el repo còpia `ledge-am` de GitHub | —       |
-| 3.4 | Apuntar el DNS: `ledge.<domini>` → Vercel, `api.ledge.<domini>` (o una ruta `/api` via rewrite) → IP del VPS                                                                                                            | —       |
-| 3.5 | Obrir la sessió de la Fase 1, punt 9 (prompt a [`../NEXT_STEPS.md`](../NEXT_STEPS.md) §2.1) i passar-li: domini, IP del VPS i nom del projecte de Vercel                                                                | —       |
-| 3.6 | Al VPS, copiar **tu** els fitxers de `secrets/` (per `scp`, mai pel xat ni pel repo)                                                                                                                                    | —       |
-| 3.7 | Crear els dos usuaris al VPS amb `create-user` (§1.4) i fer el primer login                                                                                                                                             | —       |
+| #   | Què has de fer                                                                                                                                                  | Decisió |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| 3.1 | Triar i comprar un **domini** (o fer servir un subdomini d'un que ja tinguis), p. ex. `ledge.<el-teu-domini>`                                                   | D4      |
+| 3.2 | Crear un **VPS** a la UE (recomanat Hetzner CX22, ~4–7 €/mes) amb Ubuntu 24.04 i accés per clau SSH                                                             | D5      |
+| 3.3 | ✅ Projecte de **Vercel** `ledge-am` creat i enllaçat a `ArnauM13/ledge` (02/11/2026). Si encara existeix, esborrar el repo còpia `ArnauM13/ledge-am` de GitHub | —       |
+| 3.4 | Apuntar el DNS: `ledge.<domini>` → Vercel, `api.ledge.<domini>` (o una ruta `/api` via rewrite) → IP del VPS                                                    | —       |
+| 3.5 | Obrir la sessió de la Fase 1, punt 9 (prompt a [`../NEXT_STEPS.md`](../NEXT_STEPS.md) §2.1) i passar-li: domini, IP del VPS i nom del projecte de Vercel        | —       |
+| 3.6 | Al VPS, copiar **tu** els fitxers de `secrets/` (per `scp`, mai pel xat ni pel repo)                                                                            | —       |
+| 3.7 | Crear els dos usuaris al VPS amb `create-user` (§1.4) i fer el primer login                                                                                     | —       |
 
 Quan acabi, la Definition of Done de la Fase 1 es compleix: els dos feu login amb 2FA i veieu l'Overview buit a la URL pública.
 
