@@ -270,7 +270,7 @@ docker compose -f docker-compose.yml -f deploy/docker-compose.prod.yml run --rm 
 
 Després, cadascú a `https://ledge-am.vercel.app`: login, alta del TOTP amb el mòbil i **desar els 10 codis de recuperació** al gestor de contrasenyes. Quan tots dos veieu l'Overview, la **Fase 1 està tancada**: digues-ho a Claude perquè ho marqui a la documentació.
 
-> Vercel Authentication està activa al projecte (_Settings_ → _Deployment Protection_, «Standard Protection»): protegeix els previews. Si en obrir `ledge-am.vercel.app` us demana login de Vercel, cal posar-la a «Only Preview Deployments».
+> Vercel Authentication («Standard Protection») protegeix només els previews (redirigeixen al login de Vercel); `ledge-am.vercel.app` (producció) és pública (comprovat el 02/11/2026). No cal tocar-ho.
 
 ## 4. Després: perquè hi hagi xifres
 
