@@ -3,12 +3,12 @@
 > Actualitzat l'01/11/2026. Guies de tot el que has de fer tu: necessiten la teva màquina, els teus comptes o una decisió teva. L'ordre en què fer-ho és a [`../NEXT_STEPS.md`](../NEXT_STEPS.md) §1.
 > El flux local (§1) s'ha provat el 01/11/2026 de punta a punta: login, alta del TOTP, codis de recuperació i Overview.
 
-| #   | Què                                 | Temps  | Resultat                                 |
-| --- | ----------------------------------- | ------ | ---------------------------------------- |
-| 1   | Arrencar-la en local                | 20 min | Web a `http://localhost:4200` amb login  |
-| 2   | Veure la galeria de gràfiques       | 2 min  | G-1 amb dades de prova a `/dev/charts`   |
-| 3   | Decisions i comptes per publicar-la | 1–2 h  | CI obligatori; Claude fa Vercel i el VPS |
-| 5   | Registrar l'app a Enable Banking    | 30 min | App de producció activa per a l'spike G1 |
+| #   | Què                              | Temps  | Resultat                                 |
+| --- | -------------------------------- | ------ | ---------------------------------------- |
+| 1   | Arrencar-la en local             | 20 min | Web a `http://localhost:4200` amb login  |
+| 2   | Veure la galeria de gràfiques    | 2 min  | G-1 amb dades de prova a `/dev/charts`   |
+| 3   | Publicar-la (Vercel + VPS)       | 45 min | Login amb 2FA a `ledge-am.vercel.app`    |
+| 5   | Registrar l'app a Enable Banking | 30 min | App de producció activa per a l'spike G1 |
 
 ---
 
@@ -136,19 +136,141 @@ Per veure com hauria de quedar el disseny proposat, obre directament al navegado
 
 **Abans de res (5 min): fer obligatori el CI.** El workflow `ci.yml` ja s'executa a cada PR, però GitHub no impedeix fusionar si falla fins que no ho dius. A GitHub → _Settings_ → _Rules_ → _Rulesets_ → _New branch ruleset_: objectiu `main`, activa _Require a pull request before merging_ i _Require status checks to pass_, i afegeix `format, lint, test, build`, `API integration tests (PostgreSQL 17)` i `gitleaks (full history)` (apareixen després de la primera execució).
 
-Vercel sol no n'hi ha prou: la web necessita l'API, i la cookie de sessió (`SameSite=Strict`) obliga que web i API siguin al mateix domini. Per això cal:
+Vercel només serveix la web (fitxers estàtics). El login el comprova l'**API**, que guarda usuaris i sessions a **Postgres**: tots dos viuen en un **VPS** (D5). Vercel fa de proxy de `/api/*` cap al VPS (_rewrite_), així que el navegador només veu `ledge-am.vercel.app` i la cookie `SameSite=Strict` funciona sense domini propi (decidit el 02/11/2026; D4 pot esperar a la Fase 3).
 
-| #   | Què has de fer                                                                                                                                                  | Decisió |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| 3.1 | Triar i comprar un **domini** (o fer servir un subdomini d'un que ja tinguis), p. ex. `ledge.<el-teu-domini>`                                                   | D4      |
-| 3.2 | Crear un **VPS** a la UE (recomanat Hetzner CX22, ~4–7 €/mes) amb Ubuntu 24.04 i accés per clau SSH                                                             | D5      |
-| 3.3 | ✅ Projecte de **Vercel** `ledge-am` creat i enllaçat a `ArnauM13/ledge` (02/11/2026). Si encara existeix, esborrar el repo còpia `ArnauM13/ledge-am` de GitHub | —       |
-| 3.4 | Apuntar el DNS: `ledge.<domini>` → Vercel, `api.ledge.<domini>` (o una ruta `/api` via rewrite) → IP del VPS                                                    | —       |
-| 3.5 | Obrir la sessió de la Fase 1, punt 9 (prompt a [`../NEXT_STEPS.md`](../NEXT_STEPS.md) §2.1) i passar-li: domini, IP del VPS i nom del projecte de Vercel        | —       |
-| 3.6 | Al VPS, copiar **tu** els fitxers de `secrets/` (per `scp`, mai pel xat ni pel repo)                                                                            | —       |
-| 3.7 | Crear els dos usuaris al VPS amb `create-user` (§1.4) i fer el primer login                                                                                     | —       |
+```text
+Navegador ──► ledge-am.vercel.app ──┬─ /, /login…  → web (Vercel, vercel.json)
+                                    └─ /api/*  ──► VPS: Caddy (HTTPS, <ip>.sslip.io) → API → Postgres
+```
 
-Quan acabi, la Definition of Done de la Fase 1 es compleix: els dos feu login amb 2FA i veieu l'Overview buit a la URL pública.
+Fitxers: [`../vercel.json`](../vercel.json) (build, fallback de l'SPA, capçaleres) i [`../deploy/`](../deploy) (Compose de producció, `Caddyfile`, `prod.env.example`).
+
+| #   | Què has de fer                                                           | Qui    | Temps  |
+| --- | ------------------------------------------------------------------------ | ------ | ------ |
+| 3.1 | ✅ Projecte de **Vercel** `ledge-am` enllaçat a `ArnauM13/ledge`         | Tu     | —      |
+| 3.2 | Crear el **VPS** (§3.2)                                                  | Tu     | 10 min |
+| 3.3 | Passar la **IP** del VPS a Claude (només la IP, cap clau ni contrasenya) | Tu     | —      |
+| 3.4 | Afegir el rewrite de `/api` a `vercel.json` i fusionar el PR             | Claude | —      |
+| 3.5 | Preparar el VPS i desplegar l'API (§3.5)                                 | Tu     | 20 min |
+| 3.6 | Crear els dos usuaris i fer el primer login (§3.6)                       | Tu     | 5 min  |
+
+Si encara existeix, esborra el repo còpia `ArnauM13/ledge-am` de GitHub (el va crear Vercel; ja no el fa servir res).
+
+### 3.2 Crear el VPS (Hetzner)
+
+1. Si no en tens, genera una clau SSH **a la teva màquina** (la privada no surt mai d'allà):
+
+   ```bash
+   ssh-keygen -t ed25519 -C "ledge-vps"
+   ```
+
+2. A [Hetzner Cloud](https://console.hetzner.cloud) → _New project_ → _Add server_:
+   - **Location**: Falkenstein, Nuremberg o Helsinki (UE).
+   - **Image**: Ubuntu 24.04.
+   - **Type**: CX22 (2 vCPU, 4 GB; ~4–7 €/mes).
+   - **SSH keys**: enganxa el contingut de `~/.ssh/id_ed25519.pub`. Així no hi ha contrasenya de root.
+   - **Firewalls** → _Create firewall_, regles d'entrada: TCP 22 (millor només des de la teva IP), TCP 80 i TCP 443.
+   - **Backups**: recomanat (+20 %), són les vostres dades.
+3. Apunta la **IP pública (IPv4)** i passa-la a Claude (pas 3.3).
+
+### 3.5 Preparar el VPS i desplegar l'API
+
+Totes les ordres, connectat al VPS. Substitueix `<IP>` per la IP.
+
+**a) Usuari, actualitzacions i Docker** (com a `root`, un sol cop):
+
+```bash
+ssh root@<IP>
+```
+
+```bash
+apt update && apt -y upgrade && apt -y install git unattended-upgrades
+```
+
+```bash
+curl -fsSL https://get.docker.com | sh
+```
+
+```bash
+adduser --disabled-password --gecos "" deploy && usermod -aG docker deploy && rsync -a --chown=deploy:deploy ~/.ssh /home/deploy/
+```
+
+```bash
+sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config && systemctl reload ssh
+```
+
+A partir d'aquí, entra sempre com a `deploy`:
+
+```bash
+ssh deploy@<IP>
+```
+
+**b) Clonar el repo amb una _deploy key_** (només lectura, només aquest repo):
+
+```bash
+ssh-keygen -t ed25519 -f ~/.ssh/ledge_deploy -N "" -C "ledge-vps-deploy" && cat ~/.ssh/ledge_deploy.pub
+```
+
+Copia la línia que surt a GitHub → `ArnauM13/ledge` → _Settings_ → _Deploy keys_ → _Add deploy key_ (**sense** _Allow write access_). Després:
+
+```bash
+printf 'Host github.com\n  IdentityFile ~/.ssh/ledge_deploy\n  IdentitiesOnly yes\n' >> ~/.ssh/config
+```
+
+```bash
+git clone git@github.com:ArnauM13/ledge.git && cd ledge
+```
+
+**c) Configuració i secrets** (els secrets es generen **al VPS**: no viatgen mai):
+
+```bash
+cp deploy/prod.env.example .env && nano .env
+```
+
+Omple `LEDGE_API_HOST` amb la IP amb guions + `.sslip.io` (IP `203.0.113.10` → `203-0-113-10.sslip.io`). La resta ja ve bé.
+
+```bash
+mkdir -p secrets && chmod 700 secrets
+openssl rand -base64 32 > secrets/postgres_password
+openssl rand -base64 32 > secrets/ledge_master_key
+chmod 644 secrets/postgres_password secrets/ledge_master_key
+```
+
+Desa una còpia de **`secrets/ledge_master_key`** al gestor de contrasenyes (`cat secrets/ledge_master_key` i copiar-la allà, mai al xat): sense ella, els secrets TOTP xifrats són irrecuperables.
+
+**d) Arrencar** (la primera vegada triga uns minuts: construeix la imatge de l'API):
+
+```bash
+docker compose -f docker-compose.yml -f deploy/docker-compose.prod.yml up -d --build
+```
+
+Comprova-ho (des de la teva màquina; ha de tornar `200` amb `{"authenticated":false}`, no un error de connexió ni de certificat):
+
+```bash
+curl -i https://<IP-amb-guions>.sslip.io/api/auth/session
+```
+
+**Actualitzar** després d'un merge a `main`:
+
+```bash
+cd ~/ledge && git pull && docker compose -f docker-compose.yml -f deploy/docker-compose.prod.yml up -d --build
+```
+
+### 3.6 Crear els usuaris i el primer login
+
+Al VPS, dins de `~/ledge` (la contrasenya es demana amagada; vegeu [`../README.md`](../README.md#usuaris)):
+
+```bash
+docker compose -f docker-compose.yml -f deploy/docker-compose.prod.yml run --rm -it api node create-user.js --email <email-A> --name "<Nom A>" --household-name "Casa"
+```
+
+```bash
+docker compose -f docker-compose.yml -f deploy/docker-compose.prod.yml run --rm -it api node create-user.js --email <email-B> --name "<Nom B>" --household-id <uuid que ha imprès l'anterior>
+```
+
+Després, cadascú a `https://ledge-am.vercel.app`: login, alta del TOTP amb el mòbil i **desar els 10 codis de recuperació** al gestor de contrasenyes. Quan tots dos veieu l'Overview, la **Fase 1 està tancada**: digues-ho a Claude perquè ho marqui a la documentació.
+
+> Vercel Authentication està activa al projecte (_Settings_ → _Deployment Protection_, «Standard Protection»): protegeix els previews. Si en obrir `ledge-am.vercel.app` us demana login de Vercel, cal posar-la a «Only Preview Deployments».
 
 ## 4. Després: perquè hi hagi xifres
 

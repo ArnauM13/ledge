@@ -1,0 +1,35 @@
+# Production overrides for the VPS. Used together with the base file:
+#
+#   docker compose -f docker-compose.yml -f deploy/docker-compose.prod.yml up -d --build
+#
+# Adds Caddy (HTTPS, only /api/*) and stops publishing the API port: the API is
+# reachable only through Caddy. Guide: docs/MANUAL_SETUP.md §3.
+
+services:
+  api:
+    ports: !reset []
+    environment:
+      WEB_ORIGINS: ${WEB_ORIGINS:?set WEB_ORIGINS in .env}
+      API_TRUST_PROXY: ${API_TRUST_PROXY:?set API_TRUST_PROXY in .env}
+
+  caddy:
+    image: caddy:2.10.2-alpine
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      LEDGE_API_HOST: ${LEDGE_API_HOST:?set LEDGE_API_HOST in .env}
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      - edge
+
+volumes:
+  caddy-data:
+  caddy-config:

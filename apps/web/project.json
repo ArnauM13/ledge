@@ -37,6 +37,11 @@
             }
           ],
           "outputHashing": "all",
+          "optimization": {
+            "scripts": true,
+            "styles": { "minify": true, "inlineCritical": false },
+            "fonts": true
+          },
           "fileReplacements": [
             {
               "replace": "apps/web/src/app/dev/dev-routes.ts",

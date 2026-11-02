@@ -11,7 +11,7 @@
 | Fase 0 · spikes (`enable-banking`, `binance`, `wallets`) | **Escrits; cap executat amb credencials reals**. Gates G1–G4 pendents |
 | Fase 1 · punts 0–7 | ✅ A `main` (PR #6 i #8). Login amb TOTP provat al navegador l'01/11 |
 | Fase 1 · punt 8 (CI) | ✅ `.github/workflows/ci.yml` (prettier, lint, test, build, test-integration). Falta fer-lo obligatori a GitHub (§1) |
-| Fase 1 · punt 9 (Vercel) | Pendent (§2.1). Projecte `ledge-am` enllaçat a `ArnauM13/ledge` (previews per PR). Falten `vercel.json`, D4 i D5 |
+| Fase 1 · punt 9 (Vercel + VPS) | Configuració feta: `vercel.json` i `deploy/` (rewrite de `/api` des de Vercel, decidit el 02/11). **Falta el VPS (D5)** i el primer login → `docs/MANUAL_SETUP.md` §3 |
 | Gràfiques | Disseny ✅, lib + G-1 ✅ (PR #10 i #11), només a `/dev/charts`. Següent: G-2/G-3 i G-4/G-5 |
 | Disseny de la UI | Revisió amb skills ✅ (PR #12). Proposta a `docs/DESIGN_CHANGES.md`, **no implementada**. Pendent D6 |
 | Fase 2 · domini financer | No començada. No depèn de cap gate |
@@ -32,7 +32,7 @@ En aquest ordre. Cada pas enllaça la seva guia.
 4. **Decisions** → `docs/CONTEXT.md` §3:
    - [ ] **D1** Posicions de MyInvestor / Trade Republic manuals? *(recomanat: sí)*
    - [ ] **D2** NAV dels fons manual? *(recomanat: sí, a l'MVP)*
-   - [ ] **D4** Domini *(necessari per a Vercel, l'API i la redirecció d'Enable Banking)*
+   - [ ] **D4** Domini *(ja no cal per a la Fase 1: rewrite de `/api` a Vercel; sí per a la redirecció d'Enable Banking, Fase 3)*
    - [ ] **D5** VPS *(recomanat: Hetzner, ~4–7 €/mes)*
    - [ ] **D6** Idioma de la UI *(recomanat: català, `docs/DESIGN_CHANGES.md` §0)*
 5. **Comptes i credencials**:
@@ -45,6 +45,8 @@ En aquest ordre. Cada pas enllaça la seva guia.
    - [ ] gitleaks 8.30.1 instal·lat (`README.md` → Secrets al repo)
    - [x] Vercel: projecte `ledge-am` creat (`ledge` estava agafat)
    - [x] Vercel: `ledge-am` enllaçat a `ArnauM13/ledge`
+   - [ ] **VPS** creat i IP passada a Claude → `docs/MANUAL_SETUP.md` §3.2
+   - [ ] API desplegada al VPS i els dos usuaris creats → `docs/MANUAL_SETUP.md` §3.5–3.6 (**tanca la Fase 1**)
    - [ ] Esborrar el repo còpia `ArnauM13/ledge-am` de GitHub, si encara hi és
 6. **Executar els spikes** a la teva màquina → `spikes/README.md`:
    - [ ] `npm run eb:aspsps` → hi ha MyInvestor i Trade Republic?
@@ -64,42 +66,21 @@ Cada sessió nova: el hook instal·la les skills sol, i el prompt diu què llegi
 | 2 | G-2 + G-3 (distribució i KPI) | §2.2 | — |
 | 3 | G-4 + G-5 (hipoteca) | §2.3 | — (amb fixtures) |
 | 4 | Fase 2: domini financer | §2.5 | D1, D2 |
-| 5 | Fase 1, punt 9: Vercel + API desplegada | §2.1 | D4, D5, Vercel |
+| 5 | Fase 1, punt 9: rewrite de `/api` amb la IP del VPS | §2.1 | D5 (IP del VPS) |
 | 6 | Connectar G-1…G-5 a l'API | — | Fase 2 |
 | 7 | Viabilitat amb els informes dels spikes | §5 | Spikes executats |
 | 8 | Fase 3: adapters dels gates en GO | — | 5, 7 |
 
-### 2.1 Prompt: Fase 1, punt 9 (Vercel)
+### 2.1 Fase 1, punt 9: tancar-lo
 
-Cal haver decidit **D4** (domini) i **D5** (VPS) i tenir el compte de Vercel connectat a GitHub (`docs/MANUAL_SETUP.md` §3). El CI (punt 8) ja és a `ci.yml`.
-
-Obrir una sessió nova amb el repo `ArnauM13/ledge` seleccionat i enganxar:
+La configuració ja és feta (`vercel.json`, `deploy/`, guia a `docs/MANUAL_SETUP.md` §3). Queda una tasca petita, en aquesta mateixa sessió o en una de nova:
 
 ~~~~text
-Projecte: "ledge", un dashboard patrimonial privat per a una household de dues persones. Repo: ArnauM13/ledge.
-
-## Context
-Abans de fer res, llegeix del repo: CLAUDE.md, docs/CONTEXT.md, docs/README.md (índex), README.md (sobretot Autenticació, CSRF i CI), IMPLEMENTATION_PLAN.md (Fase 1), NEXT_STEPS.md i docs/MANUAL_SETUP.md §3.
-
-Fase 1, punts 0–8, ja és a main: monorepo Nx (Angular 21 + NestJS 11 + Prisma 7), auth amb TOTP i cookie `__Host-ledge_session` SameSite=Strict, CSRF, aïllament de household, xifratge, gitleaks (`secrets.yml`) i CI (`ci.yml`: prettier, lint, test, build i test-integration). spikes/ és un paquet independent: no el toquis.
-
-## Tasca d'aquesta sessió: Fase 1, punt 9
-Domini (D4): [omple]. VPS (D5): [omple]. Projecte de Vercel: `ledge-am` (equip «Arnau Martinez's projects»).
-
-- Projecte de Vercel connectat al repo que construeixi `apps/web` (`npx nx build web`, sortida `dist/apps/web/browser`), amb fallback SPA.
-- La cookie és SameSite=Strict: web i API han de ser el mateix site. Proposa com fer-ho (rewrite de `/api/*` de Vercel cap a l'API del VPS, o subdominis del domini de D4) i pregunta abans de decidir. Recorda `WEB_ORIGINS` i `API_TRUST_PROXY` (`.env.example`).
-- Capçaleres de seguretat a la web (CSP estricta, `frame-ancestors`, `Referrer-Policy`, HSTS).
-- Definition of Done de la Fase 1: els dos usuaris fan login amb 2FA i veuen un Overview buit a la URL pública. Si l'API encara no està desplegada, digues-ho clarament: no ho donis per fet.
-
-## Requisits
-- Actualitza la documentació (regla de CLAUDE.md).
-- `npx nx run-many -t lint test build`, `npx prettier --check .` i el CI en verd abans d'acabar.
-- Justifica cada dependència nova i fixa'n la versió.
-
-## Forma de treballar
-- Branca nova des de main i PR cap a main.
-- Si cal una decisió que no surt als documents, pregunta-ho abans de decidir.
-- Al final, resumeix què has fet, què has verificat (amb la sortida) i què queda pendent.
+Projecte "ledge" (repo ArnauM13/ledge). Llegeix CLAUDE.md, docs/CONTEXT.md, README.md (Desplegament) i docs/MANUAL_SETUP.md §3.
+Fase 1, punt 9: la IP del VPS és [omple]. Afegeix a vercel.json, abans del fallback de l'SPA, el rewrite
+{ "source": "/api/:path*", "destination": "https://<ip-amb-guions>.sslip.io/api/:path*" }, comprova el preview de Vercel
+i actualitza la documentació. Quan l'usuari confirmi que tots dos han fet login amb 2FA, marca la Fase 1 com a tancada
+(IMPLEMENTATION_PLAN.md, docs/CONTEXT.md, NEXT_STEPS.md). Branca nova des de main i PR cap a main.
 ~~~~
 
 ### 2.2 Prompt: G-2 (distribució per classe d'actiu) + G-3 (KPIs)
@@ -224,6 +205,8 @@ No són de la Fase 1 però convé no perdre'ls:
 - **TOTP perdut + codis de recuperació perduts**: no hi ha procediment. Caldria una ordre del CLI per reiniciar el 2FA d'un usuari (amb auditoria).
 - **Neteja de sessions caducades**: les files de `sessions` revocades o caducades no s'esborren (no afecta la seguretat, només l'espai).
 - **Capçaleres de seguretat de l'API** (helmet o equivalent): no afegides.
+- **IP del client falsejable si s'ataca el VPS directament**: Vercel no té IPs de sortida fixes, així que Caddy confia en qualsevol `X-Forwarded-For` (`deploy/Caddyfile`). Qui cridi `https://<ip>.sslip.io/api/*` sense passar per Vercel pot saltar-se el límit per IP (no el bloqueig per compte). Solució possible: capçalera secreta afegida per Vercel (Routing Middleware) i comprovada a Caddy.
+- **Desplegament manual**: actualitzar el VPS és `git pull` + `docker compose up --build`. Més endavant: imatge construïda al CI (GHCR) i backups de Postgres automàtics (`pg_dump` diari fora del VPS).
 - **Build de Docker darrere d'un proxy TLS**: `docker compose build` no passa el secret `npm_ca`; cal `docker build` a mà (`README.md`).
 
 ---
@@ -272,7 +255,7 @@ Treballa en una branca nova i obre un PR cap a main.
 | Fase | Què fa Claude | Què fas tu |
 |---|---|---|
 | **0 — Spikes** | Escriure els scripts (EB ✅, Binance ✅, wallets ✅) | Executar-los, revisar i passar els `*.report.md` |
-| **1 — Infraestructura** (§2.1) | Monorepo, Docker, `/health` ✅ · gitleaks, Prisma, auth amb 2FA, aïllament de household, xifratge, CI ✅ · Vercel | Revisar i fusionar els PR. Instal·lar gitleaks. Al final de la fase: decidir D4 (domini) i D5 (VPS), i connectar Vercel a GitHub |
+| **1 — Infraestructura** (§2.1) | Monorepo, Docker, `/health` ✅ · gitleaks, Prisma, auth amb 2FA, aïllament de household, xifratge, CI ✅ · Vercel | Revisar i fusionar els PR. Instal·lar gitleaks. Crear el VPS i desplegar l'API (`docs/MANUAL_SETUP.md` §3) |
 | **2 — Domini financer** | Model de dades financer, ownerships, entrades manuals, hipoteca, patrimoni net | Decidir D1 i D2. Preparar les dades manuals inicials (posicions de MyInvestor/TR, NAV, hipoteca, immobles) |
 | **3 — Integracions** | Un adapter per a cada gate en GO | Desplegar el backend amb domini HTTPS i canviar la Redirect URL de l'app de producció a `https://<domini>/...`. Posar els secrets al servidor (mai al repo) |
 | **4 — Sync i operació** | Sync nocturna, alertes de consentiment | Reconnectar BBVA quan caduqui el consentiment (cada ~90–180 dies, segons l'informe) |
