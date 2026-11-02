@@ -26,7 +26,7 @@ Fase 6                                                     ██████
 | D1 | Abast de les posicions de MyInvestor / Trade Republic | Manual · aturar el projecte | **Manual**, etiquetat a la UI |
 | D2 | Font del NAV dels fons | Manual · font externa (cal aprovar-la) | **Manual** a l'MVP |
 | D3 | Nom i visibilitat del repo | — | ✅ `ArnauM13/ledge`, **privat** |
-| D4 | Domini | Subdomini propi · `*.vercel.app` | Domini propi (necessari per a la redirecció HTTPS d'Enable Banking i l'API) |
+| D4 | Domini | Subdomini propi · `*.vercel.app` | Domini propi (necessari per a la redirecció HTTPS d'Enable Banking a la Fase 3). La Fase 1 funciona a `ledge-am.vercel.app` amb rewrite de `/api` |
 | D5 | Proveïdor del VPS | Hetzner · OVH · Scaleway | Hetzner (UE, ~4–7 €/mes) |
 | D6 | Idioma de la UI | Català · anglès | **Català** (els formats de les gràfiques ja són `ca-ES`). Vegeu `docs/DESIGN_CHANGES.md` §0 |
 
@@ -64,7 +64,7 @@ Ordre de treball, un PR per punt:
 6. ✅ **Aïllament de household**: guard NestJS + filtre obligatori per `household_id`, amb test (404, no 403).
 7. ✅ **Xifratge**: servei AES-256-GCM, master key en un fitxer de secrets (`/run/secrets/*`), mai a la BD ni en variables d'entorn. Fet abans del punt 5 perquè el secret TOTP es guarda xifrat.
 8. ✅ **CI** (GitHub Actions, `.github/workflows/ci.yml`): `prettier --check`, `nx run-many -t lint test build` i `nx run api:test-integration` amb Postgres 17 (gitleaks ja hi és des del punt 0, a `secrets.yml`).
-9. **Vercel**: projecte connectat al repo; deploy de `apps/web` (pantalla de login, sense dades).
+9. **Vercel + VPS** (en curs): ✅ projecte `ledge-am` connectat al repo; ✅ `vercel.json` (només `apps/web`, fallback de l'SPA, CSP i capçaleres); ✅ `deploy/` (Compose de producció amb Caddy). Falta: VPS, rewrite de `/api` amb la seva IP i primer login.
 
 **Decisions preses als punts 4–7 (01/11/2026):**
 
@@ -77,11 +77,11 @@ Ordre de treball, un PR per punt:
 | CSRF | Token sincronitzador lligat a la sessió + `Sec-Fetch-Site`/`Origin` + només JSON. |
 | Tests amb BD | Target propi `nx run api:test-integration` (Postgres d'un sol ús de `docker-compose.test.yml`). `nx test` són només unitaris. |
 | CI amb Postgres (punt 8) | El job d'integració **no** fa servir un `services:` de GitHub: un servei necessita la contrasenya com a text al workflow. Executa el mateix script que en local (`docker-compose.test.yml`, Postgres 17 en tmpfs), que genera una contrasenya aleatòria en un fitxer i la passa com a Compose secret. Actions fixades per SHA, `contents: read`, sense credencials persistides. |
-| Desplegament de la web | La cookie és `SameSite=Strict`: la web i l'API han de compartir site (mateix domini o subdominis). Depèn de D4. |
+| Desplegament de la web | La cookie és `SameSite=Strict`: la web i l'API han de compartir site. **Decidit (02/11/2026)**: rewrite de `/api/*` a Vercel cap a l'API del VPS (Caddy amb HTTPS a `<ip>.sslip.io`). No cal domini propi a la Fase 1. |
 
 **Definition of Done de la Fase 1:** els dos usuaris poden fer login amb 2FA i veuen un Overview buit a Vercel.
 
-**Estat (01/11/2026):** punts 0–8 a `main` (el 8, CI, a `ci.yml`); el flux de login funciona en local (provat al navegador). Falta el punt 9, que necessita D4 i D5, perquè la cookie `SameSite=Strict` obliga web i API al mateix site. Passos manuals: `docs/MANUAL_SETUP.md` §3.
+**Estat (01/11/2026):** punts 0–8 a `main` (el 8, CI, a `ci.yml`); el flux de login funciona en local (provat al navegador). **Actualització (02/11/2026)**: punt 9 configurat (`vercel.json`, `deploy/`); falta el VPS (D5) i el primer login. Passos manuals: `docs/MANUAL_SETUP.md` §3.
 
 ## Fase 2 — Domini financer (no depèn de cap gate)
 

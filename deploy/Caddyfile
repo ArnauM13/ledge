@@ -1,0 +1,23 @@
+# Reverse proxy in front of the API on the VPS (docker compose service `caddy`).
+# Only /api/* is published. TLS certificate from Let's Encrypt, automatic.
+# LEDGE_API_HOST comes from .env, e.g. 203-0-113-10.sslip.io (no domain needed).
+{
+	servers {
+		# Vercel (the only expected caller) has no fixed egress IPs, so Caddy
+		# keeps the incoming X-Forwarded-For and appends the caller's IP. The API
+		# trusts 2 hops (API_TRUST_PROXY=2): Caddy and Vercel. See docs/CONTEXT.md.
+		trusted_proxies static 0.0.0.0/0 ::/0
+	}
+}
+
+{$LEDGE_API_HOST} {
+	header -Server
+
+	handle /api/* {
+		reverse_proxy api:3000
+	}
+
+	handle {
+		respond 404
+	}
+}

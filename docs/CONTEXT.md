@@ -14,15 +14,15 @@ Dashboard patrimonial **privat** per a una household de dues persones (membre A 
 
 ## 2. Estat en una taula
 
-| Àrea                     | Estat                                                                                          | Detall                        |
-| ------------------------ | ---------------------------------------------------------------------------------------------- | ----------------------------- |
-| Fase 0 · viabilitat      | Recerca documental feta. **Cap prova real**: els 3 spikes estan escrits però no s'han executat | `INTEGRATION_FEASIBILITY.md`  |
-| Fase 1 · infraestructura | Punts 0–8 ✅ (CI a `ci.yml`). **Falta el 9 (Vercel)**: depèn de D4, D5 i del compte            | `IMPLEMENTATION_PLAN.md`      |
-| Gràfiques                | Disseny ✅, lib `libs/web/charts` + G-1 ✅ (només a `/dev/charts`)                             | `CHARTS.md`                   |
-| Disseny de la UI         | Revisat amb skills. Proposta i referències HTML **no implementades** a l'app                   | `DESIGN_CHANGES.md`           |
-| Fase 2 · domini financer | No començada. No depèn de cap gate                                                             | `IMPLEMENTATION_PLAN.md`      |
-| Fases 3–6                | Esperen els gates G1–G4, D4 i D5                                                               | `IMPLEMENTATION_PLAN.md`      |
-| Documentació i skills    | Centralitzada (PR #12). Hook `SessionStart` que instal·la les skills a cada sessió al núvol    | `docs/README.md`, `SKILLS.md` |
+| Àrea                     | Estat                                                                                                                 | Detall                        |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| Fase 0 · viabilitat      | Recerca documental feta. **Cap prova real**: els 3 spikes estan escrits però no s'han executat                        | `INTEGRATION_FEASIBILITY.md`  |
+| Fase 1 · infraestructura | Punts 0–8 ✅ (CI a `ci.yml`). **Falta el 9**: `vercel.json` i `deploy/` fets; **falta el VPS (D5)** i el primer login | `IMPLEMENTATION_PLAN.md`      |
+| Gràfiques                | Disseny ✅, lib `libs/web/charts` + G-1 ✅ (només a `/dev/charts`)                                                    | `CHARTS.md`                   |
+| Disseny de la UI         | Revisat amb skills. Proposta i referències HTML **no implementades** a l'app                                          | `DESIGN_CHANGES.md`           |
+| Fase 2 · domini financer | No començada. No depèn de cap gate                                                                                    | `IMPLEMENTATION_PLAN.md`      |
+| Fases 3–6                | Esperen els gates G1–G4, D4 i D5                                                                                      | `IMPLEMENTATION_PLAN.md`      |
+| Documentació i skills    | Centralitzada (PR #12). Hook `SessionStart` que instal·la les skills a cada sessió al núvol                           | `docs/README.md`, `SKILLS.md` |
 
 ## 3. Decisions
 
@@ -41,17 +41,18 @@ Dashboard patrimonial **privat** per a una household de dues persones (membre A 
 | Imports             | `NUMERIC` a Postgres i **string decimal** al JSON. El front no suma imports                                          | `CHARTS.md` §3                   |
 | Gràfiques           | SVG propi amb `d3-scale` + `d3-shape`; d3 no toca el DOM                                                             | `CHARTS.md`                      |
 | Estil visual        | `true-black-flat` (taste-skill): profunditat per lluminositat, un sol to de dada, primari blanc                      | `DESIGN_CHANGES.md` §0           |
+| Desplegament        | Web a Vercel (`ledge-am`); API + Postgres + Caddy en un VPS; rewrite de `/api/*` des de Vercel (02/11/2026)          | `README.md` → Desplegament       |
 | Detecció de secrets | gitleaks 8.30.1 (hook de pre-commit + CI) amb checksum                                                               | `README.md`                      |
 
 ### Pendents (de l'usuari)
 
-| #   | Pregunta                                          | Recomanació              | Bloqueja                |
-| --- | ------------------------------------------------- | ------------------------ | ----------------------- |
-| D1  | Posicions de MyInvestor / Trade Republic manuals? | Sí                       | Fase 2                  |
-| D2  | NAV dels fons manual?                             | Sí, a l'MVP              | Fase 2                  |
-| D4  | Domini                                            | Subdomini propi          | Vercel (punt 9), Fase 3 |
-| D5  | VPS                                               | Hetzner (UE, ~4–7 €/mes) | Desplegar l'API, Fase 3 |
-| D6  | Idioma de la UI                                   | Català                   | PR 2 de disseny         |
+| #   | Pregunta                                          | Recomanació              | Bloqueja                             |
+| --- | ------------------------------------------------- | ------------------------ | ------------------------------------ |
+| D1  | Posicions de MyInvestor / Trade Republic manuals? | Sí                       | Fase 2                               |
+| D2  | NAV dels fons manual?                             | Sí, a l'MVP              | Fase 2                               |
+| D4  | Domini                                            | Subdomini propi          | Fase 3 (redirecció d'Enable Banking) |
+| D5  | VPS                                               | Hetzner (UE, ~4–7 €/mes) | Fase 1 (punt 9), Fase 3              |
+| D6  | Idioma de la UI                                   | Català                   | PR 2 de disseny                      |
 
 ## 4. Arquitectura en breu
 
@@ -65,23 +66,26 @@ docs/             Documentació (índex a docs/README.md) i referències de diss
 scripts/          Hooks de git i install-skills.mjs
 ```
 
-- La web parla amb l'API a `/api` (proxy del dev-server en local). **Web i API han de ser al mateix site** per la cookie `SameSite=Strict`: per això Vercel depèn de D4.
+- La web parla amb l'API a `/api` (proxy del dev-server en local). **Web i API han de ser al mateix site** per la cookie `SameSite=Strict`. En producció, Vercel fa de proxy de `/api/*` cap a Caddy al VPS (`vercel.json`, `deploy/`): no cal domini propi.
 - Taules: `users`, `households`, `memberships`, `sessions`, `audit_logs` (append-only també a la BD) i les de recuperació/TOTP. Tota taula nova amb `household_id` va a `HOUSEHOLD_SCOPED_MODELS` (un test ho comprova).
 
 ## 5. Fets verificats
 
 Només el que s'ha comprovat de debò, amb data.
 
-| Data       | Fet                                                                                                                            | Com                                          |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------- |
-| 01/11/2026 | `npx nx run-many -t lint test build` en verd (12 tasques) i `prettier --check .` OK                                            | Sessió del PR #12                            |
-| 01/11/2026 | Flux complet al navegador: error genèric, alta del TOTP amb QR i clau, 10 codis de recuperació, Overview amb el nom            | Playwright amb codi TOTP generat (`otpauth`) |
-| 01/11/2026 | Les 2 migracions s'apliquen sobre Postgres 16; `create-user` funciona amb la contrasenya per stdin                             | Postgres local del contenidor                |
-| 01/11/2026 | Les referències de disseny passen `inspect.mjs --app` (0 FAIL) a 1440/768/390                                                  | taste-skill                                  |
-| 01/11/2026 | El hook de les skills: instal·la des de zero (57 s), se salta la instal·lació si ja hi són (0,006 s), no fa res fora del núvol | Execució directa del hook                    |
-| —          | **Cap integració real** (BBVA, Binance, wallets) s'ha provat mai                                                               | Spikes pendents d'executar                   |
-| 01/11/2026 | `api:test-integration`: 4 suites, 31 tests en verd sobre el Postgres 16 del contenidor (amb `DB_HOST`, sense Docker)           | Sessió del punt 8 (CI)                       |
-| 01/11/2026 | Un test que falla fa sortir amb codi 1 `nx run-many -t test` i `api:test-integration`; amb `DB_NAME` sense `_test` es nega     | Fitxers de prova temporals, esborrats        |
+| Data       | Fet                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Com                                          |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| 01/11/2026 | `npx nx run-many -t lint test build` en verd (12 tasques) i `prettier --check .` OK                                                                                                                                                                                                                                                                                                                                                                                                                                   | Sessió del PR #12                            |
+| 01/11/2026 | Flux complet al navegador: error genèric, alta del TOTP amb QR i clau, 10 codis de recuperació, Overview amb el nom                                                                                                                                                                                                                                                                                                                                                                                                   | Playwright amb codi TOTP generat (`otpauth`) |
+| 01/11/2026 | Les 2 migracions s'apliquen sobre Postgres 16; `create-user` funciona amb la contrasenya per stdin                                                                                                                                                                                                                                                                                                                                                                                                                    | Postgres local del contenidor                |
+| 02/11/2026 | Projecte de Vercel **`ledge-am`** (equip «Arnau Martinez's projects»; `ledge` ja existia). Framework Angular, Node 22, Vercel Authentication activa. Es va crear enllaçat a una còpia (`ArnauM13/ledge-am`); el mateix dia es va reconnectar a **`ArnauM13/ledge`** i el primer preview (branca `petja/blissful-heisenberg-2avvuj`, `093a259`) és READY. Producció (`ledge-am.vercel.app`) encara serveix la còpia fins al proper merge a `main`. Build actual: `npm run build` (totes les apps), sense `vercel.json` | Vercel MCP: `get_project` i logs del build   |
+| 02/11/2026 | Stack de producció (`db`, `migrate`, `api`, `caddy` amb `deploy/docker-compose.prod.yml`) en local: login + alta del TOTP a través de Caddy, `Origin` aliè → 403, `/health` i `/` → 404, l'API sense port publicat i la IP del client a `audit_logs` a través de 2 salts                                                                                                                                                                                                                                              | Docker al contenidor + script amb `fetch`    |
+| 02/11/2026 | Preview de Vercel amb `vercel.json`: només `nx build web`, OK. Els previews redirigeixen al login de Vercel (302); producció és pública (servia 404: el build de la còpia no publicava la web)                                                                                                                                                                                                                                                                                                                        | MCP de Vercel + `curl`                       |
+| 01/11/2026 | Les referències de disseny passen `inspect.mjs --app` (0 FAIL) a 1440/768/390                                                                                                                                                                                                                                                                                                                                                                                                                                         | taste-skill                                  |
+| 01/11/2026 | El hook de les skills: instal·la des de zero (57 s), se salta la instal·lació si ja hi són (0,006 s), no fa res fora del núvol                                                                                                                                                                                                                                                                                                                                                                                        | Execució directa del hook                    |
+| —          | **Cap integració real** (BBVA, Binance, wallets) s'ha provat mai                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Spikes pendents d'executar                   |
+| 01/11/2026 | `api:test-integration`: 4 suites, 31 tests en verd sobre el Postgres 16 del contenidor (amb `DB_HOST`, sense Docker)                                                                                                                                                                                                                                                                                                                                                                                                  | Sessió del punt 8 (CI)                       |
+| 01/11/2026 | Un test que falla fa sortir amb codi 1 `nx run-many -t test` i `api:test-integration`; amb `DB_NAME` sense `_test` es nega                                                                                                                                                                                                                                                                                                                                                                                            | Fitxers de prova temporals, esborrats        |
 
 Viabilitat per integració (documental, no provada): BBVA i Enable Banking **GO condicional**; Binance i wallets **GO**; fons, valors, hipoteca i immobles **manuals**. Detall a `INTEGRATION_FEASIBILITY.md` §0.
 
@@ -89,14 +93,14 @@ Viabilitat per integració (documental, no provada): BBVA i Enable Banking **GO 
 
 El que s'ha trobat en sessions anteriors i com resoldre-ho:
 
-| Situació                                                        | Què fer                                                                                                           |
-| --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| **No hi ha dimoni de Docker** (`docker compose` falla)          | Fes servir el Postgres del contenidor (recepta a sota). `api:test-integration` funciona amb `DB_HOST` exportat    |
-| **gitleaks no hi és** i el hook de pre-commit bloqueja          | Instal·la'l amb el checksum (`README.md` → Instal·lació). Mai `--no-verify`                                       |
-| **Push**: només es pot fer a la branca de la sessió             | El proxy de git rebutja altres branques i **no deixa esborrar-ne** (403). L'usuari ho ha de fer des de GitHub     |
-| **Skills**                                                      | Les instal·la el hook `SessionStart` (~1 min la primera sessió d'un contenidor nou). Si falten, `SKILLS.md` §2    |
-| **L'inspector de la taste-skill** no passa el login amb TOTP    | Inspecciona les referències de `docs/design` o fes el login amb Playwright (recepta a sota) i revisa les captures |
-| Postgres s'atura (contenidor reiniciat) i l'API cau en arrencar | `service postgresql start` i torna a engegar `nx serve api`                                                       |
+| Situació                                                        | Què fer                                                                                                                                                                                                                                                                                    |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **No hi ha dimoni de Docker** (`docker compose` falla)          | `dockerd` en segon pla funciona (02/11/2026). Docker Hub dona 429: `docker pull mirror.gcr.io/library/<img>` + `docker tag`. Build de l'API: `docker build --secret id=npm_ca,src=/root/.ccr/ca-bundle.crt` (`compose build` es penja). Si no, el Postgres del contenidor (recepta a sota) |
+| **gitleaks no hi és** i el hook de pre-commit bloqueja          | Instal·la'l amb el checksum (`README.md` → Instal·lació). Mai `--no-verify`                                                                                                                                                                                                                |
+| **Push**: només es pot fer a la branca de la sessió             | El proxy de git rebutja altres branques i **no deixa esborrar-ne** (403). L'usuari ho ha de fer des de GitHub                                                                                                                                                                              |
+| **Skills**                                                      | Les instal·la el hook `SessionStart` (~1 min la primera sessió d'un contenidor nou). Si falten, `SKILLS.md` §2                                                                                                                                                                             |
+| **L'inspector de la taste-skill** no passa el login amb TOTP    | Inspecciona les referències de `docs/design` o fes el login amb Playwright (recepta a sota) i revisa les captures                                                                                                                                                                          |
+| Postgres s'atura (contenidor reiniciat) i l'API cau en arrencar | `service postgresql start` i torna a engegar `nx serve api`                                                                                                                                                                                                                                |
 
 **Arrencar l'app en una sessió al núvol** (sense Docker), des de l'arrel del repo:
 
@@ -128,4 +132,6 @@ Després, `npx nx serve api` i `npx nx serve web` en segon pla, i el navegador a
 - **Les skills de l'ordinador no arriben al núvol.** Per això hi ha el hook `SessionStart` del repo (`SKILLS.md`).
 - **Les dades de prova han de quadrar.** La taste-skill ho exigeix i ho comprova: `console.assert` a les referències.
 - **El focus del teclat cal provar-lo.** Al codi semblava correcte; amb el teclat, el botó blanc no mostrava focus.
+- **Vercel «clona» el repo si no l'importes.** Crear el projecte des de _New project_ amb clonació fa un repo còpia (`ArnauM13/ledge-am`): cal importar el repo existent o reconnectar-lo a _Settings_ → _Git_.
+- **La CSS crítica inline d'Angular trenca una CSP estricta.** Carrega l'stylesheet amb `onload` inline: amb `script-src 'self'` la pàgina queda sense estils. Per això `inlineCritical: false`.
 - **La tauleta és la seva pròpia amplada.** A 768 px, la barra lateral ocupa el 31%: només ho va detectar la revisió a tres amplades.

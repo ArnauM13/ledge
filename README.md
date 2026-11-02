@@ -26,7 +26,7 @@ spikes/           Scripts de la Fase 0, amb el seu propi package.json (fora de N
 
 ## Requisits
 
-- Node.js ≥ 20.19 (provat amb 22) i npm 10
+- Node.js 20.19+ o 22 (provat amb 22; `engines` acotat a `<23` perquè Vercel no salti a una major nova) i npm 10
 - Docker amb Compose v2 (només per a l'stack local amb Postgres)
 
 ## Arrencar en local
@@ -275,6 +275,20 @@ Per projecte: `npx nx test web`, `npx nx lint api`, `npx nx build web`, `npx nx 
 Amb `npx nx serve web`, obre http://localhost:4200/dev/charts. Hi ha totes les gràfiques i els seus estats (buit, carregant, error) amb **dades de prova**.
 
 La galeria no demana login, no surt al menú i no existeix al build de producció: `fileReplacements` substitueix `apps/web/src/app/dev/dev-routes.ts` per una versió buida. Disseny i regles: [`docs/CHARTS.md`](docs/CHARTS.md).
+
+## Desplegament (Fase 1, punt 9)
+
+Web a Vercel (projecte `ledge-am`, `https://ledge-am.vercel.app`) i API + Postgres en un VPS. Guia pas a pas: [`docs/MANUAL_SETUP.md`](docs/MANUAL_SETUP.md) §3.
+
+| Peça                      | On                                                                                                                                            |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `vercel.json`             | `npm ci` + `npx nx build web` → `dist/apps/web/browser`. Fallback de l'SPA, capçaleres de seguretat i (amb la IP del VPS) rewrite de `/api/*` |
+| `deploy/`                 | `docker-compose.prod.yml` (s'afegeix a `docker-compose.yml`): Caddy amb HTTPS automàtic davant de l'API; l'API ja no publica cap port         |
+| `deploy/prod.env.example` | `.env` del VPS: `LEDGE_API_HOST` (`<ip-amb-guions>.sslip.io`), `WEB_ORIGINS=https://ledge-am.vercel.app`, `API_TRUST_PROXY=2`                 |
+
+- **Same-site**: el navegador només parla amb `ledge-am.vercel.app`; Vercel fa de proxy de `/api/*` cap a Caddy. Per això la cookie `__Host-` `SameSite=Strict` funciona sense domini propi.
+- **CSP**: `script-src 'self'` (sense inline). Per això el build de producció té `inlineCritical: false`: la CSS crítica inline d'Angular carrega l'stylesheet amb un `onload` inline que la CSP bloquejaria. `style-src` necessita `'unsafe-inline'` pels estils de components d'Angular; `img-src data:` pel QR del TOTP.
+- **IP del client** (límit per IP): Caddy conserva l'`X-Forwarded-For` de Vercel i l'API confia en 2 salts. Algú que ataqui el VPS directament pot falsejar la IP i saltar-se el límit per IP; el bloqueig per compte (a Postgres) es manté. Deute a `NEXT_STEPS.md` §3.
 
 ## Secrets al repo (gitleaks)
 
