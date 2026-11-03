@@ -1,6 +1,6 @@
 # NEXT_STEPS.md — Què falta
 
-> Actualitzat l'01/11/2026. Només el que **queda per fer**, en ordre.
+> Actualitzat el 03/11/2026. Només el que **queda per fer**, en ordre.
 > Què sabem (estat, decisions, entorn): [`docs/CONTEXT.md`](docs/CONTEXT.md). Índex: [`docs/README.md`](docs/README.md).
 > Guies dels passos manuals: [`docs/MANUAL_SETUP.md`](docs/MANUAL_SETUP.md). Prompts de sessions fetes: [`docs/archive/SESSION_PROMPTS.md`](docs/archive/SESSION_PROMPTS.md).
 
@@ -11,7 +11,7 @@
 | Fase 0 · spikes (`enable-banking`, `binance`, `wallets`) | **Escrits; cap executat amb credencials reals**. Gates G1–G4 pendents |
 | Fase 1 · punts 0–7 | ✅ A `main` (PR #6 i #8). Login amb TOTP provat al navegador l'01/11 |
 | Fase 1 · punt 8 (CI) | ✅ `.github/workflows/ci.yml` (prettier, lint, test, build, test-integration). Falta fer-lo obligatori a GitHub (§1) |
-| Fase 1 · punt 9 (Vercel + VPS) | Configuració feta: `vercel.json` i `deploy/` (rewrite de `/api` des de Vercel, decidit el 02/11). **Falta el VPS (D5)** i el primer login → `docs/MANUAL_SETUP.md` §3 |
+| Fase 1 · punt 9 (Vercel + VPS) | Configuració feta: `vercel.json` i `deploy/` (rewrite de `/api` des de Vercel, decidit el 02/11). D5 ✅ Oracle Cloud Always Free (03/11). **Falta crear el VPS** i el primer login → `docs/MANUAL_SETUP.md` §3 |
 | Gràfiques | Disseny ✅, lib + G-1 ✅ (PR #10 i #11), només a `/dev/charts`. Següent: G-2/G-3 i G-4/G-5 |
 | Disseny de la UI | Revisió amb skills ✅ (PR #12). Proposta a `docs/DESIGN_CHANGES.md`, **no implementada**. Pendent D6 |
 | Fase 2 · domini financer | No començada. No depèn de cap gate |
@@ -33,7 +33,7 @@ En aquest ordre. Cada pas enllaça la seva guia.
    - [ ] **D1** Posicions de MyInvestor / Trade Republic manuals? *(recomanat: sí)*
    - [ ] **D2** NAV dels fons manual? *(recomanat: sí, a l'MVP)*
    - [ ] **D4** Domini *(ja no cal per a la Fase 1: rewrite de `/api` a Vercel; sí per a la redirecció d'Enable Banking, Fase 3)*
-   - [ ] **D5** VPS *(recomanat: Hetzner, ~4–7 €/mes)*
+   - [x] **D5** VPS → **Oracle Cloud Always Free** (gratuït, 03/11/2026)
    - [ ] **D6** Idioma de la UI *(recomanat: català, `docs/DESIGN_CHANGES.md` §0)*
 5. **Comptes i credencials**:
    - [x] Enable Banking: compte creat
@@ -45,7 +45,7 @@ En aquest ordre. Cada pas enllaça la seva guia.
    - [ ] gitleaks 8.30.1 instal·lat (`README.md` → Secrets al repo)
    - [x] Vercel: projecte `ledge-am` creat (`ledge` estava agafat)
    - [x] Vercel: `ledge-am` enllaçat a `ArnauM13/ledge`
-   - [ ] **VPS** creat i IP passada a Claude → `docs/MANUAL_SETUP.md` §3.2
+   - [ ] **VPS** creat a Oracle Cloud (compte _Pay As You Go_ amb alerta d'1 €, ports 80/443 oberts, IP reservada) i IP passada a Claude → `docs/MANUAL_SETUP.md` §3.2
    - [ ] API desplegada al VPS i els dos usuaris creats → `docs/MANUAL_SETUP.md` §3.5–3.6 (**tanca la Fase 1**)
    - [ ] Esborrar el repo còpia `ArnauM13/ledge-am` de GitHub, si encara hi és
 6. **Executar els spikes** a la teva màquina → `spikes/README.md`:
@@ -66,7 +66,7 @@ Cada sessió nova: el hook instal·la les skills sol, i el prompt diu què llegi
 | 2 | G-2 + G-3 (distribució i KPI) | §2.2 | — |
 | 3 | G-4 + G-5 (hipoteca) | §2.3 | — (amb fixtures) |
 | 4 | Fase 2: domini financer | §2.5 | D1, D2 |
-| 5 | Fase 1, punt 9: rewrite de `/api` amb la IP del VPS | §2.1 | D5 (IP del VPS) |
+| 5 | Fase 1, punt 9: rewrite de `/api` amb la IP del VPS | §2.1 | IP del VPS d'Oracle |
 | 6 | Connectar G-1…G-5 a l'API | — | Fase 2 |
 | 7 | Viabilitat amb els informes dels spikes | §5 | Spikes executats |
 | 8 | Fase 3: adapters dels gates en GO | — | 5, 7 |
@@ -206,6 +206,7 @@ No són de la Fase 1 però convé no perdre'ls:
 - **Neteja de sessions caducades**: les files de `sessions` revocades o caducades no s'esborren (no afecta la seguretat, només l'espai).
 - **Capçaleres de seguretat de l'API** (helmet o equivalent): no afegides.
 - **IP del client falsejable si s'ataca el VPS directament**: Vercel no té IPs de sortida fixes, així que Caddy confia en qualsevol `X-Forwarded-For` (`deploy/Caddyfile`). Qui cridi `https://<ip>.sslip.io/api/*` sense passar per Vercel pot saltar-se el límit per IP (no el bloqueig per compte). Solució possible: capçalera secreta afegida per Vercel (Routing Middleware) i comprovada a Caddy.
+- **Imatge de l'API no provada en ARM64**: el VPS d'Oracle és ARM (Ampere A1). Les imatges base són multiarquitectura i l'`argon2` porta binaris `linux-arm64` musl, però el primer `docker compose up --build` al VPS en serà la prova real. Si falla, afegir un build `linux/arm64` al CI.
 - **Desplegament manual**: actualitzar el VPS és `git pull` + `docker compose up --build`. Més endavant: imatge construïda al CI (GHCR) i backups de Postgres automàtics (`pg_dump` diari fora del VPS).
 - **Build de Docker darrere d'un proxy TLS**: `docker compose build` no passa el secret `npm_ca`; cal `docker build` a mà (`README.md`).
 

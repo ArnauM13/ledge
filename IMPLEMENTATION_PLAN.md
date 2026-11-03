@@ -27,7 +27,7 @@ Fase 6                                                     ██████
 | D2 | Font del NAV dels fons | Manual · font externa (cal aprovar-la) | **Manual** a l'MVP |
 | D3 | Nom i visibilitat del repo | — | ✅ `ArnauM13/ledge`, **privat** |
 | D4 | Domini | Subdomini propi · `*.vercel.app` | Domini propi (necessari per a la redirecció HTTPS d'Enable Banking a la Fase 3). La Fase 1 funciona a `ledge-am.vercel.app` amb rewrite de `/api` |
-| D5 | Proveïdor del VPS | Hetzner · OVH · Scaleway | Hetzner (UE, ~4–7 €/mes) |
+| D5 | Proveïdor del VPS | Hetzner · OVH · Scaleway · Oracle Always Free | ✅ **Oracle Cloud Always Free** (ARM A1, regió UE, 0 €). Decidit el 03/11/2026: projecte personal, ha de ser gratuït |
 | D6 | Idioma de la UI | Català · anglès | **Català** (els formats de les gràfiques ja són `ca-ES`). Vegeu `docs/DESIGN_CHANGES.md` §0 |
 
 ## Pas previ B — Comptes i accessos (ho feu vosaltres)
@@ -64,7 +64,7 @@ Ordre de treball, un PR per punt:
 6. ✅ **Aïllament de household**: guard NestJS + filtre obligatori per `household_id`, amb test (404, no 403).
 7. ✅ **Xifratge**: servei AES-256-GCM, master key en un fitxer de secrets (`/run/secrets/*`), mai a la BD ni en variables d'entorn. Fet abans del punt 5 perquè el secret TOTP es guarda xifrat.
 8. ✅ **CI** (GitHub Actions, `.github/workflows/ci.yml`): `prettier --check`, `nx run-many -t lint test build` i `nx run api:test-integration` amb Postgres 17 (gitleaks ja hi és des del punt 0, a `secrets.yml`).
-9. **Vercel + VPS** (en curs): ✅ projecte `ledge-am` connectat al repo; ✅ `vercel.json` (només `apps/web`, fallback de l'SPA, CSP i capçaleres); ✅ `deploy/` (Compose de producció amb Caddy). Falta: VPS, rewrite de `/api` amb la seva IP i primer login.
+9. **Vercel + VPS** (en curs): ✅ projecte `ledge-am` connectat al repo; ✅ `vercel.json` (només `apps/web`, fallback de l'SPA, CSP i capçaleres); ✅ `deploy/` (Compose de producció amb Caddy). Falta: crear el VPS a Oracle Cloud (D5 ✅), rewrite de `/api` amb la seva IP i primer login.
 
 **Decisions preses als punts 4–7 (01/11/2026):**
 
@@ -81,7 +81,7 @@ Ordre de treball, un PR per punt:
 
 **Definition of Done de la Fase 1:** els dos usuaris poden fer login amb 2FA i veuen un Overview buit a Vercel.
 
-**Estat (01/11/2026):** punts 0–8 a `main` (el 8, CI, a `ci.yml`); el flux de login funciona en local (provat al navegador). **Actualització (02/11/2026)**: punt 9 configurat (`vercel.json`, `deploy/`); falta el VPS (D5) i el primer login. Passos manuals: `docs/MANUAL_SETUP.md` §3.
+**Estat (01/11/2026):** punts 0–8 a `main` (el 8, CI, a `ci.yml`); el flux de login funciona en local (provat al navegador). **Actualització (02/11/2026)**: punt 9 configurat (`vercel.json`, `deploy/`); falta el VPS (D5) i el primer login. **Actualització (03/11/2026)**: D5 decidit, Oracle Cloud Always Free. Passos manuals: `docs/MANUAL_SETUP.md` §3.
 
 ## Fase 2 — Domini financer (no depèn de cap gate)
 

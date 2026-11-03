@@ -278,7 +278,7 @@ La galeria no demana login, no surt al menú i no existeix al build de producci�
 
 ## Desplegament (Fase 1, punt 9)
 
-Web a Vercel (projecte `ledge-am`, `https://ledge-am.vercel.app`) i API + Postgres en un VPS. Guia pas a pas: [`docs/MANUAL_SETUP.md`](docs/MANUAL_SETUP.md) §3.
+Web a Vercel (projecte `ledge-am`, `https://ledge-am.vercel.app`) i API + Postgres en un VPS gratuït d'Oracle Cloud (Always Free, ARM64; D5). Guia pas a pas: [`docs/MANUAL_SETUP.md`](docs/MANUAL_SETUP.md) §3.
 
 | Peça                      | On                                                                                                                                            |
 | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |

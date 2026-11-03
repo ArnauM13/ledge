@@ -1,6 +1,6 @@
 # Què sabem del projecte
 
-> Actualitzat l'01/11/2026. **És el primer document que ha de llegir una sessió nova** (després de `CLAUDE.md`).
+> Actualitzat el 03/11/2026. **És el primer document que ha de llegir una sessió nova** (després de `CLAUDE.md`).
 > Recull el coneixement acumulat: què és ledge, què s'ha decidit, què funciona de veritat, com és l'entorn i què s'ha après pel camí.
 > El que **falta** és a [`../NEXT_STEPS.md`](../NEXT_STEPS.md). Les skills, a [`SKILLS.md`](SKILLS.md).
 
@@ -14,45 +14,45 @@ Dashboard patrimonial **privat** per a una household de dues persones (membre A 
 
 ## 2. Estat en una taula
 
-| Àrea                     | Estat                                                                                                                 | Detall                        |
-| ------------------------ | --------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
-| Fase 0 · viabilitat      | Recerca documental feta. **Cap prova real**: els 3 spikes estan escrits però no s'han executat                        | `INTEGRATION_FEASIBILITY.md`  |
-| Fase 1 · infraestructura | Punts 0–8 ✅ (CI a `ci.yml`). **Falta el 9**: `vercel.json` i `deploy/` fets; **falta el VPS (D5)** i el primer login | `IMPLEMENTATION_PLAN.md`      |
-| Gràfiques                | Disseny ✅, lib `libs/web/charts` + G-1 ✅ (només a `/dev/charts`)                                                    | `CHARTS.md`                   |
-| Disseny de la UI         | Revisat amb skills. Proposta i referències HTML **no implementades** a l'app                                          | `DESIGN_CHANGES.md`           |
-| Fase 2 · domini financer | No començada. No depèn de cap gate                                                                                    | `IMPLEMENTATION_PLAN.md`      |
-| Fases 3–6                | Esperen els gates G1–G4, D4 i D5                                                                                      | `IMPLEMENTATION_PLAN.md`      |
-| Documentació i skills    | Centralitzada (PR #12). Hook `SessionStart` que instal·la les skills a cada sessió al núvol                           | `docs/README.md`, `SKILLS.md` |
+| Àrea                     | Estat                                                                                                                                        | Detall                        |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| Fase 0 · viabilitat      | Recerca documental feta. **Cap prova real**: els 3 spikes estan escrits però no s'han executat                                               | `INTEGRATION_FEASIBILITY.md`  |
+| Fase 1 · infraestructura | Punts 0–8 ✅ (CI a `ci.yml`). **Falta el 9**: `vercel.json` i `deploy/` fets; **falta crear el VPS** (Oracle Cloud, D5 ✅) i el primer login | `IMPLEMENTATION_PLAN.md`      |
+| Gràfiques                | Disseny ✅, lib `libs/web/charts` + G-1 ✅ (només a `/dev/charts`)                                                                           | `CHARTS.md`                   |
+| Disseny de la UI         | Revisat amb skills. Proposta i referències HTML **no implementades** a l'app                                                                 | `DESIGN_CHANGES.md`           |
+| Fase 2 · domini financer | No començada. No depèn de cap gate                                                                                                           | `IMPLEMENTATION_PLAN.md`      |
+| Fases 3–6                | Esperen els gates G1–G4 i D4                                                                                                                 | `IMPLEMENTATION_PLAN.md`      |
+| Documentació i skills    | Centralitzada (PR #12). Hook `SessionStart` que instal·la les skills a cada sessió al núvol                                                  | `docs/README.md`, `SKILLS.md` |
 
 ## 3. Decisions
 
 ### Preses
 
-| Tema                | Decisió                                                                                                              | On                               |
-| ------------------- | -------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
-| Repo (D3)           | `ArnauM13/ledge`, privat                                                                                             | `IMPLEMENTATION_PLAN.md`         |
-| Stack               | Nx 24 · Angular 21 (standalone, OnPush, signals, zoneless) · NestJS 11 · Prisma 7 · PostgreSQL 17                    | `README.md`                      |
-| Estils              | Tailwind v3 amb prefix `t-` i tokens CSS. Tema únic fosc                                                             | `README.md` → Convencions        |
-| Secrets             | Sempre en fitxers (`secrets/`, `/run/secrets/*`). Mai en variables d'entorn, `.env`, xat ni logs                     | `CLAUDE.md`, `secrets/README.md` |
-| Auth                | argon2id + TOTP obligatori + codis de recuperació. Sessions opaques a Postgres en cookie `__Host-` `SameSite=Strict` | `README.md` → Autenticació       |
-| CSRF                | Token sincronitzador + `Sec-Fetch-Site`/`Origin` + només JSON                                                        | `README.md` → CSRF               |
-| Aïllament           | Guard + client de Prisma confinat a la household; resposta **404, mai 403**                                          | `README.md`                      |
-| Xifratge            | AES-256-GCM, AAD lligada a taula/columna/id, clau mestra en fitxer                                                   | `README.md`                      |
-| Imports             | `NUMERIC` a Postgres i **string decimal** al JSON. El front no suma imports                                          | `CHARTS.md` §3                   |
-| Gràfiques           | SVG propi amb `d3-scale` + `d3-shape`; d3 no toca el DOM                                                             | `CHARTS.md`                      |
-| Estil visual        | `true-black-flat` (taste-skill): profunditat per lluminositat, un sol to de dada, primari blanc                      | `DESIGN_CHANGES.md` §0           |
-| Desplegament        | Web a Vercel (`ledge-am`); API + Postgres + Caddy en un VPS; rewrite de `/api/*` des de Vercel (02/11/2026)          | `README.md` → Desplegament       |
-| Detecció de secrets | gitleaks 8.30.1 (hook de pre-commit + CI) amb checksum                                                               | `README.md`                      |
+| Tema                | Decisió                                                                                                                     | On                               |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| Repo (D3)           | `ArnauM13/ledge`, privat                                                                                                    | `IMPLEMENTATION_PLAN.md`         |
+| Stack               | Nx 24 · Angular 21 (standalone, OnPush, signals, zoneless) · NestJS 11 · Prisma 7 · PostgreSQL 17                           | `README.md`                      |
+| Estils              | Tailwind v3 amb prefix `t-` i tokens CSS. Tema únic fosc                                                                    | `README.md` → Convencions        |
+| Secrets             | Sempre en fitxers (`secrets/`, `/run/secrets/*`). Mai en variables d'entorn, `.env`, xat ni logs                            | `CLAUDE.md`, `secrets/README.md` |
+| Auth                | argon2id + TOTP obligatori + codis de recuperació. Sessions opaques a Postgres en cookie `__Host-` `SameSite=Strict`        | `README.md` → Autenticació       |
+| CSRF                | Token sincronitzador + `Sec-Fetch-Site`/`Origin` + només JSON                                                               | `README.md` → CSRF               |
+| Aïllament           | Guard + client de Prisma confinat a la household; resposta **404, mai 403**                                                 | `README.md`                      |
+| Xifratge            | AES-256-GCM, AAD lligada a taula/columna/id, clau mestra en fitxer                                                          | `README.md`                      |
+| Imports             | `NUMERIC` a Postgres i **string decimal** al JSON. El front no suma imports                                                 | `CHARTS.md` §3                   |
+| Gràfiques           | SVG propi amb `d3-scale` + `d3-shape`; d3 no toca el DOM                                                                    | `CHARTS.md`                      |
+| Estil visual        | `true-black-flat` (taste-skill): profunditat per lluminositat, un sol to de dada, primari blanc                             | `DESIGN_CHANGES.md` §0           |
+| Desplegament        | Web a Vercel (`ledge-am`); API + Postgres + Caddy en un VPS; rewrite de `/api/*` des de Vercel (02/11/2026)                 | `README.md` → Desplegament       |
+| VPS (D5)            | **Oracle Cloud Always Free** (ARM A1, 1 OCPU/6 GB, regió UE), compte _Pay As You Go_ amb alerta d'1 €. Gratuït (03/11/2026) | `docs/MANUAL_SETUP.md` §3.2      |
+| Detecció de secrets | gitleaks 8.30.1 (hook de pre-commit + CI) amb checksum                                                                      | `README.md`                      |
 
 ### Pendents (de l'usuari)
 
-| #   | Pregunta                                          | Recomanació              | Bloqueja                             |
-| --- | ------------------------------------------------- | ------------------------ | ------------------------------------ |
-| D1  | Posicions de MyInvestor / Trade Republic manuals? | Sí                       | Fase 2                               |
-| D2  | NAV dels fons manual?                             | Sí, a l'MVP              | Fase 2                               |
-| D4  | Domini                                            | Subdomini propi          | Fase 3 (redirecció d'Enable Banking) |
-| D5  | VPS                                               | Hetzner (UE, ~4–7 €/mes) | Fase 1 (punt 9), Fase 3              |
-| D6  | Idioma de la UI                                   | Català                   | PR 2 de disseny                      |
+| #   | Pregunta                                          | Recomanació     | Bloqueja                             |
+| --- | ------------------------------------------------- | --------------- | ------------------------------------ |
+| D1  | Posicions de MyInvestor / Trade Republic manuals? | Sí              | Fase 2                               |
+| D2  | NAV dels fons manual?                             | Sí, a l'MVP     | Fase 2                               |
+| D4  | Domini                                            | Subdomini propi | Fase 3 (redirecció d'Enable Banking) |
+| D6  | Idioma de la UI                                   | Català          | PR 2 de disseny                      |
 
 ## 4. Arquitectura en breu
 
@@ -134,4 +134,5 @@ Després, `npx nx serve api` i `npx nx serve web` en segon pla, i el navegador a
 - **El focus del teclat cal provar-lo.** Al codi semblava correcte; amb el teclat, el botó blanc no mostrava focus.
 - **Vercel «clona» el repo si no l'importes.** Crear el projecte des de _New project_ amb clonació fa un repo còpia (`ArnauM13/ledge-am`): cal importar el repo existent o reconnectar-lo a _Settings_ → _Git_.
 - **La CSS crítica inline d'Angular trenca una CSP estricta.** Carrega l'stylesheet amb `onload` inline: amb `script-src 'self'` la pàgina queda sense estils. Per això `inlineCritical: false`.
+- **Gratuït no vol dir sense condicions.** Per a un projecte personal, Oracle Always Free manté l'arquitectura del VPS a 0 €. A canvi: home region fixa, possible reclamació de màquines inactives (es mitiga amb _Pay As You Go_ i una alerta de pressupost) i un `iptables` propi a les imatges d'Ubuntu que cal obrir a més de la _Security List_ (`MANUAL_SETUP.md` §3.2 i §3.5). Vercel + Supabase es va descartar perquè obligava a posar els secrets en variables d'entorn i a deixar Binance sense IP fixa (03/11/2026).
 - **La tauleta és la seva pròpia amplada.** A 768 px, la barra lateral ocupa el 31%: només ho va detectar la revisió a tres amplades.

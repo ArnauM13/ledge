@@ -136,7 +136,7 @@ Per veure com hauria de quedar el disseny proposat, obre directament al navegado
 
 **Abans de res (5 min): fer obligatori el CI.** El workflow `ci.yml` ja s'executa a cada PR, però GitHub no impedeix fusionar si falla fins que no ho dius. A GitHub → _Settings_ → _Rules_ → _Rulesets_ → _New branch ruleset_: objectiu `main`, activa _Require a pull request before merging_ i _Require status checks to pass_, i afegeix `format, lint, test, build`, `API integration tests (PostgreSQL 17)` i `gitleaks (full history)` (apareixen després de la primera execució).
 
-Vercel només serveix la web (fitxers estàtics). El login el comprova l'**API**, que guarda usuaris i sessions a **Postgres**: tots dos viuen en un **VPS** (D5). Vercel fa de proxy de `/api/*` cap al VPS (_rewrite_), així que el navegador només veu `ledge-am.vercel.app` i la cookie `SameSite=Strict` funciona sense domini propi (decidit el 02/11/2026; D4 pot esperar a la Fase 3).
+Vercel només serveix la web (fitxers estàtics). El login el comprova l'**API**, que guarda usuaris i sessions a **Postgres**: tots dos viuen en un **VPS** gratuït d'Oracle Cloud (D5, decidit el 03/11/2026). Vercel fa de proxy de `/api/*` cap al VPS (_rewrite_), així que el navegador només veu `ledge-am.vercel.app` i la cookie `SameSite=Strict` funciona sense domini propi (decidit el 02/11/2026; D4 pot esperar a la Fase 3).
 
 ```text
 Navegador ──► ledge-am.vercel.app ──┬─ /, /login…  → web (Vercel, vercel.json)
@@ -148,7 +148,7 @@ Fitxers: [`../vercel.json`](../vercel.json) (build, fallback de l'SPA, capçaler
 | #   | Què has de fer                                                           | Qui    | Temps  |
 | --- | ------------------------------------------------------------------------ | ------ | ------ |
 | 3.1 | ✅ Projecte de **Vercel** `ledge-am` enllaçat a `ArnauM13/ledge`         | Tu     | —      |
-| 3.2 | Crear el **VPS** (§3.2)                                                  | Tu     | 10 min |
+| 3.2 | Crear el **VPS** a Oracle Cloud (§3.2)                                   | Tu     | 20 min |
 | 3.3 | Passar la **IP** del VPS a Claude (només la IP, cap clau ni contrasenya) | Tu     | —      |
 | 3.4 | Afegir el rewrite de `/api` a `vercel.json` i fusionar el PR             | Claude | —      |
 | 3.5 | Preparar el VPS i desplegar l'API (§3.5)                                 | Tu     | 20 min |
@@ -156,7 +156,9 @@ Fitxers: [`../vercel.json`](../vercel.json) (build, fallback de l'SPA, capçaler
 
 Si encara existeix, esborra el repo còpia `ArnauM13/ledge-am` de GitHub (el va crear Vercel; ja no el fa servir res).
 
-### 3.2 Crear el VPS (Hetzner)
+### 3.2 Crear el VPS (Oracle Cloud «Always Free»)
+
+D5 decidit el 03/11/2026: **Oracle Cloud Always Free** (0 €). Projecte personal per a dues persones, sense intenció d'escalar. Es queda igual que amb un VPS de pagament: mateix `deploy/`, secrets en fitxers i IP fixa per a Binance. Les condicions del nivell gratuït poden canviar: revisa-les a [oracle.com/cloud/free](https://www.oracle.com/cloud/free/) en registrar-te.
 
 1. Si no en tens, genera una clau SSH **a la teva màquina** (la privada no surt mai d'allà):
 
@@ -164,40 +166,59 @@ Si encara existeix, esborra el repo còpia `ArnauM13/ledge-am` de GitHub (el va 
    ssh-keygen -t ed25519 -C "ledge-vps"
    ```
 
-2. A [Hetzner Cloud](https://console.hetzner.cloud) → _New project_ → _Add server_:
-   - **Location**: Falkenstein, Nuremberg o Helsinki (UE).
-   - **Image**: Ubuntu 24.04.
-   - **Type**: CX22 (2 vCPU, 4 GB; ~4–7 €/mes).
-   - **SSH keys**: enganxa el contingut de `~/.ssh/id_ed25519.pub`. Així no hi ha contrasenya de root.
-   - **Firewalls** → _Create firewall_, regles d'entrada: TCP 22 (millor només des de la teva IP), TCP 80 i TCP 443.
-   - **Backups**: recomanat (+20 %), són les vostres dades.
-3. Apunta la **IP pública (IPv4)** i passa-la a Claude (pas 3.3).
+2. **Compte** a [oracle.com/cloud/free](https://www.oracle.com/cloud/free/). Demana una targeta per verificar la identitat; no cobra res mentre et quedis dins del nivell gratuït.
+   - **Home region**: tria'n una de la UE, per exemple **Spain Central (Madrid)** o **Germany Central (Frankfurt)**. **No es pot canviar després**, i els recursos gratuïts només existeixen a la home region.
+3. **Recomanat: passar el compte a _Pay As You Go_** (_Billing_ → _Upgrade and Manage Payment_) i crear un **pressupost amb alerta d'1 €** (_Billing_ → _Budgets_). Els recursos _Always Free_ continuen sent gratuïts, però així:
+   - Oracle no **reclama la màquina per inactivitat**. En un compte gratuït, una instància amb ús de CPU, xarxa i memòria per sota del 20 % durant 7 dies es pot aturar, i un dashboard de dues persones hi entra de ple.
+   - És més fàcil que hi hagi **capacitat ARM** disponible quan la creïs.
+
+   L'alerta et avisa si mai crees res de pagament per error.
+
+4. _Compute_ → _Instances_ → _Create instance_:
+   - **Image**: Canonical **Ubuntu 24.04** (la versió normal, no la «Minimal»).
+   - **Shape**: _Ampere_ → **VM.Standard.A1.Flex**, amb **1 OCPU i 6 GB** de RAM. Sobra per a l'API, Postgres i Caddy, i el límit gratuït és de 4 OCPU i 24 GB en total.
+   - **Networking**: crea una VCN nova amb una subxarxa pública i activa _Assign a public IPv4 address_.
+   - **Add SSH keys**: enganxa el contingut de `~/.ssh/id_ed25519.pub`.
+   - **Boot volume**: el de per defecte (~47 GB) ja va bé; el límit gratuït és de 200 GB.
+   - Si surt _Out of capacity_, prova un altre _Availability domain_ o torna-ho a provar més tard. Amb _Pay As You Go_ passa menys.
+5. **Obrir els ports 80 i 443 a la xarxa d'Oracle**: a la instància, entra a la subxarxa → _Security Lists_ → _Default Security List_ → _Add Ingress Rules_, amb dues regles: origen `0.0.0.0/0`, TCP, port de destí `80`, i el mateix amb el `443`. El 22 ja està obert.
+   - Millor: edita la regla del 22 perquè l'origen sigui només la teva IP (`<la-teva-ip>/32`).
+6. **IP fixa**: _Networking_ → _Reserved public IPs_. Converteix la IP de la instància en **reservada** perquè no canviï mai, ni tan sols si refàs la màquina. Comprova que no surt com a recurs de pagament.
+7. Apunta la **IP pública (IPv4)** i passa-la a Claude (pas 3.3).
 
 ### 3.5 Preparar el VPS i desplegar l'API
 
 Totes les ordres, connectat al VPS. Substitueix `<IP>` per la IP.
 
-**a) Usuari, actualitzacions i Docker** (com a `root`, un sol cop):
+**a) Usuari, tallafocs, actualitzacions i Docker** (com a `ubuntu`, l'usuari per defecte d'Oracle, un sol cop):
 
 ```bash
-ssh root@<IP>
+ssh ubuntu@<IP>
 ```
 
 ```bash
-apt update && apt -y upgrade && apt -y install git unattended-upgrades
+sudo apt update && sudo apt -y upgrade && sudo apt -y install git unattended-upgrades
+```
+
+Les imatges d'Ubuntu d'Oracle porten un tallafocs propi (`iptables`) que **només deixa passar el 22**, a més de la _Security List_ del pas 3.2. Obre-hi el 80 i el 443 i desa-ho perquè es mantingui en reiniciar:
+
+```bash
+sudo iptables -I INPUT -p tcp -m multiport --dports 80,443 -m conntrack --ctstate NEW -j ACCEPT && sudo netfilter-persistent save
 ```
 
 ```bash
-curl -fsSL https://get.docker.com | sh
+curl -fsSL https://get.docker.com | sudo sh
 ```
 
 ```bash
-adduser --disabled-password --gecos "" deploy && usermod -aG docker deploy && rsync -a --chown=deploy:deploy ~/.ssh /home/deploy/
+sudo adduser --disabled-password --gecos "" deploy && sudo usermod -aG docker deploy && sudo rsync -a --chown=deploy:deploy /home/ubuntu/.ssh /home/deploy/
 ```
 
 ```bash
-sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config && systemctl reload ssh
+sudo sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config && sudo systemctl reload ssh
 ```
+
+La màquina és **ARM64**. Les imatges `postgres:17-alpine`, `caddy` i `node:22-alpine` són multiarquitectura, i l'`argon2` porta binaris precompilats per a `linux-arm64` (musl), així que la imatge de l'API es construeix al mateix VPS sense cap canvi.
 
 A partir d'aquí, entra sempre com a `deploy`:
 
